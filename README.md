@@ -29,8 +29,8 @@ systemctl status nextjs
 
 ---
 
-###Justin doesn't work here anymore contingency plan 
-#####(AKA new maintaner do this)
+### Justin doesn't work here anymore contingency plan 
+##### (AKA new maintaner do this)
 
 Get stephen to set you as the account on the systemd file (this means the process is started under your username. Also now you can kill it if you want to start it over again)
 ```shell script
