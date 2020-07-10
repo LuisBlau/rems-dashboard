@@ -15,6 +15,15 @@ export default function OverviewStorePaper(props) {
     },
   }));
 
+  const downloadTxtFile = () => {
+    const element = document.createElement("a");
+    const file = new Blob(["Hello World\n", "I am justin"], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "myFile.txt";
+    document.body.appendChild(element); // Required for this to work in FireFox
+    element.click();
+  }
+
   const splunk_link = splunkLinker(props.data.store_num, props.data.country)
   const store_link = storeLinker(props.data.store_num,props.data.country.toLowerCase())
   const register_link = registerStatusLinker(props.data.store_num)
@@ -30,8 +39,11 @@ export default function OverviewStorePaper(props) {
       <Grid className={classes.barHeight} item xs={8}>
         <ColoredProgressBar percent={(props.data.connected / total_registers) * 100}/>
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={9}>
         <Typography>Last Check: {props.data.last_updated}</Typography>
+      </Grid>
+      <Grid item xs={3}>
+        <Button variant={"outlined"} type={"reset"} onClick={downloadTxtFile}>TextFileButton</Button>
       </Grid>
       <Buttons
         splunk={splunk_link}

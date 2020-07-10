@@ -1,15 +1,12 @@
-import React, { useState } from "react";
-import Container from "@material-ui/core/Container";
-import Box from "@material-ui/core/Box";
-import Copyright from "../../src/Copyright";
+import React, {useState} from "react";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
+import {makeStyles} from "@material-ui/core/styles";
 import useSWR from "swr";
 import fetcher from "../../lib/lib.js";
-import OverviewStorePaper from "../../components/Connection/OverviewStorePaper";
-import TextField from "@material-ui/core/TextField";
 import LowMemoryPaper from "../../components/Memory/LowMemoryPaper";
+import OverviewLayout from "../../components/OverviewLayout";
+import TextField from "@material-ui/core/TextField";
 
 const drawerWidth = 240;
 
@@ -30,17 +27,15 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
-    height: 240,
-  },
 }));
 
-export default function ConnectionOverview() {
+export default function ConnectionOverview(props) {
+
   const classes = useStyles();
+  const [filterText, setFilterText] = useState(props.filter);
 
-  const [filterText, setFilterText] = useState("");
 
-  const { data, error } = useSWR(
+  const {data, error} = useSWR(
     "/low-mem",
     fetcher
   );
@@ -48,34 +43,32 @@ export default function ConnectionOverview() {
   if (!data) return <div>loading...</div>;
 
   return (
-    <main className={classes.content}>
-      <div className={classes.appBarSpacer} />
-      <Container maxWidth="lg" className={classes.container}>
-        <Grid container spacing={3}>
-          <Grid item xs={8} />
-          <Grid item xs={4}>
-            <TextField
-              id="outlined-basic"
-              label="Filter"
-              variant="outlined"
-              onChange={(event) => setFilterText(event.target.value)}
-            />
-          </Grid>
-          {data
-            .filter((controller) =>
-              Object.keys(controller)[0].includes(filterText.toLowerCase())
-            ).map((controller) => (
-              <Grid item xs={12}>
-                <Paper className={classes.paper}>
-                  <LowMemoryPaper data={controller} />
-                </Paper>
-              </Grid>
-            ))}
+  <OverviewLayout>
+    <Grid item xs={8}/>
+    <Grid item xs={4}>
+      <TextField
+        defaultValue={props.filter}
+        id="outlined-basic"
+        label="Filter"
+        variant="outlined"
+        onChange={(event) => setFilterText(event.target.value)}
+      />
+    </Grid>
+    { data.filter((controller) =>
+        Object.keys(controller)[0].includes(filterText.toLowerCase())
+      ).map((controller) => (
+        <Grid item xs={12}>
+          <Paper className={classes.paper}>
+            <LowMemoryPaper data={controller}/>
+          </Paper>
         </Grid>
-        <Box pt={4}>
-          <Copyright />
-        </Box>
-      </Container>
-    </main>
+      ))
+    }
+  </OverviewLayout>
+
   );
+}
+
+ConnectionOverview.defaultProps = {
+  filter: ""
 }
