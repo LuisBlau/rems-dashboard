@@ -57,6 +57,6 @@ tmux
 # in the new screen start the server
 npm run start
 ```
-deattach from the tmux session using (ctrl-b)(c) (this means hit control+b, then pick up your hand and then hit "d"
+deattach from the tmux session using (ctrl-b)(c) (this means hit control+b, then pick up your hand and then hit "d")
 
 now it won't die when you exit ssh
