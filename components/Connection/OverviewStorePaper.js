@@ -17,9 +17,9 @@ export default function OverviewStorePaper(props) {
 
   const downloadTxtFile = () => {
     const element = document.createElement("a");
-    const file = new Blob(["Hello World\n", "I am justin"], {type: 'text/plain'});
+    const file = new Blob(["\"C:\\Program Files\\Putty\\putty.exe\" -load \"wm-pos\" -ssh cpp.s0"+props.data.store_num+"."+props.data.country], {type: 'text/plain'});
     element.href = URL.createObjectURL(file);
-    element.download = "myFile.txt";
+    element.download = "connect.bat";
     document.body.appendChild(element); // Required for this to work in FireFox
     element.click();
   }
@@ -43,7 +43,7 @@ export default function OverviewStorePaper(props) {
         <Typography>Last Check: {props.data.last_updated}</Typography>
       </Grid>
       <Grid item xs={3}>
-        <Button variant={"outlined"} type={"reset"} onClick={downloadTxtFile}>TextFileButton</Button>
+        <Button variant={"outlined"} type={"reset"} onClick={downloadTxtFile}>Putty</Button>
       </Grid>
       <Buttons
         splunk={splunk_link}
