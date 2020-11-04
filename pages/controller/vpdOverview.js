@@ -40,7 +40,7 @@ export default function ConnectionOverview() {
   const [filterText, setFilterText] = useState("");
 
   const { data, error } = useSWR(
-    "/vpd",
+    "/REMS/vpd",
     fetcher
   );
   if (error) return <div>failed to load</div>;

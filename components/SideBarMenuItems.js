@@ -6,6 +6,7 @@ import DashboardIcon from "@material-ui/icons/Dashboard";
 import SettingsInputComponentIcon from "@material-ui/icons/SettingsInputComponent";
 import Storage from "@material-ui/icons/Storage";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
+import Visibility from "@material-ui/icons/Visibility";
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 
 import Link from "next/link";
@@ -15,23 +16,23 @@ const MenuItems = [
     name: "Dashboard",
     route: "/",
     icon: <DashboardIcon/>
-  },
-  {
+  }, {
     name: "Store Release Levels",
     route: "/store/releaseOverview",
     icon: <SystemUpdateAltIcon/>,
-  },
-  {
+  }, {
     name: "Store Connection",
     route: "/store/connectionOverview",
     icon: <SettingsInputComponentIcon/>,
-  },
-  {
+  }, {
+    name: "All Seeing Eye",
+    route: "/registers/allSeeingEye",
+    icon: <Visibility/>,
+  }, {
     name: "SCO Drive Use",
     route: "/controller/lowMemoryOverview",
     icon: <Storage/>,
-  },
-  {
+  }, {
     name: "VPD Info",
     route: "/controller/vpdOverview",
     icon: <NetworkCheckIcon/>,

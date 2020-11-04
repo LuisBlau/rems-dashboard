@@ -40,7 +40,7 @@ export default function ConnectionOverview() {
   const [filterText, setFilterText] = useState("");
 
   const { data, error } = useSWR(
-    "/store-connection",
+    "/REMS/store-connection",
     fetcher
   );
   if (error) return <div>failed to load</div>;

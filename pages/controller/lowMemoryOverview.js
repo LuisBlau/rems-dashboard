@@ -36,7 +36,7 @@ export default function ConnectionOverview(props) {
 
 
   const {data, error} = useSWR(
-    "/low-mem",
+    "/REMS/low-mem",
     fetcher
   );
   if (error) return <div>failed to load</div>;

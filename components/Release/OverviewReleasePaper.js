@@ -26,8 +26,8 @@ export default function OverviewReleasePaper(props) {
 }
 
 function ReleaseTable(props) {
-  console.log(props.data.type);
-  return (
+  if (props.data == null) return <div>loading</div>
+  else return (
     <React.Fragment>
       <Table size="small">
         <TableHead>
