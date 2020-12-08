@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
@@ -8,11 +8,15 @@ import {RealtimeCharts} from "../../components/RealtimeCharts";
 import InputLabel from "@material-ui/core/InputLabel";
 import Input from "@material-ui/core/Input";
 import FormControl from "@material-ui/core/FormControl";
-import {Button} from "@material-ui/core";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import useSWR from "swr";
 import fetcher from "../../lib/fetcherWithHeader";
+import Table from "@material-ui/core/Table";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import TableCell from "@material-ui/core/TableCell";
+import TableBody from "@material-ui/core/TableBody";
 
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
@@ -44,18 +48,18 @@ export default function Realtime() {
   })
 
   function setStore(store) {
-    setState(prevState => ({ ...prevState, store }))
+    setState(prevState => ({...prevState, store}))
     console.log("new state: " + JSON.stringify(state))
   }
 
   function setHours(hours) {
-    setState(prevState => ({ ...prevState, hours }))
+    setState(prevState => ({...prevState, hours}))
     console.log("new state: " + JSON.stringify(state))
   }
 
   function setRegOrSnap() {
-    let result = state["regOrSnap"] === 'snapshots' ? 'registers':'snapshots'
-    setState(prevState => ({ ...prevState, "regOrSnap" : result }))
+    let result = state["regOrSnap"] === 'snapshots' ? 'registers' : 'snapshots'
+    setState(prevState => ({...prevState, "regOrSnap": result}))
     console.log("new state: " + JSON.stringify(state))
   }
 
@@ -79,7 +83,7 @@ export default function Realtime() {
           </Grid>
           <Grid item xs={3}>
             <FormControlLabel label={state.regOrSnap}
-              control={<Switch onChange={setRegOrSnap} color="primary"/>}
+                              control={<Switch onChange={setRegOrSnap} color="primary"/>}
             />
           </Grid>
           <Grid item xs={3}>
@@ -89,7 +93,9 @@ export default function Realtime() {
           <Grid item xs={12}>
             <RealtimeCharts state={state}/>
           </Grid>
-
+          <Grid>
+            <ReloadTable/>
+          </Grid>
         </Grid>
         <Box pt={4}>
           <Copyright/>
@@ -113,4 +119,85 @@ function ReloadCount(props) {
       {data.count}
     </React.Fragment>
   );
+}
+
+function ReloadTable(props) {
+
+  const {data, error} = useSWR('/snapshots/properties', fetcher);
+
+  if (error) return <div>failed to load property data</div>;
+  if (!data) return <div>loading property data...</div>;
+
+
+  return (
+    <React.Fragment>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Date</TableCell>
+            <TableCell>Country</TableCell>
+            <TableCell>Register</TableCell>
+            <TableCell>Store</TableCell>
+            <ReloadTableHeader properties={data}/>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <ReloadTableBody properties={data}/>
+        </TableBody>
+      </Table>
+    </React.Fragment>
+  );
+}
+
+function ReloadTableHeader(props) {
+
+  return ((
+    props.properties.map((property) => (
+      <TableCell>{property.property_id}:{property.property_name}</TableCell>
+    ))
+  ))
+}
+
+function ReloadTableBody(props) {
+  const {data, error} = useSWR('/snapshots/snaptime', fetcher);
+
+  if (error) return <div>failed to load property data</div>;
+  if (!data) return <div>loading property data...</div>;
+
+  console.log(data)
+  // useEffect(
+  //   () => {
+  //     console.log("in init effect")
+  //     const loadData = async () => {
+  //       await fetch("http://localhost:3001/snapshots/snaptime").then(res => setData(res.json()))
+  //     }
+  //     loadData()
+  //     console.log("close init effect")
+  //
+  //   }, []
+  // )
+
+  // useEffect(
+  //   () => {
+  //     console.log("in data effect")
+  //     console.log(data)
+  //     console.log("close data effect")
+  //   }, [data]
+  // )
+
+  return (
+    <React.Fragment>
+      {Object.keys(data).map((reload_key) => (
+        <TableRow>
+          <TableCell>{reload_key}</TableCell>
+          <TableCell>{data[reload_key]["country"]}</TableCell>
+          <TableCell>{data[reload_key]["register"]}</TableCell>
+          <TableCell>{data[reload_key]["store"]}</TableCell>
+          {Object.keys(data[reload_key]["props"]).map((prop_key) => (
+            <TableCell>{data[reload_key]["props"][prop_key]}</TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </React.Fragment>
+  )
 }
