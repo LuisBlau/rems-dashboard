@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
-import Realtime from "./registers/realtime";
+import Realtime from "./registers/realtime_alternative";
 
 const drawerWidth = 240;
 
