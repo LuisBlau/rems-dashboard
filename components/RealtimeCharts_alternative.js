@@ -8,9 +8,6 @@ import PieChart, {Connector, Label, Legend, Series, Size} from 'devextreme-react
 
 
 export function RealtimeCharts(props) {
-  const {data, error} = useSWR(['/snapshots/snaptime', state], fetcher);
-  if (error) return <div>failed to load property data</div>;
-  if (!data) return <div>loading property data...</div>;
   return (
     <React.Fragment>
       <Grid container spacing={2}>

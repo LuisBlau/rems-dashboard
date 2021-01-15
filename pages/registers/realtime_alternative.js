@@ -7,8 +7,6 @@ import Box from "@material-ui/core/Box";
 import InputLabel from "@material-ui/core/InputLabel";
 import Input from "@material-ui/core/Input";
 import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
 import useSWR from "swr";
 import fetcher from "../../lib/fetcherWithHeader";
 import Table from "@material-ui/core/Table";
@@ -46,7 +44,7 @@ export default function Realtime() {
 
   const [state, setState] = useState({
     "store": 0,
-    "hours": 0,
+    "hours": 12,
     "regOrSnap": "snapshots",
   })
 
@@ -99,46 +97,33 @@ export default function Realtime() {
 
   //</editor-fold>
 
-  function handleKeyPressHours(e) {
-      setHours(e.target.value)
-  }
 
-  function handleKeyPressState(e) {
-      setHours(e.target.value)
-  }
-
+  console.log(state)
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
           <Grid item xs={3}>
-            <FormControl >
+            <FormControl>
               <InputLabel htmlFor="component-simple">Store</InputLabel>
-              <Input id="component-simple" onChange={handleKeyPressState}/>
+              <Input id="component-simple" onChange={(e) => setStore(e.target.value)}/>
             </FormControl>
           </Grid>
           <Grid item xs={3}>
-            <FormControl >
-              <InputLabel htmlFor="component-simple">Hours</InputLabel>
-              <Input id="component-simple" onChange={handleKeyPressHours}/>
+            <FormControl>
+              <InputLabel htmlFor="component-simple">Hours (Default: {state.hours})</InputLabel>
+              <Input id="component-simple" onChange={e => setHours(e.target.value)}/>
             </FormControl>
-          </Grid>
-          <Grid item xs={3}>
-
           </Grid>
           <Grid item xs={3}>
             <Button onClick={resetFilters} variant={"contained"} color={"secondary"}>Clear Filters</Button>
           </Grid>
 
-          <Grid item xs={12}>
-            <RealtimeCharts filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
-                            scanner1Filter={setScanner1}
-                            scanner2Filter={setScanner2} state={state}/>
-          </Grid>
-          <Grid>
-            <ReloadTable data={data} filters={filters}/>
-          </Grid>
+          <ReloadObjects filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
+                         scanner1Filter={setScanner1}
+                         scanner2Filter={setScanner2} state={state}/>
+
         </Grid>
         <Box pt={4}>
           <Copyright/>
@@ -146,6 +131,25 @@ export default function Realtime() {
       </Container>
     </main>
   );
+}
+
+function ReloadObjects(props) {
+  const {data, error} = useSWR(['/snapshots/snaptime', props.state], fetcher);
+  if (error) return <div>failed to load property data</div>;
+  if (!data) return <div>loading property data...</div>;
+
+  return (
+    <React.Fragment>
+      <Grid item xs={12}>
+        <RealtimeCharts filters={props.filters} uiFilter={props.uiFilter} pinpadFilter={props.pinpadFilter}
+                        scanner1Filter={props.scanner1Filter}
+                        scanner2Filter={props.scanner2Filter} state={props.state}/>
+      </Grid>
+      <Grid>
+        <ReloadTable data={data} filters={props.filters}/>
+      </Grid>
+    </React.Fragment>
+  )
 }
 
 function ReloadCount(props) {
