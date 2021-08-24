@@ -81,7 +81,7 @@ export default function ConnectionOverview(props) {
   const classes = useStyles();
 
   const {data, error} = useSWR(
-    `/snapshots/${termStateText}`,
+    `/registers/${termStateText}`,
     fetcher
   );
 
@@ -99,7 +99,7 @@ export default function ConnectionOverview(props) {
       </Grid>
       <div>error</div>
     </OverviewLayout>)
-  if (!data) return (<OverviewLayout>
+  if (!data || typeof data == 'undefined') return (<OverviewLayout>
     <Grid item xs={8}></Grid>
     <Grid item xs={4}>
       <TextField
@@ -151,7 +151,7 @@ export default function ConnectionOverview(props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data
+              {data['rows']
                 .filter((controller) => (controller.property_id === filterId) || filterId === '')
                 .sort(({property_id: prev_id}, {property_id: cur_id}) => prev_id - cur_id)
                 .map((controller) => (
