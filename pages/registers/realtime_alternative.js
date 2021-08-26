@@ -85,7 +85,6 @@ export default function Realtime() {
   function setScanner2(scanner2) {
     setFilters(prevFilters => ({...prevFilters, "scanner2": scanner2}))
   }
-
   function resetFilters() {
     setFilters({
       "uiState": "",
@@ -167,6 +166,25 @@ function ReloadCount(props) {
     </React.Fragment>
   );
 }
+function exportTableToCSV() {
+  var filename = "TableData.csv";
+  var csv = []
+  var rows = document.querySelectorAll("tr");
+  for (var i = 0; i < rows.length; i++) {
+      var row = [], cols = rows[i].querySelectorAll("td, th");
+      for (var j = 0; j < cols.length; j++)
+          row.push(cols[j].innerText);
+     csv.push(row.join(","));
+  }
+  var finaltext = csv.join("\n")
+  var csvFile = new Blob([finaltext], {type: "octet/stream"});
+  var downloadLink = document.createElement("a");
+  downloadLink.download = filename;
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  }
 
 function ReloadTable(props) {
 
@@ -178,6 +196,7 @@ function ReloadTable(props) {
 
   return (
     <React.Fragment>
+      <Button onClick={exportTableToCSV} variant={"contained"} color={"secondary"}>Download as CSV</Button>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -198,11 +217,11 @@ function ReloadTable(props) {
 
 function ReloadTableHeader(props) {
 
-  return ((
+  return (
     props.properties.map((property) => (
       <TableCell>{property.property_id}:{property.property_name}</TableCell>
     ))
-  ))
+  )
 }
 
 function ReloadTableBody(props) {
@@ -212,7 +231,7 @@ function ReloadTableBody(props) {
 
   return (
     <React.Fragment>
-      {props.data
+    {props.data
         .filter(reload => (ignoreCaseEqual(reload["props"]["1"], props.filters.uiState) || props.filters.uiState === ""))
         .filter(reload => (ignoreCaseEqual(reload["props"]["2"], props.filters.scanner1) || props.filters.scanner1 === ""))
         .filter(reload => (ignoreCaseEqual(reload["props"]["3"], props.filters.scanner2) || props.filters.scanner2 === ""))
