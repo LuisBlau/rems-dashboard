@@ -14,7 +14,7 @@ export function RealtimeCharts(props) {
         <UIStateChart setFilter={props.uiFilter} state={props.state}/>
         <PinpadStateChart setFilter={props.pinpadFilter} state={props.state}/>
         <ItemSubstateChart setFilter={props.itemSubstateFilter} state={props.state}/>
-        <TenderSubstateChart setFilter={props.itemSubstateFilter} state={props.state}/>
+        <TenderSubstateChart setFilter={props.tenderSubstateFilter} state={props.state}/>
       </Grid>
     </React.Fragment>
   );
