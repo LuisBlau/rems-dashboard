@@ -13,8 +13,8 @@ export function RealtimeCharts(props) {
       <Grid container spacing={2}>
         <UIStateChart setFilter={props.uiFilter} state={props.state}/>
         <PinpadStateChart setFilter={props.pinpadFilter} state={props.state}/>
-        <ScannerStateChart setFilter={props.scanner1Filter} state={props.state} scannerNumber={"1"}/>
-        <ScannerStateChart setFilter={props.scanner2Filter} state={props.state} scannerNumber={"2"}/>
+        <ItemSubstateChart setFilter={props.itemSubstateFilter} state={props.state}/>
+        <TenderSubstateChart setFilter={props.tenderSubstateFilter} state={props.state}/>
       </Grid>
     </React.Fragment>
   );
@@ -33,14 +33,14 @@ function UIStateChart(props) {
 }
 
 
-function ScannerStateChart(props) {
+function ItemSubstateChart(props) {
 
-  const {data, error} = useSWR([`/snapshots/scanner` + props.scannerNumber, props.state], fetcher);
+  const {data, error} = useSWR([`/snapshots/itemSubstate`, props.state], fetcher);
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;
   return (
     <React.Fragment>
-      <GeneralChart setFilter={props.setFilter} data={data} title={"Scanner" + props.scannerNumber + " State"}/>
+      <GeneralChart setFilter={props.setFilter} data={data} title={"Item Substate"}/>
     </React.Fragment>
   );
 }
@@ -57,6 +57,17 @@ function PinpadStateChart(props) {
   );
 }
 
+function TenderSubstateChart(props) {
+
+  const {data, error} = useSWR([`/snapshots/tenderSubstate`, props.state], fetcher);
+  if (error) return <div>failed to load</div>;
+  if (!data) return <div>loading...</div>;
+  return (
+    <React.Fragment>
+      <GeneralChart setFilter={props.setFilter} data={data} title={"Tender Substate"}/>
+    </React.Fragment>
+  );
+}
 
 function GeneralChart(props) {
   function customizeText({argument, value}) {

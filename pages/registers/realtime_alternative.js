@@ -45,13 +45,14 @@ export default function Realtime() {
   const [state, setState] = useState({
     "store": 0,
     "hours": 12,
+    "country": "US, CA",
     "regOrSnap": "snapshots",
   })
 
   const [filters, setFilters] = useState({
     "uiState": "",
-    "scanner1": "",
-    "scanner2": "",
+    "itemSubstate": "",
+    "tenderSubstate": "",
     "pinpad": "",
   })
 
@@ -62,6 +63,10 @@ export default function Realtime() {
 
   function setHours(hours) {
     setState(prevState => ({...prevState, hours}))
+  }
+
+  function setCountry(country) {
+    setState(prevState => ({...prevState, country}))
   }
 
   function setRegOrSnap() {
@@ -78,18 +83,18 @@ export default function Realtime() {
     setFilters(prevFilters => ({...prevFilters, "pinpad": pinpad}))
   }
 
-  function setScanner1(scanner1) {
-    setFilters(prevFilters => ({...prevFilters, "scanner1": scanner1}))
+  function setItemSubstate(itemSubstate) {
+    setFilters(prevFilters => ({...prevFilters, "itemSubstate": itemSubstate}))
   }
 
-  function setScanner2(scanner2) {
-    setFilters(prevFilters => ({...prevFilters, "scanner2": scanner2}))
+  function setTenderSubstate(tenderSubstate) {
+    setFilters(prevFilters => ({...prevFilters, "tenderSubstate": tenderSubstate}))
   }
   function resetFilters() {
     setFilters({
       "uiState": "",
-      "scanner1": "",
-      "scanner2": "",
+      "itemSubstate": "",
+      "tenderSubstate": "",
       "pinpad": "",
     })
   }
@@ -102,26 +107,33 @@ export default function Realtime() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
-        <Grid container spacing={3}>
-          <Grid item xs={3}>
+        <Grid container spacing={4}>
+          <Grid item xs={4}>
             <FormControl>
               <InputLabel htmlFor="component-simple">Store</InputLabel>
               <Input id="component-simple" onChange={(e) => setStore(e.target.value)}/>
             </FormControl>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={4}>
             <FormControl>
               <InputLabel htmlFor="component-simple">Hours (Default: {state.hours})</InputLabel>
               <Input id="component-simple" onChange={e => setHours(e.target.value)}/>
             </FormControl>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={4}>
+            <FormControl>
+              <InputLabel htmlFor="component-simple">Country (Default: {state.country})</InputLabel>
+              <Input id="component-simple" onChange={e => setCountry(e.target.value)}/>
+            </FormControl>
+          </Grid>
+          <Grid item xs={4}>
             <Button onClick={resetFilters} variant={"contained"} color={"secondary"}>Clear Filters</Button>
           </Grid>
 
           <ReloadObjects filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
-                         scanner1Filter={setScanner1}
-                         scanner2Filter={setScanner2} state={state}/>
+                         itemSubstateFilter={setItemSubstate}
+                         tenderSubstateFilter={setTenderSubstate}
+                         state={state}/>
 
         </Grid>
         <Box pt={4}>
@@ -141,8 +153,9 @@ function ReloadObjects(props) {
     <React.Fragment>
       <Grid item xs={12}>
         <RealtimeCharts filters={props.filters} uiFilter={props.uiFilter} pinpadFilter={props.pinpadFilter}
-                        scanner1Filter={props.scanner1Filter}
-                        scanner2Filter={props.scanner2Filter} state={props.state}/>
+                        itemSubstateFilter={props.itemSubstateFilter}
+                        tenderSubstateFilter={props.tenderSubstateFilter}
+                        state={props.state}/>
       </Grid>
       <Grid>
         <ReloadTable data={data} filters={props.filters}/>
@@ -233,8 +246,8 @@ function ReloadTableBody(props) {
     <React.Fragment>
     {props.data
         .filter(reload => (ignoreCaseEqual(reload["props"]["1"], props.filters.uiState) || props.filters.uiState === ""))
-        .filter(reload => (ignoreCaseEqual(reload["props"]["2"], props.filters.scanner1) || props.filters.scanner1 === ""))
-        .filter(reload => (ignoreCaseEqual(reload["props"]["3"], props.filters.scanner2) || props.filters.scanner2 === ""))
+        .filter(reload => (ignoreCaseEqual(reload["props"]["2"], props.filters.itemSubstate) || props.filters.itemSubstate === ""))
+        .filter(reload => (ignoreCaseEqual(reload["props"]["3"], props.filters.tenderSubstate) || props.filters.tenderSubstate === ""))
         .filter(reload => (ignoreCaseEqual(reload["props"]["9"], props.filters.pinpad) || props.filters.pinpad === ""))
         .map((reload) => (
           <TableRow>
