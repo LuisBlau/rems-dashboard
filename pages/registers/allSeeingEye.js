@@ -39,8 +39,8 @@ const selects = [{id: 11, value: 'backup_server_status'},
   {id: 10, value: 'primary_server_status'},
   {id: 5, value: 'printer_status'},
   {id: 4, value: 'scale_status'},
-  {id: 2, value: 'scanner1_status'},
-  {id: 3, value: 'scanner2_status'},
+  {id: 3, value: 'tender_substate'},
+  {id: 2, value: 'item_substate'},
   {id: 1, value: 'ui_state'},
 ]
 
