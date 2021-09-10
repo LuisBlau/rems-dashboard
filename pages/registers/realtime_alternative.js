@@ -47,6 +47,7 @@ export default function Realtime() {
     "hours": 12,
     "country": "US, CA",
     "regOrSnap": "snapshots",
+    "version": "",
   })
 
   const [filters, setFilters] = useState({
@@ -57,6 +58,12 @@ export default function Realtime() {
   })
 
   //<editor-fold desc="state-setters">
+  function setVersionState(version) {
+    var d = document.getElementById("cpc_id");
+    var temp = d.options[d.selectedIndex].text;
+    setState(prevState => ({...prevState, "version":temp}))
+  }
+  
   function setStore(store) {
     setState(prevState => ({...prevState, store}))
   }
@@ -100,42 +107,49 @@ export default function Realtime() {
     })
   }
 
+  const {data, error} = useSWR('/snapshots/versions', fetcher);
+  
+  if (error) return <div>failed to load CPC Versions</div>;
+  if (!data) return <div>loading CPC Versions...</div>;
   //</editor-fold>
 
-
-  console.log(state)
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
-        <Grid container spacing={4}>
-          <Grid item xs={4}>
+        <Grid container spacing={3}>
+          <Grid item xs={3}>
             <FormControl>
               <InputLabel htmlFor="component-simple">Store</InputLabel>
               <Input id="component-simple" onChange={(e) => setStore(e.target.value)}/>
             </FormControl>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <FormControl>
               <InputLabel htmlFor="component-simple">Hours (Default: {state.hours})</InputLabel>
               <Input id="component-simple" onChange={e => setHours(e.target.value)}/>
             </FormControl>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <FormControl>
               <InputLabel htmlFor="component-simple">Country (Default: {state.country})</InputLabel>
               <Input id="component-simple" onChange={e => setCountry(e.target.value)}/>
             </FormControl>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <Button onClick={resetFilters} variant={"contained"} color={"secondary"}>Clear Filters</Button>
           </Grid>
-
+          <Grid item xs={3}>
+            <select onChange={e => setVersionState(e.target.value)} id="cpc_id">
+            <option value="CPCVersions"> -- CPC Versions --</option>
+            {}
+            {data.map((item) => <option value {...item}>{item}</option>)};
+            </select>  
+          </Grid>
           <ReloadObjects filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
                          itemSubstateFilter={setItemSubstate}
                          tenderSubstateFilter={setTenderSubstate}
                          state={state}/>
-
         </Grid>
         <Box pt={4}>
           <Copyright/>
@@ -184,7 +198,6 @@ function ReloadCount(props) {
 function ReloadTable(props) {
 
   const {data, error} = useSWR('/snapshots/properties', fetcher);
-
   if (error) return <div>failed to load property data</div>;
   if (!data) return <div>loading property data...</div>;
 
