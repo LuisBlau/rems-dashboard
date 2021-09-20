@@ -125,13 +125,13 @@ export default function Realtime() {
           </Grid>
           <Grid item xs={3}>
             <FormControl>
-              <InputLabel htmlFor="component-simple">Hours (Default: {state.hours})</InputLabel>
+              <InputLabel htmlFor="component-simple">Hours (Default: 12)</InputLabel>
               <Input id="component-simple" onChange={e => setHours(e.target.value)}/>
             </FormControl>
           </Grid>
           <Grid item xs={3}>
             <FormControl>
-              <InputLabel htmlFor="component-simple">Country (Default: {state.country})</InputLabel>
+              <InputLabel htmlFor="component-simple">Country (Default: US,CA)</InputLabel>
               <Input id="component-simple" onChange={e => setCountry(e.target.value)}/>
             </FormControl>
           </Grid>
