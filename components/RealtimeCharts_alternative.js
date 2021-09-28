@@ -5,7 +5,7 @@ import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 
 import PieChart, {Connector, Label, Legend, Series, Size} from 'devextreme-react/pie-chart';
-
+import Chart  from 'devextreme-react/chart';
 
 export function RealtimeCharts(props) {
   return (
@@ -15,6 +15,7 @@ export function RealtimeCharts(props) {
         <PinpadStateChart setFilter={props.pinpadFilter} state={props.state}/>
         <ItemSubstateChart setFilter={props.itemSubstateFilter} state={props.state}/>
         <TenderSubstateChart setFilter={props.tenderSubstateFilter} state={props.state}/>
+        <ReloadStatsChart setFilter={props.uiFilter} state={props.state}/>
       </Grid>
     </React.Fragment>
   );
@@ -56,9 +57,28 @@ function PinpadStateChart(props) {
     </React.Fragment>
   );
 }
+function ReloadStatsChart(props) {
+
+  const {data, error} = useSWR([`/snapshots/reloadstats`, props.state], fetcher);
+  if (error) return <div>failed to load</div>;
+  if (!data) return <div>loading...</div>;
+  return (
+    <React.Fragment>
+  <Paper>
+  <Chart setFilter={props.setFilter} dataSource={data} title ={"Reload Hours"}>
+       <Series
+         valueField="count"
+         argumentField="date_part"
+         type="bar"
+         name="Reload Times"/>
+      </Chart>
+      </Paper>
+    </React.Fragment>
+  );
+}
 
 function TenderSubstateChart(props) {
-
+    
   const {data, error} = useSWR([`/snapshots/tenderSubstate`, props.state], fetcher);
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;
