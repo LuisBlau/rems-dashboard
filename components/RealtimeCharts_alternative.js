@@ -11,18 +11,19 @@ export function RealtimeCharts(props) {
   return (
     <React.Fragment>
       <Grid container spacing={2}>
-        <UIStateChart setFilter={props.uiFilter} state={props.state}/>
-        <PinpadStateChart setFilter={props.pinpadFilter} state={props.state}/>
-        <ItemSubstateChart setFilter={props.itemSubstateFilter} state={props.state}/>
-        <TenderSubstateChart setFilter={props.tenderSubstateFilter} state={props.state}/>
-        <ReloadStatsChart setFilter={props.uiFilter} state={props.state}/>
+        <UIStateChart hours={props.hours} setFilter={props.uiFilter} state={props.state}/>
+        <PinpadStateChart hours={props.hours} setFilter={props.pinpadFilter} state={props.state}/>
+        <ItemSubstateChart hours={props.hours} setFilter={props.itemSubstateFilter} state={props.state}/>
+        <TenderSubstateChart hours={props.hours} setFilter={props.tenderSubstateFilter} state={props.state}/>
+        <ReloadStatsChart hours={props.hours} setFilter={props.uiFilter} state={props.state}/>
       </Grid>
     </React.Fragment>
   );
 }
 
 function UIStateChart(props) {
-
+  props.state["hours"] = props.hours
+  console.log(props.hours)
   const {data, error} = useSWR([`/snapshots/uiState`, props.state], fetcher);
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;

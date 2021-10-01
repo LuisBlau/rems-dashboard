@@ -16,7 +16,8 @@ import TableCell from "@material-ui/core/TableCell";
 import TableBody from "@material-ui/core/TableBody";
 import {RealtimeCharts} from "../../components/RealtimeCharts_alternative";
 import {Button} from "@material-ui/core";
-
+import TextField from '@material-ui/core/TextField';
+import { useLocationState, useQueryState } from 'use-location-state'
 const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   content: {
@@ -41,7 +42,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Realtime() {
   const classes = useStyles();
-
   const [state, setState] = useState({
     "store": 0,
     "hours": 12,
@@ -49,7 +49,7 @@ export default function Realtime() {
     "regOrSnap": "snapshots",
     "version": "",
   })
-
+  const [hoursFilter,sethoursFilter] = useQueryState("hours",12)
   const [filters, setFilters] = useState({
     "uiState": "",
     "itemSubstate": "",
@@ -69,7 +69,8 @@ export default function Realtime() {
   }
 
   function setHours(hours) {
-    setState(prevState => ({...prevState, hours}))
+    sethoursFilter(hours)
+	window.location.reload()
   }
 
   function setCountry(country) {
@@ -125,8 +126,7 @@ export default function Realtime() {
           </Grid>
           <Grid item xs={3}>
             <FormControl>
-              <InputLabel htmlFor="component-simple">Hours (Default: 12)</InputLabel>
-              <Input id="component-simple" onChange={e => setHours(e.target.value)}/>
+              <TextField defaultValue={hoursFilter} label="Hours Default: 12" htmlFor="component-simple" onChange={e => setHours(e.target.value)}>Hours (Default: {12})</TextField>
             </FormControl>
           </Grid>
           <Grid item xs={3}>
@@ -159,6 +159,8 @@ export default function Realtime() {
 }
 
 function ReloadObjects(props) {
+  props.state["hours"] = props.hours
+  console.log(props.hours)
   const {data, error} = useSWR(['/snapshots/snaptime', props.state], fetcher);
   if (error) return <div>failed to load property data</div>;
   if (!data) return <div>loading property data...</div>;
@@ -166,13 +168,12 @@ function ReloadObjects(props) {
   return (
     <React.Fragment>
       <Grid item xs={12}>
-        <RealtimeCharts filters={props.filters} uiFilter={props.uiFilter} pinpadFilter={props.pinpadFilter}
+        <RealtimeCharts hours={props.hours} filters={props.filters} uiFilter={props.uiFilter} pinpadFilter={props.pinpadFilter}
                         itemSubstateFilter={props.itemSubstateFilter}
                         tenderSubstateFilter={props.tenderSubstateFilter}
                         state={props.state}/>
       </Grid>
       <Grid>
-        <ReloadTable data={data} filters={props.filters}/>
       </Grid>
     </React.Fragment>
   )
