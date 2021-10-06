@@ -145,7 +145,7 @@ export default function Realtime() {
             {data.map((item) => <option value {...item}>{item}</option>)};
             </select>  
           </Grid>
-          <ReloadObjects filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
+          <ReloadObjects hours={hoursFilter} filters={filters} uiFilter={setUIState} pinpadFilter={setPinpad}
                          itemSubstateFilter={setItemSubstate}
                          tenderSubstateFilter={setTenderSubstate}
                          state={state}/>
@@ -160,7 +160,7 @@ export default function Realtime() {
 
 function ReloadObjects(props) {
   props.state["hours"] = props.hours
-  console.log(props.hours)
+  console.log(props.state)
   const {data, error} = useSWR(['/snapshots/snaptime', props.state], fetcher);
   if (error) return <div>failed to load property data</div>;
   if (!data) return <div>loading property data...</div>;
