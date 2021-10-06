@@ -10,12 +10,12 @@ import Chart  from 'devextreme-react/chart';
 export function RealtimeCharts(props) {
   return (
     <React.Fragment>
+	<ReloadStatsChart hours={props.hours} setFilter={props.uiFilter} state={props.state} width="100%"/>
       <Grid container spacing={2}>
         <UIStateChart hours={props.hours} setFilter={props.uiFilter} state={props.state}/>
         <PinpadStateChart hours={props.hours} setFilter={props.pinpadFilter} state={props.state}/>
         <ItemSubstateChart hours={props.hours} setFilter={props.itemSubstateFilter} state={props.state}/>
         <TenderSubstateChart hours={props.hours} setFilter={props.tenderSubstateFilter} state={props.state}/>
-        <ReloadStatsChart hours={props.hours} setFilter={props.uiFilter} state={props.state}/>
       </Grid>
     </React.Fragment>
   );
@@ -66,12 +66,12 @@ function ReloadStatsChart(props) {
   return (
     <React.Fragment>
   <Paper>
-  <Chart setFilter={props.setFilter} dataSource={data} title ={"Reload Hours"}>
+  <Chart setFilter={props.setFilter} dataSource={data} title ={"Register Reloads"}>
        <Series
          valueField="count"
          argumentField="date_part"
          type="bar"
-         name="Reload Times"/>
+         name="Number of Reloads"/>
       </Chart>
       </Paper>
     </React.Fragment>
