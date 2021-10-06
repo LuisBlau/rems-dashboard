@@ -18,7 +18,8 @@
     "recharts": "^1.8.5",
     "sequelize": "^6.3.5",
     "swr": "^0.2.3",
-    "use-http": "^1.0.16"
+    "use-http": "^1.0.16",
+    "use-location-state": "^2.5.0"
   },
   "scripts": {
     "dev": "next",
