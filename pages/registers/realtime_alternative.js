@@ -9,6 +9,7 @@ import Input from "@material-ui/core/Input";
 import FormControl from "@material-ui/core/FormControl";
 import useSWR from "swr";
 import fetcher from "../../lib/fetcherWithHeader";
+import ExtractGrid from "../../components/ExtractGrid";
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
@@ -116,7 +117,8 @@ export default function Realtime() {
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
-      <Container maxWidth="lg" className={classes.container}>
+      <ExtractGrid/>
+	  <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
           <Grid item xs={3}>
             <FormControl>
