@@ -41,6 +41,7 @@ export default function ExtractGrid(props) {
 			   <AgGridColumn sortable={ true } filter={ true } field="InStore"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="SBreqLink"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } field="ExtractType"></AgGridColumn>
+         <AgGridColumn sortable={ true } filter={ true } field="State"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }
