@@ -33,6 +33,7 @@ export default function ExtractGrid(props) {
             return <div className="ag-theme-alpine" style={{height: 400, width: "100%"}}>
 			   <AgGridReact style="width: 100%; height: 100%;"
                rowData={data}>
+			   <AgGridColumn sortable={ true } filter={ true } field="Version"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="Retailer"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="Store"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="RegNum"></AgGridColumn>
