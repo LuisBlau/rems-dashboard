@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 const linkRenderer = function(params) {
-	return '<a href=' + params.value + '>click me</a>';
+	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
 }
 export default function ExtractGrid(props) {
   const {data, error} = useSWR([`/registers/extracts`, props.state], fetcher);

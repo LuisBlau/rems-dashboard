@@ -8,7 +8,7 @@ import Storage from "@material-ui/icons/Storage";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
 import Visibility from "@material-ui/icons/Visibility";
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-
+import BackupOutlinedIcon from '@material-ui/icons/BackupOutlined';
 import Link from "next/link";
 
 const MenuItems = [
@@ -36,7 +36,11 @@ const MenuItems = [
     name: "VPD Info",
     route: "/controller/vpdOverview",
     icon: <NetworkCheckIcon/>,
-  },
+  }, {
+    name: "Extracts",
+    route: "/store/extractTable",
+    icon: <BackupOutlinedIcon/>
+  }
 ];
 
 export const SideBarMenuItems = (
