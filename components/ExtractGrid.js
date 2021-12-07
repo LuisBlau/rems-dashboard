@@ -23,9 +23,15 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: theme.spacing(4),
   },
 }));
-const linkRenderer = function(params) {
+const azureRenderer = function(params) {
 	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
 }
+
+const linkRenderer = function(params) {
+	if (params.value == undefined) return ""
+	return '<a href=' + params.value + '>Download</a>';
+}
+
 export default function ExtractGrid(props) {
   const {data, error} = useSWR([`/registers/extracts`, props.state], fetcher);
   if (error) return <div>failed to load</div>;
@@ -39,8 +45,9 @@ export default function ExtractGrid(props) {
                <AgGridColumn sortable={ true } filter={ true } field="RegNum"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } field="Timestamp"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } field="InStore"></AgGridColumn>
-			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="SBreqLink"></AgGridColumn>
+			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={azureRenderer} headerName="Azure" field="SBreqLink"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } field="ExtractType"></AgGridColumn>
+			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="Download"></AgGridColumn>
          <AgGridColumn sortable={ true } filter={ true } field="State"></AgGridColumn>
            </AgGridReact>
 		   </div>
