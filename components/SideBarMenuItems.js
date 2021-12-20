@@ -3,6 +3,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import DashboardIcon from "@material-ui/icons/Dashboard";
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import SettingsInputComponentIcon from "@material-ui/icons/SettingsInputComponent";
 import Storage from "@material-ui/icons/Storage";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
@@ -40,6 +41,10 @@ const MenuItems = [
     name: "Extracts",
     route: "/store/extractTable",
     icon: <BackupOutlinedIcon/>
+  }, {
+    name: "Dumps",
+    route: "/store/dumpTable",
+    icon: <CloudDownloadIcon/>
   }
 ];
 

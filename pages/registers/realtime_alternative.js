@@ -117,7 +117,6 @@ export default function Realtime() {
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
-      <ExtractGrid/>
 	  <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
           <Grid item xs={3}>

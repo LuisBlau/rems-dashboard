@@ -48,7 +48,7 @@ export default function releaseOverview() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
-      <ExtractGrid/>
+	  <DumpGrid/>
       </Container>
     </main>
   );
