@@ -7,6 +7,7 @@ import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
 import {AgGridColumn, AgGridReact} from 'ag-grid-react';
 import useSWR from "swr";
+import moment from "moment"
 import fetcher from "../lib/fetcherWithHeader";
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
@@ -43,8 +44,8 @@ const sortGrid = function(event) {
   event.columnApi.applyColumnState(columnState);
 }
 const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
-	let DateA = Date.parse(valueA)
-	let DateB = Date.parse(valueB)
+	let DateA = moment(valueA, 'YYYY-MM-DD HH:mm:ss').toDate();
+	let DateB = moment(valueB, 'YYYY-MM-DD HH:mm:ss').toDate();
     if (DateA == DateB) return 0;
     return (DateA > DateB) ? 1 : -1;
 };
