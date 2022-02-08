@@ -13,7 +13,7 @@ import BackupOutlinedIcon from '@material-ui/icons/BackupOutlined';
 import Link from "next/link";
 
 const MenuItems = [
-  {
+/*  {
     name: "Dashboard",
     route: "/",
     icon: <DashboardIcon/>
@@ -37,7 +37,7 @@ const MenuItems = [
     name: "VPD Info",
     route: "/controller/vpdOverview",
     icon: <NetworkCheckIcon/>,
-  }, {
+  }, */ {
     name: "Extracts",
     route: "/store/extractTable",
     icon: <BackupOutlinedIcon/>

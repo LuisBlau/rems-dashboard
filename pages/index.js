@@ -2,7 +2,7 @@ import React from "react";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
 import Realtime from "./registers/realtime_alternative";
-
+import ExtractTable from "./store/extractTable";
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -40,7 +40,7 @@ export default function Index() {
 
   return (
     <main className={classes.content}>
-      <Realtime />
+      <ExtractTable />
     </main>
   );
 }
