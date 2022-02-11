@@ -11,7 +11,7 @@ import Visibility from "@material-ui/icons/Visibility";
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import BackupOutlinedIcon from '@material-ui/icons/BackupOutlined';
 import Link from "next/link";
-
+import PublishIcon from '@material-ui/icons/Publish';
 const MenuItems = [
 /*  {
     name: "Dashboard",
@@ -45,6 +45,10 @@ const MenuItems = [
     name: "Dumps",
     route: "/store/dumpTable",
     icon: <CloudDownloadIcon/>
+  }, { 
+    name: "FileUpload",
+    route: "/fileUpload",
+    icon: <PublishIcon/>
   }
 ];
 
