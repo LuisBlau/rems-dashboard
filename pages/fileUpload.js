@@ -2,6 +2,7 @@ import React,{Component,useState} from 'react';
 import fetcher from "../lib/lib.js";
 import {makeStyles} from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import UploadGrid from "../components/UploadGrid";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -71,6 +72,7 @@ export default function Upload(props) {
                </button>
              </div>
           </Container>
+          <UploadGrid/>
         </main>
 	);
 }
