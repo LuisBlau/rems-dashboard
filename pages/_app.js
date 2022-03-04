@@ -1,22 +1,22 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
-import { makeStyles, ThemeProvider } from "@material-ui/core/styles";
-import CssBaseline from "@material-ui/core/CssBaseline";
+import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../src/theme";
-import AppBar from "@material-ui/core/AppBar";
+import AppBar from "@mui/material/AppBar";
 import clsx from "clsx";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import Typography from "@material-ui/core/Typography";
-import Badge from "@material-ui/core/Badge";
-import NotificationsIcon from "@material-ui/icons/Notifications";
-import Drawer from "@material-ui/core/Drawer";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Typography from "@mui/material/Typography";
+import Badge from "@mui/material/Badge";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import Drawer from "@mui/material/Drawer";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Divider from "@mui/material/Divider";
+import List from "@mui/material/List";
 import '../lib/styles.css'
+import { ThemeProvider, createMuiTheme, makeStyles } from '@mui/styles';
 
 import {
   SideBarMenuItems,
@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
   },
-  toolbar: {
+  /*toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },
   toolbarIcon: {
@@ -37,9 +37,9 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     justifyContent: "flex-end",
     padding: "0 8px",
-    ...theme.mixins.toolbar,
   },
-  appBar: {
+  */
+  /*appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
@@ -53,8 +53,8 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
-  },
-  menuButton: {
+  },*/
+  /*menuButton: {
     marginRight: 36,
   },
   menuButtonHidden: {
@@ -63,7 +63,8 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
-  drawerPaper: {
+  */
+/*  drawerPaper: {
     position: "relative",
     whiteSpace: "nowrap",
     width: drawerWidth,
@@ -83,8 +84,8 @@ const useStyles = makeStyles((theme) => ({
       width: theme.spacing(9),
     },
   },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
+*/
+/*  content: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
@@ -99,9 +100,12 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     flexDirection: "column",
   },
+  */
+ /*
   fixedHeight: {
     height: 240,
   },
+  */
 }));
 
 export default function MyApp(props) {

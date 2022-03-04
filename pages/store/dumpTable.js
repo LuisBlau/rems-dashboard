@@ -1,20 +1,18 @@
 import useSWR from "swr";
 import fetcher from "../../lib/lib";
 import React, {useState} from "react";
-import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import Box from "@material-ui/core/Box";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
 import Copyright from "../../src/Copyright";
-import {makeStyles} from "@material-ui/core/styles";
 import OverviewReleasePaper from "../../components/Release/OverviewReleasePaper";
-import TextField from "@material-ui/core/TextField";
+import TextField from "@mui/material/TextField";
 import ExtractGrid from "../../components/ExtractGrid";
 import DumpGrid from "../../components/DumpGrid";
-
+import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",

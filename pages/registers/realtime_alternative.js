@@ -1,26 +1,26 @@
 import React, {useState} from "react";
-import {makeStyles} from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import Copyright from "../../src/Copyright";
-import Box from "@material-ui/core/Box";
-import InputLabel from "@material-ui/core/InputLabel";
-import Input from "@material-ui/core/Input";
-import FormControl from "@material-ui/core/FormControl";
+import Box from "@mui/material/Box";
+import InputLabel from "@mui/material/InputLabel";
+import Input from "@mui/material/Input";
+import FormControl from "@mui/material/FormControl";
 import useSWR from "swr";
 import fetcher from "../../lib/fetcherWithHeader";
 import ExtractGrid from "../../components/ExtractGrid";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
 import {RealtimeCharts} from "../../components/RealtimeCharts_alternative";
-import {Button} from "@material-ui/core";
-import TextField from '@material-ui/core/TextField';
+import {Button} from "@mui/material";
+import TextField from '@mui/material/TextField';
 import { useLocationState, useQueryState } from 'use-location-state'
+import { makeStyles } from '@mui/styles';
+
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",
