@@ -50,7 +50,6 @@ export default function UploadGrid(props) {
 			   <AgGridReact style="width: 100%; height: 100%;"
                rowData={data} onGridReady={sortGrid}>
 			   <AgGridColumn sortable={ true } filter={ true } field="id"></AgGridColumn>
-               <AgGridColumn sortable={ true } filter={ true } field="retailer_id"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="filename"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="archived"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } comparator={dateComparator} field="timestamp"></AgGridColumn>
