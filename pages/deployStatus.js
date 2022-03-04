@@ -51,10 +51,7 @@ export default function deployStatus() {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
 
-  const handleChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-
+  
   const {data, error} = useSWR("/REMS/deploys", fetcher);
 
   if (error) return <div>failed to load</div>;
@@ -70,34 +67,35 @@ export default function deployStatus() {
           data
             //.filter((store) => store.store_number.includes(filterText))
             .map((deploy) => (
-              <Accordion expanded={expanded === "panel"+deploy.id} onChange={handleChange('panel'+deploy.id)}>
+              <Accordion>
                 <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={"panel"+deploy.id+"bh-content"}
                 id={"panel"+deploy.id+"bh-header"}
                 >
                 <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    {deploy.storeName}
+                    {deploy.storeName} {deploy.apply_time}
                 </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{deploy.apply_time}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                 {
                     deploy.steps.map((step,index) => (
-                        <Accordion expanded={expanded === "panel"+deploy.id+":"+index} onChange={handleChange('panel'+deploy.id+":"+index)}>
+                        <Accordion>
                             <AccordionSummary
                             expandIcon={<ExpandMoreIcon />}
                             aria-controls={"panel"+deploy.id+":"+index+"bh-content"}
                             id={"panel"+deploy.id+":"+index+"bh-header"}
                             >
                             <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                                Type:{step.type}
+                                Type:{step.type} Status:{step.status}
                             </Typography>
-                            <Typography sx={{ color: 'text.secondary' }}>Status:{step.status}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Typography>
-                                    {step.output}
+                                    {
+                                    step.output.map((line) => (
+                                        <div>{line}</div>
+                                    ))}   
                                 </Typography>
                             </AccordionDetails>
                         </Accordion>
