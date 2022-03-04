@@ -4,6 +4,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import SettingsInputComponentIcon from "@material-ui/icons/SettingsInputComponent";
 import Storage from "@material-ui/icons/Storage";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
@@ -49,6 +50,10 @@ const MenuItems = [
     name: "FileUpload",
     route: "/fileUpload",
     icon: <PublishIcon/>
+  }, {
+    name: "DeployStatus",
+    route:"/deployStatus",
+    icon: <PendingActionsIcon/>
   }
 ];
 
