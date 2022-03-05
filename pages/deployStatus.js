@@ -1,6 +1,6 @@
-import useSWR from "swr";
-import fetcher from "../lib/lib";
 import React, {useState} from "react";
+import useSWR from "swr";
+import fetcher from "../lib/lib.js";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
@@ -29,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
+  },
+  appBarSpacer: {
+      paddingTop: 60
   },
   paper: {
     padding: theme.spacing(2),
@@ -60,7 +63,7 @@ export default function deployStatus() {
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
-
+      <div>
             
           {
           data
@@ -90,12 +93,10 @@ export default function deployStatus() {
                             </Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <Typography>
                                     {
                                     step.output.map((line) => (
                                         <div>{line}</div>
                                     ))}   
-                                </Typography>
                             </AccordionDetails>
                         </Accordion>
                     ))
@@ -103,7 +104,7 @@ export default function deployStatus() {
                 </AccordionDetails>
               </Accordion>
             ))}
-      
+      </div>
         <Box pt={4}>
           <Copyright/>
         </Box>
