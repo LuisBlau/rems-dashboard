@@ -1,8 +1,8 @@
 import React from "react";
 import useSWR from "swr";
 import fetcher from "../lib/fetcherWithHeader";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 
 import PieChart, {Connector, Label, Legend, Series, Size} from 'devextreme-react/pie-chart';
 import Chart  from 'devextreme-react/chart';

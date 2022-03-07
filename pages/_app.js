@@ -1,35 +1,63 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
-import { makeStyles, ThemeProvider } from "@material-ui/core/styles";
-import CssBaseline from "@material-ui/core/CssBaseline";
+import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../src/theme";
-import AppBar from "@material-ui/core/AppBar";
 import clsx from "clsx";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import Typography from "@material-ui/core/Typography";
-import Badge from "@material-ui/core/Badge";
-import NotificationsIcon from "@material-ui/icons/Notifications";
-import Drawer from "@material-ui/core/Drawer";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Typography from "@mui/material/Typography";
+import Badge from "@mui/material/Badge";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Divider from "@mui/material/Divider";
+import List from "@mui/material/List";
 import '../lib/styles.css'
+import { ThemeProvider, createMuiTheme, makeStyles } from '@mui/styles';
+import Box from '@mui/material/Box';
+import MuiDrawer from '@mui/material/Drawer';
+import MuiAppBar from '@mui/material/AppBar';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { styled, useTheme } from '@mui/material/styles';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import Link from "next/link";
+import PublishIcon from '@mui/icons-material/Publish';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import {Schedule} from "@mui/icons-material";
 
+
+
+/*
 import {
   SideBarMenuItems,
   secondaryListItems,
 } from "../components/SideBarMenuItems";
-
-const drawerWidth = 240;
+*/
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
   },
-  toolbar: {
+  content: {
+    flexGrow: 1,
+    height: "100vh",
+    overflow: "auto",
+    paddingTop: 50,
+  },
+  MuiAppBar: {
+    position: "absolute"
+  },
+  appBarSpacer: {
+    paddingTop:50
+  }
+  /*toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
   },
   toolbarIcon: {
@@ -37,9 +65,9 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     justifyContent: "flex-end",
     padding: "0 8px",
-    ...theme.mixins.toolbar,
   },
-  appBar: {
+  */
+  /*appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
@@ -53,8 +81,8 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
-  },
-  menuButton: {
+  },*/
+  /*menuButton: {
     marginRight: 36,
   },
   menuButtonHidden: {
@@ -63,7 +91,8 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
-  drawerPaper: {
+  */
+/*  drawerPaper: {
     position: "relative",
     whiteSpace: "nowrap",
     width: drawerWidth,
@@ -83,8 +112,8 @@ const useStyles = makeStyles((theme) => ({
       width: theme.spacing(9),
     },
   },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
+*/
+/*  content: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
@@ -99,10 +128,128 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     flexDirection: "column",
   },
+  */
+ /*
   fixedHeight: {
     height: 240,
   },
+  */
 }));
+
+const drawerWidth = 240;
+
+const openedMixin = (theme) => ({
+  width: drawerWidth,
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: 'hidden',
+});
+
+const closedMixin = (theme) => ({
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: 'hidden',
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up('sm')]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
+});
+
+const DrawerHeader = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+}));
+
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(['width', 'margin'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  ...(open && {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  }),
+}));
+
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open }) => ({
+    width: drawerWidth,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+    boxSizing: 'border-box',
+    ...(open && {
+      ...openedMixin(theme),
+      '& .MuiDrawer-paper': openedMixin(theme),
+    }),
+    ...(!open && {
+      ...closedMixin(theme),
+      '& .MuiDrawer-paper': closedMixin(theme),
+    }),
+  }),
+);
+
+const MenuItems = [
+  /*  {
+      name: "Dashboard",
+      route: "/",
+      icon: <DashboardIcon/>
+    }, {
+      name: "Store Release Levels",
+      route: "/store/releaseOverview",
+      icon: <SystemUpdateAltIcon/>,
+    }, {
+      name: "Store Connection",
+      route: "/store/connectionOverview",
+      icon: <SettingsInputComponentIcon/>,
+    }, {
+      name: "All Seeing Eye",
+      route: "/registers/allSeeingEye",
+      icon: <Visibility/>,
+    }, {
+      name: "SCO Drive Use",
+      route: "/controller/lowMemoryOverview",
+      icon: <Storage/>,
+    }, {
+      name: "VPD Info",
+      route: "/controller/vpdOverview",
+      icon: <NetworkCheckIcon/>,
+    }, */ {
+      name: "Extracts",
+      route: "/store/extractTable",
+      icon: <BackupOutlinedIcon/>
+    }, {
+      name: "Dumps",
+      route: "/store/dumpTable",
+      icon: <CloudDownloadIcon/>
+    }, { 
+      name: "FileUpload",
+      route: "/fileUpload",
+      icon: <PublishIcon/>
+    }, {
+      name: "DeployStatus",
+      route:"/deployStatus",
+      icon: <PendingActionsIcon/>
+    }, {
+    name: "Deploy Schedule",
+    route:"/deploySchedule",
+    icon: <ScheduleIcon/>
+  }
+  ];
 
 export default function MyApp(props) {
   const classes = useStyles();
@@ -138,28 +285,26 @@ export default function MyApp(props) {
         <div className={classes.root}>
           <CssBaseline />
           <AppBar
-            position="absolute"
-            className={clsx(classes.appBar, open && classes.appBarShift)}
+             position="absolute"
+             open={open}
           >
-            <Toolbar className={classes.toolbar}>
+            <Toolbar>
               <IconButton
                 edge="start"
                 color="inherit"
                 aria-label="open drawer"
                 onClick={handleDrawerOpen}
-                className={clsx(
-                  classes.menuButton,
-                  open && classes.menuButtonHidden
-                )}
+                sx={{
+                  marginRight: 5,
+                  ...(open && { display: 'none' }),
+                }}
               >
                 <MenuIcon />
               </IconButton>
               <Typography
-                component="h1"
+                component="div"
                 variant="h6"
-                color="inherit"
                 noWrap
-                className={classes.title}
               >
                 Dashboard
               </Typography>
@@ -172,21 +317,41 @@ export default function MyApp(props) {
           </AppBar>
           <Drawer
             variant="permanent"
-            classes={{
-              paper: clsx(
-                classes.drawerPaper,
-                !open && classes.drawerPaperClose
-              ),
-            }}
             open={open}
           >
-            <div className={classes.toolbarIcon}>
+            <DrawerHeader>
               <IconButton onClick={handleDrawerClose}>
-                <ChevronLeftIcon />
+                {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
               </IconButton>
-            </div>
+            </DrawerHeader>
             <Divider />
-            <List>{SideBarMenuItems}</List>
+            <List>
+            <div>
+              {MenuItems.map((item) => {
+                return (
+                  <Link href={item.route}>
+                    <ListItemButton key={item.name}
+                      sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                      }}
+                    >
+                      <ListItemIcon
+                      sx={{
+                        minWidth: 0,
+                        mr: open ? 3 : 'auto',
+                        justifyContent: 'center',
+                      }}
+                      >
+                        {item.icon}</ListItemIcon>
+                      <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }}/>
+                    </ListItemButton>
+                  </Link>
+                );
+              })}
+            </div>
+          </List>
           </Drawer>
           <div className={classes.appBarSpacer} />
           <Component {...pageProps} />

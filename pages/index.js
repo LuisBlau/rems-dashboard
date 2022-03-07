@@ -1,12 +1,12 @@
 import React from "react";
 import clsx from "clsx";
-import { makeStyles } from "@material-ui/core/styles";
 import Realtime from "./registers/realtime_alternative";
 import ExtractTable from "./store/extractTable";
+import { makeStyles } from '@mui/styles';
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",

@@ -1,17 +1,28 @@
 import React from "react";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import DashboardIcon from "@material-ui/icons/Dashboard";
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import SettingsInputComponentIcon from "@material-ui/icons/SettingsInputComponent";
-import Storage from "@material-ui/icons/Storage";
-import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
-import Visibility from "@material-ui/icons/Visibility";
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-import BackupOutlinedIcon from '@material-ui/icons/BackupOutlined';
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import SettingsInputComponentIcon from "@mui/icons-material/SettingsInputComponent";
+import Storage from "@mui/icons-material/Storage";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import Visibility from "@mui/icons-material/Visibility";
+import NetworkCheckIcon from '@mui/icons-material/NetworkCheck';
+import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
 import Link from "next/link";
-import PublishIcon from '@material-ui/icons/Publish';
+import PublishIcon from '@mui/icons-material/Publish';
+import ListItemButton from '@mui/material/ListItemButton';
+import ScheduleIcon from '@mui/material/Schedule'
+
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
+
 const MenuItems = [
 /*  {
     name: "Dashboard",
@@ -38,31 +49,57 @@ const MenuItems = [
     route: "/controller/vpdOverview",
     icon: <NetworkCheckIcon/>,
   }, */ {
-    name: "Extracts",
-    route: "/store/extractTable",
-    icon: <BackupOutlinedIcon/>
-  }, {
-    name: "Dumps",
-    route: "/store/dumpTable",
-    icon: <CloudDownloadIcon/>
-  }, { 
-    name: "FileUpload",
-    route: "/fileUpload",
-    icon: <PublishIcon/>
-  }
+        name: "Extracts",
+        route: "/store/extractTable",
+        icon: <BackupOutlinedIcon />
+    }, {
+        name: "Dumps",
+        route: "/store/dumpTable",
+        icon: <CloudDownloadIcon />
+    }, {
+        name: "FileUpload",
+        route: "/fileUpload",
+        icon: <PublishIcon />
+    }, {
+        name: "Schedule Deployment ",
+        route: "/deploySchedule",
+        icon: <ScheduleIcon />
+    }, {
+        name: "DeployStatus",
+        route: "/deployStatus",
+        icon: <PendingActionsIcon />
+    }
 ];
 
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
+
 export const SideBarMenuItems = (
-  <div>
-    {MenuItems.map((item) => {
-      return (
-        <Link href={item.route}>
-          <ListItem button>
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.name}/>
-          </ListItem>
-        </Link>
-      );
-    })}
-  </div>
+    <div>
+        {MenuItems.map((item) => {
+            return (
+                <Link href={item.route}>
+                    <ListItemButton key={item.name}
+                        sx={{
+                            minHeight: 48,
+                            justifyContent: open ? 'initial' : 'center',
+                            px: 2.5,
+                        }}>
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 0,
+                                mr: open ? 3 : 'auto',
+                                justifyContent: 'center',
+                            }}>
+                            {item.icon}</ListItemIcon>
+                        <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
+                    </ListItemButton>
+                </Link>
+            );
+        })}
+    </div>
 );

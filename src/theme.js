@@ -1,8 +1,8 @@
-import { createMuiTheme } from "@material-ui/core/styles";
-import { red } from "@material-ui/core/colors";
+import { createTheme, ThemeProvider, makeStyles } from '@mui/material/styles';
+
 
 // Create a theme instance.
-const theme = createMuiTheme({
+const theme = createTheme( {
   overrides: {
     MuiLinearProgress: {
       root: {
@@ -22,7 +22,7 @@ const theme = createMuiTheme({
       textDecoration: "none",
     },
     error: {
-      main: red.A400,
+      main: "#fc0f03",
     },
     background: {
       default: "#fff",

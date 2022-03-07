@@ -1,12 +1,11 @@
 import React,{Component,useState} from 'react';
 import fetcher from "../lib/lib.js";
-import {makeStyles} from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import Container from "@mui/material/Container";
 import UploadGrid from "../components/UploadGrid";
+import { makeStyles } from '@mui/styles';
 
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",

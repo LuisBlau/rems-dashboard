@@ -1,17 +1,16 @@
 import React, {useState} from "react";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import {makeStyles} from "@material-ui/core/styles";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import useSWR from "swr";
 import fetcher from "../../lib/lib.js";
 import LowMemoryPaper from "../../components/Memory/LowMemoryPaper";
 import OverviewLayout from "../../components/OverviewLayout";
-import TextField from "@material-ui/core/TextField";
+import TextField from "@mui/material/TextField";
+import { makeStyles } from '@mui/styles';
 
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",

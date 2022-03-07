@@ -1,13 +1,12 @@
-import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
-import Box from "@material-ui/core/Box";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
 import Copyright from "../src/Copyright";
 import React from "react";
-import {makeStyles} from "@material-ui/core/styles";
+import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
-  appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",
