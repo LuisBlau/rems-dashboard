@@ -23,12 +23,14 @@ import { styled, useTheme } from '@mui/material/styles';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import Link from "next/link";
 import PublishIcon from '@mui/icons-material/Publish';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import {Schedule} from "@mui/icons-material";
 
 
 
@@ -242,7 +244,11 @@ const MenuItems = [
       name: "DeployStatus",
       route:"/deployStatus",
       icon: <PendingActionsIcon/>
-    }
+    }, {
+    name: "Deploy Schedule",
+    route:"/deploySchedule",
+    icon: <ScheduleIcon/>
+  }
   ];
 
 export default function MyApp(props) {

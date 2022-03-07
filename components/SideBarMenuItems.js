@@ -16,6 +16,13 @@ import PublishIcon from '@mui/icons-material/Publish';
 import ListItemButton from '@mui/material/ListItemButton';
 import ScheduleIcon from '@mui/material/Schedule'
 
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
+
 const MenuItems = [
 /*  {
     name: "Dashboard",
@@ -63,6 +70,13 @@ const MenuItems = [
         icon: <PendingActionsIcon />
     }
 ];
+
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
 
 export const SideBarMenuItems = (
     <div>
