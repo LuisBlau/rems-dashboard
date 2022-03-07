@@ -10,6 +10,7 @@
     "@material-ui/icons": "^4.11.2",
     "ag-grid-community": "^26.2.1",
     "ag-grid-react": "^26.2.0",
+    "axios": "^0.26.0",
     "clsx": "latest",
     "devextreme": "20.1.8",
     "devextreme-react": "20.1.8",

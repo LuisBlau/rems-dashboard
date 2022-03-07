@@ -5,11 +5,11 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
 import fetcher from "../lib/fetcherWithHeader"
-import useSWR from "swr";
+import axios from 'axios';
 export default function Command(props) {
   const state = props.st
-  const {data, error} = useSWR("/REMS/uploads",fetcher)
   const setState = props.setst
+  state["arguments"] = {}
   const handlechange = (event) => {
     state["command"] = event.target.value
     state["arguments"] = {}
@@ -22,12 +22,12 @@ export default function Command(props) {
 		setState(props.id,state)
 	}
   }
-  const getval = (name,def) => {
-	return state.arguments[name] == undefined ? (def == undefined ? "": def) : state.arguments[name]
+  const getval = (name) => {
+	return state.arguments[name]
   }
   const commands = {
-    "": function() { return (<div/>) }, // this is the default when no command is selected
-    "command": function() { return (
+    "": function(props ) { return (<div/>)}, // this is the default when no command is selected
+    "command": function(props) { return (
 	<div style={{display:"flex", gap:"20px"}}>
       <Select
         value={getval("type","type")}
@@ -41,14 +41,14 @@ export default function Command(props) {
     </div>
     )
 	},
-    "Unpack": function() { return (
+    "Unpack": function(props) { return (
 	<div style={{display:"flex", gap:"20px"}}>
     <TextField label="file" variant="standard" onChange={setval("file")} value={getval("file")}/>
 	<TextField label="destination" variant="standard" onChange={setval("destination")} value={getval("destination")}/>
     </div>
     )
 	},
-	"Apply": function() { return (
+	"Apply": function(props) { return (
 	<div style={{display:"flex", gap:"20px"}}>
       <Select
         value={getval("type","type")}
@@ -62,19 +62,24 @@ export default function Command(props) {
     </div>
     )
 	},
-    "Download": function() { 
-	if (error) return <div>error</div>;
-    if (!data) return <div>loading...</div>;
+    "Download": function(props) {
+	const [downloads,setDownloads] = useState([])
+    if(downloads.length == 0) {
+    axios.get("http://127.0.0.1:3001/REMS/uploads").then(function(response) { setDownloads(response) })
+	return <p>loading</p>
+	}
+  
 	return (<div style={{display:"flex", gap:"20px"}}>
-      <Select
-        value={getval("file","type")}
+        <Select
+        value={getval("file")}
         label="Type"
 		labelId="demo-simple-select-label"
         onChange={setval("file")}>
-		{data.map((c) => <MenuItem value={c.filename}>{c.filename}</MenuItem>)};
+			{downloads.data.map((down) =><MenuItem value={down.filename}>{down.filename}</MenuItem>)}
       </Select>
 	  <TextField label="destination" variant="standard" onChange={setval("destination")} value={getval("destination")}/>
-      </div>)},
+	  </div>)
+	}
   }
   const listItems = Object.keys(commands).map((c) =>    <MenuItem value={c}>{c}</MenuItem>  );
   let comman = commands[state.command === undefined ? "" : state.command]()
