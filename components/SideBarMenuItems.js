@@ -14,6 +14,14 @@ import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
 import Link from "next/link";
 import PublishIcon from '@mui/icons-material/Publish';
 import ListItemButton from '@mui/material/ListItemButton';
+import ScheduleIcon from '@mui/material/Schedule'
+
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
 
 const MenuItems = [
 /*  {
@@ -41,48 +49,57 @@ const MenuItems = [
     route: "/controller/vpdOverview",
     icon: <NetworkCheckIcon/>,
   }, */ {
-    name: "Extracts",
-    route: "/store/extractTable",
-    icon: <BackupOutlinedIcon/>
-  }, {
-    name: "Dumps",
-    route: "/store/dumpTable",
-    icon: <CloudDownloadIcon/>
-  }, { 
-    name: "FileUpload",
-    route: "/fileUpload",
-    icon: <PublishIcon/>
-  }, {
-    name: "DeployStatus",
-    route:"/deployStatus",
-    icon: <PendingActionsIcon/>
-  }
+        name: "Extracts",
+        route: "/store/extractTable",
+        icon: <BackupOutlinedIcon />
+    }, {
+        name: "Dumps",
+        route: "/store/dumpTable",
+        icon: <CloudDownloadIcon />
+    }, {
+        name: "FileUpload",
+        route: "/fileUpload",
+        icon: <PublishIcon />
+    }, {
+        name: "Schedule Deployment ",
+        route: "/deploySchedule",
+        icon: <ScheduleIcon />
+    }, {
+        name: "DeployStatus",
+        route: "/deployStatus",
+        icon: <PendingActionsIcon />
+    }
 ];
 
+/*
+*******************************************************
+NOTE THIS FILE IS NOT BEING USED NOW. THIS SECTIONS OF
+CODE WAS MOVED TO /pages/_app.js
+*******************************************************
+*/
+
 export const SideBarMenuItems = (
-  <div>
-    {MenuItems.map((item) => {
-      return (
-        <Link href={item.route}>
-          <ListItemButton key={item.name}
-            sx={{
-              minHeight: 48,
-              justifyContent: open ? 'initial' : 'center',
-              px: 2.5,
-            }}
-          >
-            <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: open ? 3 : 'auto',
-              justifyContent: 'center',
-            }}
-            >
-              {item.icon}</ListItemIcon>
-            <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }}/>
-          </ListItemButton>
-        </Link>
-      );
-    })}
-  </div>
+    <div>
+        {MenuItems.map((item) => {
+            return (
+                <Link href={item.route}>
+                    <ListItemButton key={item.name}
+                        sx={{
+                            minHeight: 48,
+                            justifyContent: open ? 'initial' : 'center',
+                            px: 2.5,
+                        }}>
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 0,
+                                mr: open ? 3 : 'auto',
+                                justifyContent: 'center',
+                            }}>
+                            {item.icon}</ListItemIcon>
+                        <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
+                    </ListItemButton>
+                </Link>
+            );
+        })}
+    </div>
 );
