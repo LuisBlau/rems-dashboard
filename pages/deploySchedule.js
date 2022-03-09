@@ -8,6 +8,7 @@ import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import DateTimePicker from '@mui/lab/DateTimePicker';
 import Button from "@mui/material/Button";
+import axios from 'axios';
 
 const uiWidth = 600;
 
@@ -38,7 +39,8 @@ const useStyles = makeStyles((theme) => ({
 // const defaultPackageOptions = ['package-1', 'package-2', 'really-really-long-package-name-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz-1234567890.pkz', 'package-3', 'package-4'];
 
 const formValues = {
-    package: "",
+    name: "",
+    id: "",
     storeList: "",
     dateTime: ""
 };
@@ -58,28 +60,53 @@ const packageList = [
 
 export default function deployScheule() {
     const classes = useStyles();
-    // const [formValues, setFormValues] = useState(defaultValues);
+    const [_formValues, setFormValues] = useState(formValues);
     const [_package, setPackage] = useState(null);
     const [_storeList, setStoreList] = useState('');
-    const [_dateTime, setDateTime] = useState((new Date()));
+    // const [_dateTime, setDateTime] = useState((new Date()));
+    const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
 
-    // https://medium.com/@dev_abhi/useeffect-what-when-and-how-95045bcf0f32
     useEffect(() => {
-        // here goes your fetch call
-        // when response arrives -
-        setOptions(packageList);
+        axios.get("http://localhost:3001/REMS/deploy-configs").then(function (response) {
+            var packages = []
+            response.data.forEach(v => {
+                packages.push({ label: v.name, id: v.id })
+            })
+            setOptions(packages);
+        });
     }, []); //Second opption [] means only run effect on the first render
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        formValues.package = _package;
-        formValues.storeList = _storeList;
-        formValues.dateTime = _dateTime;
-        console.log("Submitted : formValues");
-        console.log("formValues.package = [ %s : %s ] ", formValues.package.label, formValues.package.id);
-        console.log("formValues.storeList = %s ", formValues.storeList);
-        console.log("formValues.dateTime = %s ", formValues.dateTime);
+
+        formValues.name = _package.label,
+            formValues.id = _package.id,
+            formValues.storeList = _storeList,
+            // Don't adjust for users time zone i.e we are always in store time.
+            // en-ZA puts the date in the design doc format except for an extra comma.
+            formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '');
+
+        setFormValues(formValues)
+
+        const _body = JSON.stringify(_formValues);
+
+        const requestText = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: _body
+        };
+        //TODO : Add error message if status does not come back OK
+        fetch('http://localhost:3001/deploy-config', requestText)
+            .then(res => {
+                if(res.status != 200){
+                    alert("Deploy-Config: name and id does not exist.")
+                }
+            })
+            .catch(err => {
+                alert("Error connecting to server.")
+                console.log(err)
+            });
     };
 
     return (
@@ -87,14 +114,13 @@ export default function deployScheule() {
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container}>
                 <form onSubmit={handleSubmit}>
-                    <dev>
+                    <div>
                         <Stack spacing={2} sx={{ alignItems: 'center', paddingTop: 10 }} >
                             <Autocomplete
                                 id="select-package"
                                 value={_package}
                                 onChange={(event, newValue) => {
                                     setPackage(newValue);
-                                    console.log("old = %s | new = %s", _package, newValue);
                                 }}
                                 options={_options}
                                 noOptionsText="Error Loading Package List"
@@ -117,7 +143,6 @@ export default function deployScheule() {
                                 name="storeList"
                                 onChange={(event) => {
                                     setStoreList(event.target.value);
-                                    console.log("old = %s | new = %s", _storeList, event.target.value);
 
                                 }}
                                 helperText='example store list : store1:agent1,store2:agent2,store3:agent3,store4:agent4,store5:agent5'
@@ -127,11 +152,10 @@ export default function deployScheule() {
                                     id="date-time-local"
                                     disablePast
                                     label="Send Time"
-                                    renderInput={(params) => <TextField {...params} />}
+                                    renderInput={(params) => <TextField {...params}  helperText="Store Time Zone" />}
                                     value={_dateTime}
                                     onChange={(newValue) => {
                                         setDateTime(newValue);
-                                        console.log("old = %s | new = %s", _dateTime, newValue);
                                     }}
                                 />
                             </LocalizationProvider>
@@ -140,7 +164,7 @@ export default function deployScheule() {
                                 Submit
                             </Button>
                         </Stack>
-                    </dev>
+                    </div>
                 </form>
             </Container>
         </main>
