@@ -37,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Upload(props) {
   const classes = useStyles();
   const [cInit,setcInit] = useState(false)
+  const [name,setName] = useState("untitled Command List")
   const [commands,setCommands] = useState({})
   const handleRemoveCommand = (idx) => {
     console.log(commands)
@@ -59,13 +60,11 @@ export default function Upload(props) {
       commandList.push(y)
     }
     commandList.sort((a,b) => (a.last_nom > b.last_nom) ? 1 : ((b.last_nom > a.last_nom) ? -1 : 0))
-    
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(commandList)
-    };
-    fetch('http://127.0.0.1:3001/sendCommand', requestOptions)
+    commandObj = {
+        "name":name,
+        "steps":commandList
+    }
+    axios.post('/api/sendCommand', commandObj)
   }
   const removeCommand = (id) => {
     console.log(id)
@@ -83,6 +82,9 @@ export default function Upload(props) {
       return jasper;
     })
   }
+  const handleNameChange (e) => {
+    setName(e.target.value)
+  }
   if(!cInit) {
     setcInit(true)
     addCommand()
@@ -90,7 +92,9 @@ export default function Upload(props) {
 	return (
       <main className={classes.content}>
         <div className={classes.appBarSpacer}/>
-          <Container maxWidth="lg" className={classes.container}>
+          <Container maxWidth="lg" className={classes.container} style={{margin:100}}>
+		   <h2>Upload Commands</h2>
+		   <TextField label="file" variant="standard" onChange={handleNameChange} value={Name}/>
 		   <div>
 		      {Object.keys(commands).map(function(idx){
               return (<Command id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand}/>)

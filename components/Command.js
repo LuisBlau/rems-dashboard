@@ -65,7 +65,7 @@ export default function Command(props) {
     "Download": function(props) {
 	const [downloads,setDownloads] = useState([])
     if(downloads.length == 0) {
-    axios.get("http://127.0.0.1:3001/REMS/uploads").then(function(response) { setDownloads(response) })
+    axios.get("/api/REMS/uploads").then(function(response) { setDownloads(response) })
 	return <p>loading</p>
 	}
   
