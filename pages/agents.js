@@ -11,6 +11,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText"
+import Snackbar from "@mui/material/Snackbar";
 
 
 
@@ -44,6 +45,9 @@ export default function deployScheule() {
     const [_agents, setAgents] = useState([]);
     const [_index, setIndex] = useState([]);
     const [_checked, setChecked] = useState([]);
+    const [_open, setOpen] = useState(false);
+    const [_toast, setToast] = useState("No Agents Selected!")
+
 
     useEffect(() => {
         axios.get("http://127.0.0.1:3001/REMS/agents").then(function (response) {
@@ -82,20 +86,24 @@ export default function deployScheule() {
         event.preventDefault();
 
         var agentsText = "";
-        var toastText = "No agents selected!";
         if (_checked && _checked.length > 0) {
             agentsText = _agents[_checked[0]]
             _checked.forEach(val => {
                 if (!agentsText.includes(_agents[val])) {
-
                     agentsText += ", " + _agents[val]
                 }
             })
-            toastText = "copied : " + agentsText
         }
 
         navigator.clipboard.writeText(agentsText)
-        alert(toastText);
+
+        if( agentsText && agentsText.length > 0){
+            setToast(agentsText)
+        }
+        else{
+            setToast("No Agents Selected!!")
+        }
+        setOpen(true)
     };
 
     return (
@@ -104,7 +112,7 @@ export default function deployScheule() {
 
             <Container sx={{ paddingTop: 10 }} maxWidth="sm" className={classes.container} >
                 <Box sx={{}}>
-                    <List dense={'true'} disablePadding sx={{ maxWidth: 350 }} >
+                    <List dense={true} disablePadding sx={{ maxWidth: 350 }} >
 
                         {_index.map((value) => {
                             const labelId = `checkbox-list-label`;
@@ -130,6 +138,15 @@ export default function deployScheule() {
                 <Button variant="contained" color="primary" type="submit" onClick={handleSubmit} >
                     Copy Selected Agents to Clip Board
                 </Button>
+
+                <Snackbar
+                    anchorOrigin={{vertical: "top", horizontal: "center"}}
+                    open={_open}
+                    autoHideDuration={ 6000 }
+                    onClose={ (event) => { setOpen(false) } }
+                    message={_toast}
+                />
+
                 <Box pt={4}>
                     <Copyright />
                 </Box>
