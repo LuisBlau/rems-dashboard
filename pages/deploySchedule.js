@@ -54,7 +54,7 @@ export default function deployScheule() {
     const [_options, setOptions] = useState([])
 
     useEffect(() => {
-        axios.get("http://127.0.0.1:3001/REMS/deploy-configs").then(function (response) {
+        axios.get("/api/REMS/deploy-configs").then(function (response) {
             var packages = []
             response.data.forEach(v => {
                 packages.push({ label: v.name, id: v.id })
@@ -83,7 +83,7 @@ export default function deployScheule() {
             body: _body
         };
         //TODO : Add error message if status does not come back OK
-        fetch('http://127.0.0.1:3001/deploy-config', requestText)
+        fetch('/api/deploy-config', requestText)
             .then(res => {
                 if (res.status != 200) {
                     alert("Deploy-Config: name and id does not exist.")
