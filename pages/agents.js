@@ -46,7 +46,7 @@ export default function deployScheule() {
     const [_checked, setChecked] = useState([]);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/REMS/agents").then(function (response) {
+        axios.get("http://127.0.0.1:3001/REMS/agents").then(function (response) {
             console.log("agents response is", response)
 
             var agents = []
