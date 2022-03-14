@@ -233,11 +233,6 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "Send Commands",
-        route: "/commandSender",
-        icon: <ChevronRightIcon />
-    },
-    {
         name: "FileUpload",
         route: "/fileUpload",
         icon: <PublishIcon />
