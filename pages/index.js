@@ -40,7 +40,7 @@ export default function Index() {
 
   return (
     <main className={classes.content}>
-      <ExtractTable />
+      {/* <ExtractTable /> */}
     </main>
   );
 }
