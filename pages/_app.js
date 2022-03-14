@@ -228,7 +228,7 @@ const MenuItems = [
       name: "VPD Info",
       route: "/controller/vpdOverview",
       icon: <NetworkCheckIcon/>,
-    }, */ {
+    },{
       name: "Extracts",
       route: "/store/extractTable",
       icon: <BackupOutlinedIcon/>
@@ -236,7 +236,7 @@ const MenuItems = [
       name: "Dumps",
       route: "/store/dumpTable",
       icon: <CloudDownloadIcon/>
-    }, { 
+    }, */{
       name: "FileUpload",
       route: "/fileUpload",
       icon: <PublishIcon/>
