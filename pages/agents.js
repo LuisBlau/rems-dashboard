@@ -50,7 +50,7 @@ export default function deployScheule() {
 
 
     useEffect(() => {
-        axios.get("http://127.0.0.1:3001/REMS/agents").then(function (response) {
+        axios.get("/api/REMS/agents").then(function (response) {
             console.log("agents response is", response)
 
             var agents = []
@@ -97,10 +97,10 @@ export default function deployScheule() {
 
         navigator.clipboard.writeText(agentsText)
 
-        if( agentsText && agentsText.length > 0){
+        if (agentsText && agentsText.length > 0) {
             setToast(agentsText)
         }
-        else{
+        else {
             setToast("No Agents Selected!!")
         }
         setOpen(true)
@@ -109,11 +109,9 @@ export default function deployScheule() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-
             <Container sx={{ paddingTop: 10 }} maxWidth="sm" className={classes.container} >
                 <Box sx={{}}>
                     <List dense={true} disablePadding sx={{ maxWidth: 350 }} >
-
                         {_index.map((value) => {
                             const labelId = `checkbox-list-label`;
                             return (
@@ -131,22 +129,18 @@ export default function deployScheule() {
                                 </ListItem>
                             );
                         })}
-
                     </List>
                 </Box>
-
                 <Button variant="contained" color="primary" type="submit" onClick={handleSubmit} >
                     Copy Selected Agents to Clip Board
                 </Button>
-
                 <Snackbar
-                    anchorOrigin={{vertical: "top", horizontal: "center"}}
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
                     open={_open}
-                    autoHideDuration={ 6000 }
-                    onClose={ (event) => { setOpen(false) } }
+                    autoHideDuration={6000}
+                    onClose={(event) => { setOpen(false) }}
                     message={_toast}
                 />
-
                 <Box pt={4}>
                     <Copyright />
                 </Box>
