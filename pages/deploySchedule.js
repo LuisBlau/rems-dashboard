@@ -45,19 +45,6 @@ const formValues = {
     dateTime: ""
 };
 
-const packageList = [
-    { label: "packge-1.pkg", id: 1 },
-    { label: "packge-2.pkg", id: 2 },
-    { label: "packge-3.pkg", id: 3 },
-    { label: "packge-4.pkg", id: 4 },
-    { label: "packge-5.pkg", id: 5 },
-    { label: "packge-6.pkg", id: 6 },
-    { label: "packge-7.pkg", id: 7 },
-    { label: "packge-8.pkg", id: 8 },
-    { label: "packge-9.pkg", id: 9 },
-    { label: "packge-10.pkg", id: 10 }
-];
-
 export default function deployScheule() {
     const classes = useStyles();
     const [_formValues, setFormValues] = useState(formValues);
@@ -68,7 +55,7 @@ export default function deployScheule() {
     const [_options, setOptions] = useState([])
 
     useEffect(() => {
-        axios.get("http://localhost:3001/REMS/deploy-configs").then(function (response) {
+        axios.get("http://127.0.0.1:3001/REMS/deploy-configs").then(function (response) {
             var packages = []
             response.data.forEach(v => {
                 packages.push({ label: v.name, id: v.id })
@@ -97,7 +84,7 @@ export default function deployScheule() {
             body: _body
         };
         //TODO : Add error message if status does not come back OK
-        fetch('http://localhost:3001/deploy-config', requestText)
+        fetch('http://127.0.0.1:3001/deploy-config', requestText)
             .then(res => {
                 if(res.status != 200){
                     alert("Deploy-Config: name and id does not exist.")
