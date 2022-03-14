@@ -8,6 +8,8 @@ import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import DateTimePicker from '@mui/lab/DateTimePicker';
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Copyright from "../src/Copyright";
 import axios from 'axios';
 
 const uiWidth = 600;
@@ -36,8 +38,6 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-// const defaultPackageOptions = ['package-1', 'package-2', 'really-really-long-package-name-ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyz-1234567890.pkz', 'package-3', 'package-4'];
-
 const formValues = {
     name: "",
     id: "",
@@ -45,30 +45,16 @@ const formValues = {
     dateTime: ""
 };
 
-const packageList = [
-    { label: "packge-1.pkg", id: 1 },
-    { label: "packge-2.pkg", id: 2 },
-    { label: "packge-3.pkg", id: 3 },
-    { label: "packge-4.pkg", id: 4 },
-    { label: "packge-5.pkg", id: 5 },
-    { label: "packge-6.pkg", id: 6 },
-    { label: "packge-7.pkg", id: 7 },
-    { label: "packge-8.pkg", id: 8 },
-    { label: "packge-9.pkg", id: 9 },
-    { label: "packge-10.pkg", id: 10 }
-];
-
 export default function deployScheule() {
     const classes = useStyles();
     const [_formValues, setFormValues] = useState(formValues);
     const [_package, setPackage] = useState(null);
     const [_storeList, setStoreList] = useState('');
-    // const [_dateTime, setDateTime] = useState((new Date()));
     const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
 
     useEffect(() => {
-        axios.get("http://localhost:3001/REMS/deploy-configs").then(function (response) {
+        axios.get("/api/REMS/deploy-configs").then(function (response) {
             var packages = []
             response.data.forEach(v => {
                 packages.push({ label: v.name, id: v.id })
@@ -97,9 +83,9 @@ export default function deployScheule() {
             body: _body
         };
         //TODO : Add error message if status does not come back OK
-        fetch('http://localhost:3001/deploy-config', requestText)
+        fetch('/api/deploy-config', requestText)
             .then(res => {
-                if(res.status != 200){
+                if (res.status != 200) {
                     alert("Deploy-Config: name and id does not exist.")
                 }
             })
@@ -112,60 +98,61 @@ export default function deployScheule() {
     return (
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
+            <Container maxWidth="lg" className={classes.container} >
                 <form onSubmit={handleSubmit}>
-                    <div>
-                        <Stack spacing={2} sx={{ alignItems: 'center', paddingTop: 10 }} >
-                            <Autocomplete
-                                id="select-package"
-                                value={_package}
-                                onChange={(event, newValue) => {
-                                    setPackage(newValue);
+                    <Stack spacing={2} sx={{ alignItems: 'center', paddingTop: 10 }} >
+                        <Autocomplete
+                            id="select-package"
+                            value={_package}
+                            onChange={(event, newValue) => {
+                                setPackage(newValue);
+                            }}
+                            options={_options}
+                            noOptionsText="Error Loading Package List"
+                            renderInput={(params) => (
+                                <TextField
+                                    sx={{ width: uiWidth }}
+                                    {...params}
+                                    label="Package to Send"
+                                    InputProps={{ ...params.InputProps, type: 'search' }} />
+                            )}
+                        />
+
+                        {/*for handler to work 'name' has to match the formsValue member*/}
+                        <TextField
+                            id="storeList-input"
+                            multiline
+                            rows={5}
+                            sx={{ width: uiWidth, height: "100%" }}
+                            label="Store List"
+                            name="storeList"
+                            onChange={(event) => {
+                                setStoreList(event.target.value);
+
+                            }}
+                            helperText='example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC'
+                        />
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <DateTimePicker
+                                id="date-time-local"
+                                disablePast
+                                label="Send Time"
+                                renderInput={(params) => <TextField {...params} helperText="Store Time Zone" />}
+                                value={_dateTime}
+                                onChange={(newValue) => {
+                                    setDateTime(newValue);
                                 }}
-                                options={_options}
-                                noOptionsText="Error Loading Package List"
-                                renderInput={(params) => (
-                                    <TextField
-                                        sx={{ width: uiWidth }}
-                                        {...params}
-                                        label="Package to Send"
-                                        InputProps={{ ...params.InputProps, type: 'search' }} />
-                                )}
                             />
+                        </LocalizationProvider>
 
-                            {/*for handler to work 'name' has to match the formsValue member*/}
-                            <TextField
-                                id="storeList-input"
-                                multiline
-                                rows={5}
-                                sx={{ width: uiWidth, height: "100%" }}
-                                label="Store List"
-                                name="storeList"
-                                onChange={(event) => {
-                                    setStoreList(event.target.value);
-
-                                }}
-                                helperText='example store list : store1:agent1,store2:agent2,store3:agent3,store4:agent4,store5:agent5'
-                            />
-                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                <DateTimePicker
-                                    id="date-time-local"
-                                    disablePast
-                                    label="Send Time"
-                                    renderInput={(params) => <TextField {...params}  helperText="Store Time Zone" />}
-                                    value={_dateTime}
-                                    onChange={(newValue) => {
-                                        setDateTime(newValue);
-                                    }}
-                                />
-                            </LocalizationProvider>
-
-                            <Button variant="contained" color="primary" type="submit">
-                                Submit
-                            </Button>
-                        </Stack>
-                    </div>
+                        <Button variant="contained" color="primary" type="submit">
+                            Submit
+                        </Button>
+                    </Stack>
                 </form>
+                <Box pt={4}>
+                    <Copyright />
+                </Box>
             </Container>
         </main>
     );
