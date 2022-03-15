@@ -61,7 +61,7 @@ export default function Upload(props) {
         method: 'POST',
 		body: formData
     };
-    fetch('http://127.0.0.1:3001/REMS/uploadfile', requestOptions).then(response => alert("upload successful"))
+    fetch('/api/REMS/uploadfile', requestOptions).then(response => alert("upload successful"))
 	};
 	return (
       <main className={classes.content}>
