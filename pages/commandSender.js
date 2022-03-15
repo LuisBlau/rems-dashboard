@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Upload(props) {
   const classes = useStyles();
   const [cInit,setcInit] = useState(false)
-  const [name,setName] = useState("untitled Command List")
+  const [name,setName] = useState("")
   const [commands,setCommands] = useState({})
   const handleRemoveCommand = (idx) => {
     console.log(commands)
@@ -86,6 +86,7 @@ export default function Upload(props) {
   const handleNameChange = (e) => {
     setName(e.target.value)
   }
+  
   if(!cInit) {
     setcInit(true)
     addCommand()

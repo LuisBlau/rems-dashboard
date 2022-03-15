@@ -76,7 +76,7 @@ export default function deployStatus() {
                 id={"panel"+deploy.id+"bh-header"}
                 >
                 <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    {deploy.storeName} {deploy.apply_time}
+                    {deploy.storeName} {deploy.apply_time} -- {deploy.status}
                 </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
