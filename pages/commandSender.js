@@ -10,6 +10,7 @@ import Command from "../components/Command"
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 const { v4: uuidv4 } = require('uuid');
+import axios from 'axios';
 const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
@@ -56,14 +57,14 @@ export default function Upload(props) {
     let commandList = []
     for(let x in commands) {
       let y = commands[x]
-      y["id"] = x
       commandList.push(y)
     }
-    commandList.sort((a,b) => (a.last_nom > b.last_nom) ? 1 : ((b.last_nom > a.last_nom) ? -1 : 0))
-    commandObj = {
+    //commandList.sort((a,b) => (a.last_nom > b.last_nom) ? 1 : ((b.last_nom > a.last_nom) ? -1 : 0))
+    let commandObj = {
         "name":name,
         "steps":commandList
     }
+	console.log(commandObj)
     axios.post('/api/sendCommand', commandObj)
   }
   const removeCommand = (id) => {
@@ -82,7 +83,7 @@ export default function Upload(props) {
       return jasper;
     })
   }
-  const handleNameChange (e) => {
+  const handleNameChange = (e) => {
     setName(e.target.value)
   }
   if(!cInit) {
@@ -94,7 +95,7 @@ export default function Upload(props) {
         <div className={classes.appBarSpacer}/>
           <Container maxWidth="lg" className={classes.container} style={{margin:100}}>
 		   <h2>Upload Commands</h2>
-		   <TextField label="file" variant="standard" onChange={handleNameChange} value={Name}/>
+		   <TextField label="file" variant="standard" onChange={handleNameChange} value={name}/>
 		   <div>
 		      {Object.keys(commands).map(function(idx){
               return (<Command id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand}/>)

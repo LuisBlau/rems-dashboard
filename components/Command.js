@@ -7,7 +7,7 @@ import InputLabel from '@mui/material/InputLabel';
 import fetcher from "../lib/fetcherWithHeader"
 import axios from 'axios';
 export default function Command(props) {
-  const state = props.st
+  var state = Object.assign({}, props.st)
   const setState = props.setst
   state["arguments"] = {}
   const handlechange = (event) => {
@@ -17,8 +17,8 @@ export default function Command(props) {
   };
   const setval = (name) => {
     return function(x) {
-		console.log(x)
-		state.arguments[name] = x.target.value
+		state["arguments"][name] = x.target.value
+		console.log(state)
 		setState(props.id,state)
 	}
   }
@@ -55,8 +55,8 @@ export default function Command(props) {
         label="Type"
 		labelId="demo-simple-select-label"
         onChange={setval("type")}>
-       <MenuItem value="python">Apply</MenuItem>
-       <MenuItem value="shell">Backoff</MenuItem>
+       <MenuItem value="apply">Apply</MenuItem>
+       <MenuItem value="backoff">Backoff</MenuItem>
     </Select>
     <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")}/>
     </div>
