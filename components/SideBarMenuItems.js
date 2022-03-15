@@ -14,7 +14,8 @@ import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
 import Link from "next/link";
 import PublishIcon from '@mui/icons-material/Publish';
 import ListItemButton from '@mui/material/ListItemButton';
-import ScheduleIcon from '@mui/material/Schedule'
+import ScheduleIcon from '@mui/material/Schedule';
+import CreateIcon from '@mui/material/Create'
 
 /*
 *******************************************************
@@ -60,6 +61,10 @@ const MenuItems = [
         name: "FileUpload",
         route: "/fileUpload",
         icon: <PublishIcon />
+    }, {
+        name: "CreateDeployment",
+        route:"/commandSender",
+        icon: <CreateIcon/>
     }, {
         name: "Schedule Deployment ",
         route: "/deploySchedule",

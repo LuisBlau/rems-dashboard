@@ -28,6 +28,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
+import {Schedule} from "@mui/icons-material";
+import CreateIcon from '@mui/icons-material/Create';
 
 /*
 import {
@@ -245,10 +247,18 @@ const MenuItems = [
         route: "/deploySchedule",
         icon: <ScheduleIcon />
     }, {
+      name: "CreateDeployment",
+      route:"/commandSender",
+      icon: <CreateIcon/>
+  }, {
         name: "Agents",
         route: "/agents",
         icon: <ImportantDevicesIcon />
-    }
+  }, {
+    name: "Dumps",
+    route: "/store/dumpTable",
+    icon: <CloudDownloadIcon />
+}
 ];
 
 export default function MyApp(props) {
