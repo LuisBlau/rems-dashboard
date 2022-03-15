@@ -1,32 +1,34 @@
-import React,{Component,useState} from 'react';
+import React, { Component, useState } from 'react';
 import fetcher from "../lib/lib.js";
 import Container from "@mui/material/Container";
 import UploadGrid from "../components/UploadGrid";
+import Copyright from "../src/Copyright";
+import Box from "@mui/material/Box";
 import { makeStyles } from '@mui/styles';
 
 
 const useStyles = makeStyles((theme) => ({
-  content: {
-    flexGrow: 1,
-    height: "100vh",
-    overflow: "auto",
-  },
-  appBarSpacer: {
-    paddingTop: 60
-},
-container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  paper: {
-    padding: theme.spacing(2),
-    display: "flex",
-    overflow: "auto",
-    flexDirection: "column",
-  },
-  fixedHeight: {
-    height: 240,
-  },
+    content: {
+        flexGrow: 1,
+        height: "100vh",
+        overflow: "auto",
+    },
+    appBarSpacer: {
+        paddingTop: 60
+    },
+    container: {
+        paddingTop: theme.spacing(5),
+        paddingBottom: theme.spacing(4),
+    },
+    paper: {
+        padding: theme.spacing(2),
+        display: "flex",
+        overflow: "auto",
+        flexDirection: "column",
+    },
+    fixedHeight: {
+        height: 240,
+    },
 }));
 
 export default function Upload(props) {
@@ -63,18 +65,19 @@ export default function Upload(props) {
     };
     fetch('/api/REMS/uploadfile', requestOptions).then(response => alert("upload successful"))
 	};
-	return (
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer}/>
-          <Container maxWidth="lg" className={classes.container}>
-            <div>
-              <input type="file" onChange={onFileChange}/>
-               <button onClick={onFileUpload}>
-                 Upload!
-               </button>
-             </div>
-          </Container>
-          <UploadGrid/>
+
+    return (
+        <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container align="center" maxWidth="md" className={classes.container} >
+                <input type="file" onChange={onFileChange} />
+                <button onClick={onFileUpload}> Upload! </button>
+                <UploadGrid/>
+            </Container>
+
+            <Box pt={4}>
+                <Copyright />
+            </Box>
         </main>
-	);
+    )
 }
