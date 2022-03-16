@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import Copyright from "../src/Copyright";
 import Container from "@mui/material/Container";
@@ -12,34 +12,53 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText"
 import Snackbar from "@mui/material/Snackbar";
+import Divider from "@mui/material/Divider"
 
 
-const useStyles = makeStyles((theme) => ({
-    content: {
+const PREFIX = 'agents';
+
+const classes = {
+    content: `${PREFIX}-content`,
+    container: `${PREFIX}-container`,
+    appBarSpacer: `${PREFIX}-appBarSpacer`,
+    paper: `${PREFIX}-paper`,
+    fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+const Root = styled('main')((
+    {
+        theme
+    }
+) => ({
+    [`&.${classes.content}`]: {
         flexGrow: 1,
         height: "100vh",
         overflow: "auto",
     },
-    container: {
+
+    [`& .${classes.container}`]: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
     },
-    appBarSpacer: {
+
+    [`& .${classes.appBarSpacer}`]: {
         paddingTop: 50
     },
-    paper: {
+
+    [`& .${classes.paper}`]: {
         padding: theme.spacing(2),
         display: "flex",
         overflow: "auto",
         flexDirection: "column",
     },
-    fixedHeight: {
+
+    [`& .${classes.fixedHeight}`]: {
         height: 240,
-    },
+    }
 }));
 
 export default function deployScheule() {
-    const classes = useStyles();
+
 
     const [_agents, setAgents] = useState([]);
     const [_index, setIndex] = useState([]);
@@ -100,22 +119,21 @@ export default function deployScheule() {
     };
 
     return (
-        <main className={classes.content}>
+        <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container sx={{ paddingTop: 10 }} maxWidth="sm" className={classes.container} >
+            <Container align="center" maxWidth="xs" className={classes.container} >
 
-                <List disablePadding sx={{ maxWidth: 350 }} >
+                <List dense padding={10}>
                     {_index.map((value) => {
                         const labelId = `checkbox-list-label`;
                         return (
-                            <ListItem key={value} disablePadding divider={'false'} >
-                                <ListItemButton role={undefined} onClick={handleToggle(value)} >
+                            <ListItem divider={true} key={value}>
+                                <ListItemButton onClick={handleToggle(value)}>
                                     <ListItemIcon>
                                         <Checkbox
                                             checked={_checked.indexOf(value) !== -1}
                                             tabIndex={-1}
-                                            inputProps={{ 'aria-labelledby': labelId }}
-                                        />
+                                            inputProps={{ 'aria-labelledby': labelId }} />
                                     </ListItemIcon>
                                     <ListItemText id={labelId} primary={_agents[value]} />
                                 </ListItemButton>
@@ -123,7 +141,7 @@ export default function deployScheule() {
                         );
                     })}
                 </List>
-                <Button variant="contained" color="primary" type="submit" onClick={handleSubmit} >
+                <Button sx={{ margin: 2}} variant="contained" color="primary" type="submit" onClick={handleSubmit} >
                     Copy Selected Agents to Clip Board
                 </Button>
                 <Snackbar
@@ -137,6 +155,6 @@ export default function deployScheule() {
                     <Copyright />
                 </Box>
             </Container>
-        </main>
-    )
-};
+        </Root>
+    );
+}

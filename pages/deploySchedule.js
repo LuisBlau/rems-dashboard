@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
 import Stack from '@mui/material/Stack';
 import Autocomplete from "@mui/material/Autocomplete";
@@ -12,31 +12,49 @@ import Box from "@mui/material/Box";
 import Copyright from "../src/Copyright";
 import axios from 'axios';
 
-const uiWidth = 600;
+const PREFIX = 'deploySchedule';
 
-const useStyles = makeStyles((theme) => ({
-    content: {
+const classes = {
+    content: `${PREFIX}-content`,
+    container: `${PREFIX}-container`,
+    appBarSpacer: `${PREFIX}-appBarSpacer`,
+    paper: `${PREFIX}-paper`,
+    fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+const Root = styled('main')((
+    {
+        theme
+    }
+) => ({
+    [`&.${classes.content}`]: {
         flexGrow: 1,
         height: "100vh",
         overflow: "auto",
     },
-    container: {
+
+    [`& .${classes.container}`]: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
     },
-    appBarSpacer: {
-        paddingTop: 60
+
+    [`& .${classes.appBarSpacer}`]: {
+        paddingTop: 50
     },
-    paper: {
+
+    [`& .${classes.paper}`]: {
         padding: theme.spacing(2),
         display: "flex",
         overflow: "auto",
         flexDirection: "column",
     },
-    fixedHeight: {
+
+    [`& .${classes.fixedHeight}`]: {
         height: 240,
-    },
+    }
 }));
+
+const uiWidth = 600;
 
 const formValues = {
     name: "",
@@ -46,7 +64,7 @@ const formValues = {
 };
 
 export default function deployScheule() {
-    const classes = useStyles();
+
     const [_formValues, setFormValues] = useState(formValues);
     const [_package, setPackage] = useState(null);
     const [_storeList, setStoreList] = useState('');
@@ -96,11 +114,11 @@ export default function deployScheule() {
     };
 
     return (
-        <main className={classes.content}>
+        <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
                 <form onSubmit={handleSubmit}>
-                    <Stack spacing={2} sx={{ alignItems: 'center', paddingTop: 10 }} >
+                    <Stack spacing={2} sx={{ alignItems: 'center' }} >
                         <Autocomplete
                             id="select-package"
                             value={_package}
@@ -154,6 +172,6 @@ export default function deployScheule() {
                     <Copyright />
                 </Box>
             </Container>
-        </main>
+        </Root>
     );
 }

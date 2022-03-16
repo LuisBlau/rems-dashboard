@@ -1,20 +1,30 @@
 import {Grid, Typography} from "@mui/material";
+import { styled } from '@mui/material/styles';
 import React from "react";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'VpdPaper';
 
-const useStyles = makeStyles((theme) => ({
-  light: {
+const classes = {
+  light: `${PREFIX}-light`
+};
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')((
+  {
+    theme
+  }
+) => ({
+  [`& .${classes.light}`]: {
     color: "rgb(0, 0, 0, 0.3)"
   }
 }));
 
 export default function VpdPaper(props) {
-  const classes = useStyles();
+
   return (
     <Grid container spacing={1}>
       <Grid item xs={4}>
@@ -38,7 +48,7 @@ export default function VpdPaper(props) {
 
 export function InfoTable(props) {
   return (
-    <React.Fragment><Table size="small">
+    <Root><Table size="small">
       <TableHead>
         <TableRow>
           <TableCell>Bios</TableCell>
@@ -55,6 +65,6 @@ export function InfoTable(props) {
           <TableCell>{props.data["serial_no"]}</TableCell>
         </TableRow>
       </TableBody>
-    </Table></React.Fragment>
-  )
+    </Table></Root>
+  );
 }

@@ -1,7 +1,7 @@
 import React,{Component,useState} from 'react';
+import { styled } from '@mui/material/styles';
 import fetcher from "../lib/lib.js";
 import { createTheme } from '@mui/material/styles';
-import { makeStyles } from '@mui/styles';
 import Container from "@mui/material/Container";
 import DraggableList from "react-draggable-list";
 import MenuItem from '@mui/material/MenuItem';
@@ -11,32 +11,50 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 const { v4: uuidv4 } = require('uuid');
 import axios from 'axios';
-const useStyles = makeStyles((theme) => ({
-  content: {
+const PREFIX = 'commandSender';
+
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  appBarSpacer: `${PREFIX}-appBarSpacer`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+const Root = styled('main')((
+  {
+    theme
+  }
+) => ({
+  [`&.${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  appBarSpacer: {
-    paddingTop: 60
+
+  [`& .${classes.appBarSpacer}`]: {
+    paddingTop: 50
   },
-  paper: {
+
+  [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
+
+  [`& .${classes.fixedHeight}`]: {
     height: 240,
-  },
+  }
 }));
-  
+
 export default function Upload(props) {
-  const classes = useStyles();
+
   const [cInit,setcInit] = useState(false)
   const [name,setName] = useState("")
   const [commands,setCommands] = useState({})
@@ -49,7 +67,7 @@ export default function Upload(props) {
     let id=Date.now();
     setCommands(commands => {
       let jasper = Object.assign({}, commands);  // creating copy of state variable jasper
-      jasper[id] = {};                     // update the name property, assign a new value                 
+      jasper[id] = {};                     // update the name property, assign a new value
       return jasper;
     })
   }
@@ -71,7 +89,7 @@ export default function Upload(props) {
     console.log(id)
 	setCommands(commands => {
       let jasper = Object.assign({}, commands);  // creating copy of state variable jasper
-      delete jasper[id];              
+      delete jasper[id];
       return jasper;
     })
 	console.log(commands)
@@ -79,20 +97,20 @@ export default function Upload(props) {
   const setst = (id,state) => {
     setCommands(commands => {
       let jasper = Object.assign({}, commands);  // creating copy of state variable jasper
-      jasper[id] = state;                     // update the name property, assign a new value                 
+      jasper[id] = state;                     // update the name property, assign a new value
       return jasper;
     })
   }
   const handleNameChange = (e) => {
     setName(e.target.value)
   }
-  
+
   if(!cInit) {
     setcInit(true)
     addCommand()
   }
 	return (
-      <main className={classes.content}>
+      <Root className={classes.content}>
         <div className={classes.appBarSpacer}/>
           <Container maxWidth="lg" className={classes.container} style={{margin:100}}>
 		   <h2>Upload Commands</h2>
@@ -105,6 +123,6 @@ export default function Upload(props) {
 		<Button variant="contained" onClick={pushCommands}>Push Commands</Button>
              </div>
           </Container>
-        </main>
-	);
+        </Root>
+    );
 }

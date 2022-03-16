@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Copyright from "../../src/Copyright";
@@ -16,27 +17,42 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'realtime';
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')((
+  {
+    theme
+  }
+) => ({
+  [`& .${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  paper: {
+
+  [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
+
+  [`& .${classes.fixedHeight}`]: {
     height: 240,
-  },
+  }
 }));
 
 export default function Realtime() {
@@ -62,7 +78,7 @@ export default function Realtime() {
     console.log("new state: " + JSON.stringify(state))
   }
 
-  const classes = useStyles();
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer}/>
@@ -114,9 +130,9 @@ function ReloadCount(props) {
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;
   return (
-    <React.Fragment>
+    <Root>
       {data.count}
-    </React.Fragment>
+    </Root>
   );
 }
 

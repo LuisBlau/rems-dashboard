@@ -1,4 +1,5 @@
 import Container from "@mui/material/Container";
+import { styled } from '@mui/material/styles';
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
@@ -10,32 +11,49 @@ import fetcher from "../lib/fetcherWithHeader";
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
-import { makeStyles } from '@mui/styles';
 import { padding } from "@mui/system";
 
 
-const useStyles = makeStyles((theme) => ({
-    content: {
+const PREFIX = 'UploadGrid';
+
+const classes = {
+    content: `${PREFIX}-content`,
+    appBarSpacer: `${PREFIX}-appBarSpacer`,
+    container: `${PREFIX}-container`,
+    paper: `${PREFIX}-paper`,
+    fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+const Root = styled('div')((
+    {
+        theme
+    }
+) => ({
+    [`& .${classes.content}`]: {
         flexGrow: 1,
         height: "100vh",
         overflow: "auto",
     },
-    appBarSpacer: {
-        paddingTop: 60
+
+    [`& .${classes.appBarSpacer}`]: {
+        paddingTop: 50
     },
-    container: {
+
+    [`& .${classes.container}`]: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
     },
-    paper: {
+
+    [`& .${classes.paper}`]: {
         padding: theme.spacing(2),
         display: "flex",
         overflow: "auto",
         flexDirection: "column",
     },
-    fixedHeight: {
+
+    [`& .${classes.fixedHeight}`]: {
         height: 240,
-    },
+    }
 }));
 
 const sortGrid = function (event) {
@@ -58,7 +76,7 @@ const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
 
 export default function UploadGrid(props) {
     const { data, error } = useSWR([`/REMS/uploads`, props.state], fetcher);
-    if (error) return <div>failed to load</div>;
+    if (error) return <Root>failed to load</Root>;
     if (!data) return <div>loading...</div>;
     return (
         <div className="ag-theme-alpine" style={{ padding: 20, height: 400, width:"100%" }}>
