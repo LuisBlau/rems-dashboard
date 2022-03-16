@@ -14,7 +14,6 @@ import ListItemText from "@mui/material/ListItemText"
 import Snackbar from "@mui/material/Snackbar";
 
 
-
 const useStyles = makeStyles((theme) => ({
     content: {
         flexGrow: 1,
@@ -51,8 +50,6 @@ export default function deployScheule() {
 
     useEffect(() => {
         axios.get("/api/REMS/agents").then(function (response) {
-            console.log("agents response is", response)
-
             var agents = []
             var agentsIndex = []
             var index = -1;
@@ -61,12 +58,8 @@ export default function deployScheule() {
                 handleToggle(++index)
                 agentsIndex.push(index)
             })
-
-            console.log("num agents is", _agents.length)
             setAgents(agents);
             setIndex(agentsIndex)
-            // alert(agents)
-
         });
     }, []); //Second opption [] means only run effect on the first render
 
@@ -110,27 +103,26 @@ export default function deployScheule() {
         <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container sx={{ paddingTop: 10 }} maxWidth="sm" className={classes.container} >
-                <Box sx={{}}>
-                    <List dense={true} disablePadding sx={{ maxWidth: 350 }} >
-                        {_index.map((value) => {
-                            const labelId = `checkbox-list-label`;
-                            return (
-                                <ListItem key={value} disablePadding divider={'false'} >
-                                    <ListItemButton role={undefined} onClick={handleToggle(value)} >
-                                        <ListItemIcon>
-                                            <Checkbox
-                                                checked={_checked.indexOf(value) !== -1}
-                                                tabIndex={-1}
-                                                inputProps={{ 'aria-labelledby': labelId }}
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText id={labelId} primary={_agents[value]} />
-                                    </ListItemButton>
-                                </ListItem>
-                            );
-                        })}
-                    </List>
-                </Box>
+
+                <List disablePadding sx={{ maxWidth: 350 }} >
+                    {_index.map((value) => {
+                        const labelId = `checkbox-list-label`;
+                        return (
+                            <ListItem key={value} disablePadding divider={'false'} >
+                                <ListItemButton role={undefined} onClick={handleToggle(value)} >
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            checked={_checked.indexOf(value) !== -1}
+                                            tabIndex={-1}
+                                            inputProps={{ 'aria-labelledby': labelId }}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText id={labelId} primary={_agents[value]} />
+                                </ListItemButton>
+                            </ListItem>
+                        );
+                    })}
+                </List>
                 <Button variant="contained" color="primary" type="submit" onClick={handleSubmit} >
                     Copy Selected Agents to Clip Board
                 </Button>
