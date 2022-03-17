@@ -261,18 +261,18 @@ const MenuItems = [
         route: "/deploySchedule",
         icon: <ScheduleIcon />
     }, {
-      name: "CreateDeployment",
-      route:"/commandSender",
-      icon: <CreateIcon/>
-  }, {
+        name: "CreateDeployment",
+        route: "/commandSender",
+        icon: <CreateIcon />
+    }, {
         name: "Agent Select",
         route: "/agentSelect",
         icon: <ImportantDevicesIcon />
-  }, {
-    name: "Dumps",
-    route: "/store/dumpTable",
-    icon: <CloudDownloadIcon />
-}
+    }, {
+        name: "Dumps",
+        route: "/store/dumpTable",
+        icon: <CloudDownloadIcon />
+    }
 ];
 
 export default function MyApp(props) {
@@ -308,10 +308,7 @@ export default function MyApp(props) {
                 {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                 <div className={classes.root}>
                     <CssBaseline />
-                    <AppBar
-                        position="absolute"
-                        open={open}
-                    >
+                    <AppBar position="absolute" open={open} >
                         <Toolbar>
                             <IconButton
                                 edge="start"
@@ -321,15 +318,13 @@ export default function MyApp(props) {
                                 sx={{
                                     marginRight: 5,
                                     ...(open && { display: 'none' }),
-                                }}
-                            >
+                                }} >
                                 <MenuIcon />
                             </IconButton>
                             <Typography
                                 component="div"
                                 variant="h6"
-                                noWrap
-                            >
+                                noWrap >
                                 Dashboard
                             </Typography>
                             <IconButton color="inherit">
@@ -341,8 +336,7 @@ export default function MyApp(props) {
                     </AppBar>
                     <Drawer
                         variant="permanent"
-                        open={open}
-                    >
+                        open={open} >
                         <DrawerHeader>
                             <IconButton onClick={handleDrawerClose}>
                                 {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
@@ -350,31 +344,29 @@ export default function MyApp(props) {
                         </DrawerHeader>
                         <Divider />
                         <List>
-                            <div>
-                                {MenuItems.map((item) => {
-                                    return (
-                                        <Link href={item.route}>
-                                            <ListItemButton key={item.name}
+                            {MenuItems.map((item) => {
+                                return (
+                                    <Link key={item.name} href={item.route}>
+                                        <ListItemButton
+                                            sx={{
+                                                minHeight: 48,
+                                                justifyContent: open ? 'initial' : 'center',
+                                                px: 2.5,
+                                            }}
+                                        >
+                                            <ListItemIcon
                                                 sx={{
-                                                    minHeight: 48,
-                                                    justifyContent: open ? 'initial' : 'center',
-                                                    px: 2.5,
+                                                    minWidth: 0,
+                                                    mr: open ? 3 : 'auto',
+                                                    justifyContent: 'center',
                                                 }}
                                             >
-                                                <ListItemIcon
-                                                    sx={{
-                                                        minWidth: 0,
-                                                        mr: open ? 3 : 'auto',
-                                                        justifyContent: 'center',
-                                                    }}
-                                                >
-                                                    {item.icon}</ListItemIcon>
-                                                <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
-                                            </ListItemButton>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
+                                                {item.icon}</ListItemIcon>
+                                            <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
+                                        </ListItemButton>
+                                    </Link>
+                                );
+                            })}
                         </List>
                     </Drawer>
                     <div className={classes.appBarSpacer} />

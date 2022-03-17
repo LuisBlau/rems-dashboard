@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { styled } from '@mui/material/styles';
 import useSWR from "swr";
 import fetcher from "../lib/lib.js";
@@ -21,110 +21,103 @@ import Button from '@mui/material/Button';
 const PREFIX = 'deployStatus';
 
 const classes = {
-  content: `${PREFIX}-content`,
-  container: `${PREFIX}-container`,
-  appBarSpacer: `${PREFIX}-appBarSpacer`,
-  paper: `${PREFIX}-paper`,
-  fixedHeight: `${PREFIX}-fixedHeight`
+    content: `${PREFIX}-content`,
+    container: `${PREFIX}-container`,
+    appBarSpacer: `${PREFIX}-appBarSpacer`,
+    paper: `${PREFIX}-paper`,
+    fixedHeight: `${PREFIX}-fixedHeight`
 };
 
 const Root = styled('main')((
-  {
-    theme
-  }
+    {
+        theme
+    }
 ) => ({
-  [`&.${classes.content}`]: {
-    flexGrow: 1,
-    height: "100vh",
-    overflow: "auto",
-  },
+    [`&.${classes.content}`]: {
+        flexGrow: 1,
+        height: "100vh",
+        overflow: "auto",
+    },
 
-  [`& .${classes.container}`]: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
+    [`& .${classes.container}`]: {
+        paddingTop: theme.spacing(4),
+        paddingBottom: theme.spacing(4),
+    },
 
-  [`& .${classes.appBarSpacer}`]: {
-      paddingTop: 50
-  },
+    [`& .${classes.appBarSpacer}`]: {
+        paddingTop: 50
+    },
 
-  [`& .${classes.paper}`]: {
-    padding: theme.spacing(2),
-    display: "flex",
-    overflow: "auto",
-    flexDirection: "column",
-  },
+    [`& .${classes.paper}`]: {
+        padding: theme.spacing(2),
+        display: "flex",
+        overflow: "auto",
+        flexDirection: "column",
+    },
 
-  [`& .${classes.fixedHeight}`]: {
-    height: 240,
-  }
+    [`& .${classes.fixedHeight}`]: {
+        height: 240,
+    }
 }));
 
 const Console = prop => (
     console[Object.keys(prop)[0]](...Object.values(prop))
-    ,null // ➜ React components must return something
-  )
+    , null // ➜ React components must return something
+)
 
 export default function deployStatus() {
 
-  const [expanded, setExpanded] = React.useState(false);
+    const [expanded, setExpanded] = React.useState(false);
+    const { data, error } = useSWR("/REMS/deploys", fetcher);
 
-
-  const {data, error} = useSWR("/REMS/deploys", fetcher);
-
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
-  console.log(data);
-  return (
-    <Root className={classes.content}>
-      <div className={classes.appBarSpacer}/>
-      <Container maxWidth="lg" className={classes.container}>
-      <div>
-
-          {
-          data
-            //.filter((store) => store.store_number.includes(filterText))
-            .map((deploy) => (
-              <Accordion>
-                <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls={"panel"+deploy.id+"bh-content"}
-                id={"panel"+deploy.id+"bh-header"}
-                >
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    {deploy.storeName} {deploy.apply_time} -- {deploy.status}
-                </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
+    if (error) return <div>failed to load</div>;
+    if (!data) return <div>loading...</div>;
+    return (
+        <Root className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container maxWidth="lg" className={classes.container}>
                 {
-                    deploy.steps.map((step,index) => (
-                        <Accordion>
+                    data.map((deploy) => (
+                        <Accordion key={deploy.id}>
                             <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls={"panel"+deploy.id+":"+index+"bh-content"}
-                            id={"panel"+deploy.id+":"+index+"bh-header"}
-                            >
-                            <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                                Type:{step.type} Status:{step.status}
-                            </Typography>
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls={"panel" + deploy.id + "bh-content"}
+                                id={"panel" + deploy.id + "bh-header"} >
+                                <Typography sx={{ width: '33%', flexShrink: 0 }}>
+                                    {deploy.storeName} {deploy.apply_time} -- {deploy.status}
+                                </Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                    {
-                                    step.output.map((line) => (
-                                        <div>{line}</div>
-                                    ))}
+                                {
+                                    deploy.steps.map((step, index) => (
+                                        <Accordion key={index} >
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMoreIcon />}
+                                                aria-controls={"panel" + deploy.id + ":" + index + "bh-content"}
+                                                id={"panel" + deploy.id + ":" + index + "bh-header"}
+                                            >
+                                                <Typography sx={{ width: '33%', flexShrink: 0 }}>
+                                                    Type:{step.type} Status:{step.status}
+                                                </Typography>
+                                            </AccordionSummary>
+                                            <AccordionDetails>
+                                                {
+                                                    step.output.map((line) => (
+                                                        line
+                                                    ))
+                                                }
+                                            </AccordionDetails>
+                                        </Accordion>
+                                    ))
+                                }
                             </AccordionDetails>
                         </Accordion>
                     ))
                 }
-                </AccordionDetails>
-              </Accordion>
-            ))}
-      </div>
-        <Box pt={4}>
-          <Copyright/>
-        </Box>
-      </Container>
-    </Root>
-  );
+                <Box pt={4}>
+                    <Copyright />
+                </Box>
+            </Container>
+        </Root>
+    );
 }
