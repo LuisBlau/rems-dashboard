@@ -251,8 +251,8 @@ const MenuItems = [
       route:"/commandSender",
       icon: <CreateIcon/>
   }, {
-        name: "Agents",
-        route: "/agents",
+        name: "Agent Select",
+        route: "/agentSelect",
         icon: <ImportantDevicesIcon />
   }, {
     name: "Dumps",
