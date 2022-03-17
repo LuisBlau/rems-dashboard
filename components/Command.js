@@ -47,7 +47,7 @@ export default function Command(props) {
        <MenuItem value="python">python</MenuItem>
        <MenuItem value="shell">shell</MenuItem>
     </Select>
-    <TextField label="command" variant="standard" onChange={setval("command")} value={getval("command")}/>
+    <TextField label="command" variant="standard" onChange={setval("args")} value={getval("args")}/>
     <TextField label="path" variant="standard" onChange={setval("path")} value={getval("path")}/>
     </div>
     )
@@ -55,20 +55,20 @@ export default function Command(props) {
     "unzip": function(props) { return (
 	<div style={{display:"flex", gap:"20px"}}>
     <TextField label="file" variant="standard" onChange={setval("file")} value={getval("file")}/>
-	<TextField label="destination" variant="standard" onChange={setval("destination")} value={getval("destination")}/>
-  <TextField label="distribution" variant="standard" onChange={setval("distribution")} value={getval("distribution")}/>
+	<TextField label="destination" variant="standard" onChange={setval("directory")} value={getval("directory")}/>
+  <TextField label="distribution" variant="standard" onChange={setval("distribute")} value={getval("distribute")}/>
     </div>
     )
 	},
 	"apply": function(props) { return (
 	<div style={{display:"flex", gap:"20px"}}>
       <Select
-        value={getval("type","type")}
+        value={getval("command","command")}
         label="Type"
 		labelId="demo-simple-select-label"
-        onChange={setval("type")}>
+        onChange={setval("command")}>
        <MenuItem value="apply">Apply</MenuItem>
-       <MenuItem value="backoff">Backoff</MenuItem>
+       <MenuItem value="backout">Backoff</MenuItem>
     </Select>
     <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")}/>
     </div>
@@ -97,7 +97,8 @@ export default function Command(props) {
         onChange={setval("file")}>
 			{state.downloads.data.map((down) =><MenuItem value={down.id}>{down.filename}</MenuItem>)}
       </Select>
-	  <TextField label="destination" variant="standard" onChange={setval("destination")} value={getval("destination")}/>
+	  <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")}/>
+    <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")}/>
 	  </div>)
 	}
   }
