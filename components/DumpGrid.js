@@ -1,4 +1,5 @@
 import Container from "@mui/material/Container";
+import { styled } from '@mui/material/styles';
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
@@ -9,19 +10,30 @@ import useSWR from "swr";
 import fetcher from "../lib/fetcherWithHeader";
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'DumpGrid';
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`
+};
+
+const Root = styled('div')((
+  {
+    theme
+  }
+) => ({
+  [`& .${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
-  },
+  }
 }));
+
 const azureRenderer = function(params) {
 	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
 }
@@ -50,7 +62,7 @@ const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
 
 export default function DumpGrid(props) {
   const {data, error} = useSWR([`/registers/dumps`, props.state], fetcher);
-  if (error) return <div>failed to load</div>;
+  if (error) return <Root>failed to load</Root>;
   if (!data) return <div>loading...</div>;
             return <div className="ag-theme-alpine" style={{height: 400, width: "100%"}}>
 			   <AgGridReact style="width: 100%; height: 100%;"

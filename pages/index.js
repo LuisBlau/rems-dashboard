@@ -1,34 +1,49 @@
 import React from "react";
+import { styled } from '@mui/material/styles';
 import clsx from "clsx";
 import Realtime from "./registers/realtime_alternative";
 import ExtractTable from "./store/extractTable";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'index';
 
-const drawerWidth = 240;
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`
+};
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const Root = styled('main')((
+  {
+    theme
+  }
+) => ({
+  [`&.${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  paper: {
+
+  [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
+
+  [`& .${classes.fixedHeight}`]: {
     height: 240,
-  },
+  }
 }));
 
+const drawerWidth = 240;
+
 export default function Index() {
-  const classes = useStyles();
+
   const [open, setOpen] = React.useState(true);
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -39,8 +54,8 @@ export default function Index() {
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   return (
-    <main className={classes.content}>
+    <Root className={classes.content}>
       {/* <ExtractTable /> */}
-    </main>
+    </Root>
   );
 }

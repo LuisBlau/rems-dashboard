@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import Copyright from "../../src/Copyright";
@@ -8,33 +9,47 @@ import useSWR from "swr";
 import fetcher from "../../lib/lib.js";
 import OverviewStorePaper from "../../components/Connection/OverviewStorePaper";
 import TextField from "@mui/material/TextField";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'connectionOverview';
 
-const drawerWidth = 240;
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`
+};
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const Root = styled('main')((
+  {
+    theme
+  }
+) => ({
+  [`&.${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  paper: {
+
+  [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
+
+  [`& .${classes.fixedHeight}`]: {
     height: 240,
-  },
+  }
 }));
 
+const drawerWidth = 240;
+
 export default function ConnectionOverview() {
-  const classes = useStyles();
+
 
   const [filterText, setFilterText] = useState("");
 
@@ -46,7 +61,7 @@ export default function ConnectionOverview() {
   if (!data) return <div>loading...</div>;
 
   return (
-    <main className={classes.content}>
+    <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
@@ -75,6 +90,6 @@ export default function ConnectionOverview() {
           <Copyright />
         </Box>
       </Container>
-    </main>
+    </Root>
   );
 }

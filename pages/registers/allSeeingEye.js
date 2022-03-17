@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import { styled } from '@mui/material/styles';
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
@@ -15,7 +16,43 @@ import useSWR from "swr";
 import fetcher from "../../lib/fetcherWithHeader";
 import OverviewLayout from "../../components/OverviewLayout";
 import TextField from "@mui/material/TextField";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'allSeeingEye';
+
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  paper: `${PREFIX}-paper`,
+  formControl: `${PREFIX}-formControl`
+};
+
+const StyledOverviewLayout = styled(OverviewLayout)((
+  {
+    theme
+  }
+) => ({
+  [`& .${classes.content}`]: {
+    flexGrow: 1,
+    height: "100vh",
+    overflow: "auto",
+  },
+
+  [`& .${classes.container}`]: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
+  },
+
+  [`& .${classes.paper}`]: {
+    padding: theme.spacing(2),
+    display: "flex",
+    overflow: "auto",
+    flexDirection: "column",
+  },
+
+  [`& .${classes.formControl}`]: {
+    margin: theme.spacing(1),
+    minWidth: 100
+  }
+}));
 
 const drawerWidth = 240;
 
@@ -44,28 +81,6 @@ const selects = [{id: 11, value: 'backup_server_status'},
   {id: 1, value: 'ui_state'},
 ]
 
-const useStyles = makeStyles((theme) => ({
-  content: {
-    flexGrow: 1,
-    height: "100vh",
-    overflow: "auto",
-  },
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  paper: {
-    padding: theme.spacing(2),
-    display: "flex",
-    overflow: "auto",
-    flexDirection: "column",
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 100
-  }
-}));
-
 export default function ConnectionOverview(props) {
   const [termStateText, setTermStateText] = useState('2804-49');
   const [filterId, setFilterId] = React.useState('');
@@ -77,7 +92,7 @@ export default function ConnectionOverview(props) {
     }
   }
 
-  const classes = useStyles();
+
 
   const {data, error} = useSWR(
     `/registers/${termStateText}`,
@@ -85,7 +100,7 @@ export default function ConnectionOverview(props) {
   );
 
   if (error) return (
-    <OverviewLayout>
+    <StyledOverviewLayout>
       <Grid item xs={8}></Grid>
       <Grid item xs={4}>
         <TextField
@@ -97,7 +112,8 @@ export default function ConnectionOverview(props) {
         />
       </Grid>
       <div>error</div>
-    </OverviewLayout>)
+    </StyledOverviewLayout>
+  );
   if (!data || typeof data == 'undefined') return (<OverviewLayout>
     <Grid item xs={8}></Grid>
     <Grid item xs={4}>
