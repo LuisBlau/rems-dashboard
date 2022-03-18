@@ -16,9 +16,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
+import WarningIcon from '@mui/icons-material/Warning';
 import Button from '@mui/material/Button';
 import { makeStyles } from '@mui/styles';
-
+import PendingIcon from '@mui/icons-material/Pending';
+import WatchLaterIcon from '@mui/icons-material/WatchLater';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import StartIcon from '@mui/icons-material/Start';
+import Tooltip from '@mui/material/Tooltip';
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -48,11 +53,28 @@ const Console = prop => (
     console[Object.keys(prop)[0]](...Object.values(prop))
     ,null // ➜ React components must return something 
   )
+  
+  function StatusBadge(props) {
+    switch(props.itemStatus) {
+      case "Failed":
+        return <Tooltip title="Failed"><WarningIcon/></Tooltip>
+      case "InProgress":
+        return <Tooltip title="In Progress"><PendingIcon/></Tooltip>
+      case "Pending":
+        return <Tooltip title="Pending"><WatchLaterIcon/></Tooltip>
+      case "Succeeded":
+        return <Tooltip title="Succeeded"><CheckCircleIcon/></Tooltip>
+      case "initial":
+	  case "Initial":
+        return <Tooltip title="Initial"><StartIcon/></Tooltip>
+      default:
+        return <p>{props.itemStatus}</p>
+  }
+  }
 
 export default function deployStatus() {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
-
   
   const {data, error} = useSWR("/REMS/deploys", fetcher);
 
@@ -69,34 +91,34 @@ export default function deployStatus() {
           data
             //.filter((store) => store.store_number.includes(filterText))
             .map((deploy) => (
-              <Accordion>
+              <Accordion style={{"margin":"15px","background-color":"#FAF9F6"}}>
                 <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={"panel"+deploy.id+"bh-content"}
                 id={"panel"+deploy.id+"bh-header"}
                 >
                 <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    {deploy.storeName} {deploy.apply_time} -- {deploy.status}
-                </Typography>
+                    Store: { deploy.storeName + " " + deploy.apply_time} 
+                </Typography><StatusBadge itemStatus={deploy.status}/>
                 </AccordionSummary>
                 <AccordionDetails>
                 {
                     deploy.steps.map((step,index) => (
-                        <Accordion>
+                        <Accordion style={{"margin":"15px"}}>
                             <AccordionSummary
                             expandIcon={<ExpandMoreIcon />}
                             aria-controls={"panel"+deploy.id+":"+index+"bh-content"}
                             id={"panel"+deploy.id+":"+index+"bh-header"}
                             >
                             <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                                Type:{step.type} Status:{step.status}
-                            </Typography>
+                                Type:{step.type}
+                            </Typography><StatusBadge itemStatus={step.status}/>
                             </AccordionSummary>
                             <AccordionDetails>
                                     {
                                     step.output.map((line) => (
                                         <div>{line}</div>
-                                    ))}   
+                                    ))}  
                             </AccordionDetails>
                         </Accordion>
                     ))
