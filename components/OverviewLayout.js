@@ -1,27 +1,38 @@
 import Container from "@mui/material/Container";
+import { styled } from '@mui/material/styles';
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Copyright from "../src/Copyright";
 import React from "react";
-import { makeStyles } from '@mui/styles';
+const PREFIX = 'OverviewLayout';
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`
+};
+
+const Root = styled('main')((
+  {
+    theme
+  }
+) => ({
+  [`&.${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
-  },
+  }
 }));
 
 export default function OverviewLayout(props) {
-  const classes = useStyles();
-  return(
-    <main className={classes.content}>
+
+  return (
+    <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
@@ -32,6 +43,6 @@ export default function OverviewLayout(props) {
           <Copyright/>
         </Box>
       </Container>
-    </main>
-  )
+    </Root>
+  );
 }

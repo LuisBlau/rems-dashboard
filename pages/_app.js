@@ -1,3 +1,12 @@
+
+
+
+// import { unstable_ClassNameGenerator as ClassNameGenerator } from '@mui/material/className';
+import { styled } from '@mui/material/styles';
+// ClassNameGenerator.configure((componentName) => componentName.replace('Mui', ''));
+
+import '../lib/styles.css'
+import { ThemeProvider } from '@mui/styles';
 import React from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
@@ -12,15 +21,11 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
-import '../lib/styles.css'
-import { ThemeProvider, createMuiTheme, makeStyles } from '@mui/styles';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { styled, useTheme } from '@mui/material/styles';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import BackupOutlinedIcon from '@mui/icons-material/BackupOutlined';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import Link from "next/link";
 import PublishIcon from '@mui/icons-material/Publish';
@@ -28,30 +33,39 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
-import {Schedule} from "@mui/icons-material";
 import CreateIcon from '@mui/icons-material/Create';
 
-/*
-import {
-  SideBarMenuItems,
-  secondaryListItems,
-} from "../components/SideBarMenuItems";
-*/
+const PREFIX = '_app';
 
-const useStyles = makeStyles((theme) => ({
-    root: {
+const classes = {
+    root: `${PREFIX}-root`,
+    content: `${PREFIX}-content`,
+    MuiAppBar: `${PREFIX}-MuiAppBar`,
+    appBarSpacer: `${PREFIX}-appBarSpacer`
+};
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')((
+    {
+        theme
+    }
+) => ({
+    [`& .${classes.root}`]: {
         display: "flex",
     },
-    content: {
+
+    [`& .${classes.content}`]: {
         flexGrow: 1,
         height: "100vh",
         overflow: "auto",
         paddingTop: 50,
     },
-    MuiAppBar: {
+
+    [`& .${classes.MuiAppBar}`]: {
         position: "absolute"
     },
-    appBarSpacer: {
+
+    [`& .${classes.appBarSpacer}`]: {
         paddingTop: 50
     }
     /*toolbar: {
@@ -251,8 +265,8 @@ const MenuItems = [
       route:"/commandSender",
       icon: <CreateIcon/>
   }, {
-        name: "Agents",
-        route: "/agents",
+        name: "Agent Select",
+        route: "/agentSelect",
         icon: <ImportantDevicesIcon />
   }, {
     name: "Dumps",
@@ -262,7 +276,7 @@ const MenuItems = [
 ];
 
 export default function MyApp(props) {
-    const classes = useStyles();
+
 
     const { Component, pageProps } = props;
     const [open, setOpen] = React.useState(false);
@@ -282,7 +296,7 @@ export default function MyApp(props) {
     }, []);
 
     return (
-        <React.Fragment>
+        <Root>
             <Head>
                 <title>My page</title>
                 <meta
@@ -367,7 +381,7 @@ export default function MyApp(props) {
                     <Component {...pageProps} />
                 </div>
             </ThemeProvider>
-        </React.Fragment>
+        </Root>
     );
 }
 

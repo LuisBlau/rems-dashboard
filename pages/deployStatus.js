@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import { styled } from '@mui/material/styles';
 import useSWR from "swr";
 import fetcher from "../lib/lib.js";
 import Container from "@mui/material/Container";
@@ -25,33 +26,51 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StartIcon from '@mui/icons-material/Start';
 import Tooltip from '@mui/material/Tooltip';
 
-const useStyles = makeStyles((theme) => ({
-  content: {
+const PREFIX = 'deployStatus';
+
+const classes = {
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  appBarSpacer: `${PREFIX}-appBarSpacer`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`
+};
+
+const Root = styled('main')((
+  {
+    theme
+  }
+) => ({
+  [`&.${classes.content}`]: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
   },
-  container: {
+
+  [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  appBarSpacer: {
-      paddingTop: 60
+
+  [`& .${classes.appBarSpacer}`]: {
+      paddingTop: 50
   },
-  paper: {
+
+  [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
   },
-  fixedHeight: {
+
+  [`& .${classes.fixedHeight}`]: {
     height: 240,
-  },
+  }
 }));
 
 const Console = prop => (
     console[Object.keys(prop)[0]](...Object.values(prop))
-    ,null // ➜ React components must return something 
+    ,null // ➜ React components must return something
   )
   
   function StatusBadge(props) {
@@ -73,20 +92,19 @@ const Console = prop => (
   }
 
 export default function deployStatus() {
-  const classes = useStyles();
+
   const [expanded, setExpanded] = React.useState(false);
-  
   const {data, error} = useSWR("/REMS/deploys", fetcher);
 
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;
   console.log(data);
   return (
-    <main className={classes.content}>
+    <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
       <div>
-            
+
           {
           data
             //.filter((store) => store.store_number.includes(filterText))
@@ -118,7 +136,7 @@ export default function deployStatus() {
                                     {
                                     step.output.map((line) => (
                                         <div>{line}</div>
-                                    ))}  
+                                    ))}
                             </AccordionDetails>
                         </Accordion>
                     ))
@@ -131,6 +149,6 @@ export default function deployStatus() {
           <Copyright/>
         </Box>
       </Container>
-    </main>
+    </Root>
   );
 }
