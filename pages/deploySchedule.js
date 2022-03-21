@@ -10,6 +10,9 @@ import DateTimePicker from '@mui/lab/DateTimePicker';
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Copyright from "../src/Copyright";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from '@mui/material/Alert';
+import AlertTitle from "@mui/material/AlertTitle";
 import axios from 'axios';
 
 const PREFIX = 'deploySchedule';
@@ -70,15 +73,21 @@ export default function deployScheule() {
     const [_storeList, setStoreList] = useState('');
     const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
+    const [openSuccess, setOpenSuccess] = useState(false);
+    const [toastSuccess, setToastSuccess] = useState("")
+
+    const [openFailure, setOpenFailure] = useState(false);
+    const [toastFailure, setToastFailure] = useState("")
 
     useEffect(() => {
-        axios.get("/api/REMS/deploy-configs").then(function (response) {
+        axios.get("/api/REMS/deploy-configs").then( function (res) {
+            console.log("axios response", res)
             var packages = []
-            response.data.forEach(v => {
+            res.data.forEach(v => {
                 packages.push({ label: v.name, id: v.id })
             })
             setOptions(packages);
-        });
+        })
     }, []); //Second opption [] means only run effect on the first render
 
     const handleSubmit = (event) => {
@@ -104,13 +113,19 @@ export default function deployScheule() {
         fetch('/api/deploy-config', requestText)
             .then(res => {
                 if (res.status != 200) {
-                    alert("Deploy-Config: name and id does not exist.")
+                    setToastFailure("Deploy-Config name and id does not exist.")
+                    setOpenFailure(true)
+                    return
                 }
             })
             .catch(err => {
-                alert("Error connecting to server.")
-                console.log(err)
+                setToastFailure("Error connecting to server.")
+                setOpenFailure(true)
+                return
             });
+
+        setToastSuccess("Deploy-Config Scheduled");
+        setOpenSuccess(true)
     };
 
     return (
@@ -131,8 +146,9 @@ export default function deployScheule() {
                                 <TextField
                                     sx={{ width: uiWidth }}
                                     {...params}
-                                    label="Package to Send"
-                                    InputProps={{ ...params.InputProps, type: 'search' }} />
+                                    label="Deploy-Config to Schedule"
+                                    InputProps={{ ...params.InputProps, type: 'search' }}
+                                    required={true} />
                             )}
                         />
 
@@ -148,6 +164,7 @@ export default function deployScheule() {
                                 setStoreList(event.target.value);
 
                             }}
+                            required={true}
                             helperText='example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC'
                         />
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -171,6 +188,29 @@ export default function deployScheule() {
                 <Box pt={4}>
                     <Copyright />
                 </Box>
+
+                <Snackbar
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                    open={openSuccess}
+                    autoHideDuration={3000}
+                    onClose={(event) => { setOpenSuccess(false) }}>
+                    <Alert variant="filled" severity="success">
+                        <AlertTitle>Success!</AlertTitle>
+                        {toastSuccess}
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                    open={openFailure}
+                    autoHideDuration={5000}
+                    onClose={(event) => { setOpenFailure(false) }}>
+                    <Alert variant="filled" severity="error">
+                        <AlertTitle>Error!!!</AlertTitle>
+                        {toastFailure}
+                    </Alert>
+                </Snackbar>
+
             </Container>
         </Root>
     );
