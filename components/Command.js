@@ -3,8 +3,6 @@ import Select from '@mui/material/Select';
 import React, { Component, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import InputLabel from '@mui/material/InputLabel';
-import fetcher from "../lib/fetcherWithHeader"
 import axios from 'axios';
 
 

@@ -34,6 +34,8 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
 import CreateIcon from '@mui/icons-material/Create';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import { AddCircleOutline } from '@mui/icons-material';
 
 const PREFIX = '_app';
 
@@ -264,6 +266,10 @@ const MenuItems = [
         name: "CreateDeployment",
         route: "/commandSender",
         icon: <CreateIcon />
+    }, {
+        name: "Deploy Create II",
+        route: "/deployCreate",
+        icon: <AddCircleOutline />
     }, {
         name: "Agent Select",
         route: "/agentSelect",
