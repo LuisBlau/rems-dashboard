@@ -60,8 +60,8 @@ const sortGrid = function (event) {
     const columnState = {
         state: [
             {
-                colId: "id",
-                sort: "asc"
+                colId: "timestamp",
+                sort: "desc"
             }
         ]
     }
@@ -82,7 +82,7 @@ export default function UploadGrid(props) {
         <div className="ag-theme-alpine" style={{ padding: 20, height: 400, width:"100%" }}>
             <AgGridReact style={{ width: "100%", height: "100%" }}
                 rowData={data} onGridReady={sortGrid}>
-                <AgGridColumn sortable={true} filter={true} field="id"></AgGridColumn>
+                <AgGridColumn sortable={true} filter={true} field="description"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} field="filename"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} field="archived"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} comparator={dateComparator} field="timestamp"></AgGridColumn>

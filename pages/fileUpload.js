@@ -5,6 +5,8 @@ import Container from "@mui/material/Container";
 import UploadGrid from "../components/UploadGrid";
 import Copyright from "../src/Copyright";
 import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField"
+import axios from "axios"
 
 const PREFIX = 'fileUpload';
 const classes = {
@@ -49,7 +51,8 @@ const Root = styled('main')((
 
 export default function Upload(props) {
 
-	const [selectedFile,setSelectedFile] = useState(0)
+	const [selectedFile,setSelectedFile] = useState(null)
+	const [description,setDescription] = useState("")
 
 	// On file select (from the pop up)
 	const onFileChange = event => {
@@ -66,28 +69,30 @@ export default function Upload(props) {
 	const formData = new FormData();
 
 	// Update the formData object
-	formData.append(
-		"file",
-		selectedFile);
-
+	formData.append("file",selectedFile);
+	formData.append("description",description)
 	// Details of the uploaded file
 	console.log(selectedFile);
 
 	// Request made to the backend api
 	// Send formData object
-	const requestOptions = {
-        method: 'POST',
-		body: formData
-    };
-    fetch('/api/REMS/uploadfile', requestOptions).then(response => alert("upload successful"))
+    axios.post('/api/REMS/uploadfile', formData).then(function(resp){
+		alert("upload successful");
+		window.location.reload(false);
+	})
 	};
+	
+	const updateDescription = (e) => {
+		setDescription(e.target.value)
+	}
 
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container align="center" maxWidth="lg" className={classes.container} >
                 <input type="file" onChange={onFileChange} />
-                <button onClick={onFileUpload}> Upload! </button>
+				<TextField value={description} onChange={updateDescription} label="Description"/>
+                <button onClick={onFileUpload} disabled={description == "" || selectedFile == null}> Upload! </button>
                 <UploadGrid/>
             </Container>
 
