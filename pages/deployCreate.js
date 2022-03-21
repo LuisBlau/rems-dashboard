@@ -125,7 +125,7 @@ export default function Upload(props) {
                 <Grid container direction="column">
 
                     <Grid item >
-                        <h1>Deployment Configuration Commands</h1>
+                        <h1>Create Deployment Configuration</h1>
                     </Grid>
 
                     <Grid item >
