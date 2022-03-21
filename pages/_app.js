@@ -33,7 +33,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
-import CreateIcon from '@mui/icons-material/Create';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import { AddCircleOutline } from '@mui/icons-material';
 
 const PREFIX = '_app';
 
@@ -249,23 +250,23 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "FileUpload",
+        name: "Upload File",
         route: "/fileUpload",
         icon: <PublishIcon />
     }, {
-        name: "DeployStatus",
-        route: "/deployStatus",
-        icon: <PendingActionsIcon />
+        name: "Create Deployment Config",
+        route: "/deployCreate",
+        icon: <AddCircleOutline />
     }, {
-        name: "Deploy Schedule",
+        name: "Deployment Schedule",
         route: "/deploySchedule",
         icon: <ScheduleIcon />
     }, {
-        name: "CreateDeployment",
-        route: "/commandSender",
-        icon: <CreateIcon />
+        name: "Deployment Status",
+        route: "/deployStatus",
+        icon: <PendingActionsIcon />
     }, {
-        name: "Agent Select",
+        name: "Select Agents",
         route: "/agentSelect",
         icon: <ImportantDevicesIcon />
     }, {
