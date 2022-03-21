@@ -249,21 +249,21 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "FileUpload",
-        route: "/fileUpload",
-        icon: <PublishIcon />
-    }, {
         name: "DeployStatus",
         route: "/deployStatus",
         icon: <PendingActionsIcon />
     }, {
-        name: "Deploy Schedule",
-        route: "/deploySchedule",
-        icon: <ScheduleIcon />
+        name: "FileUpload",
+        route: "/fileUpload",
+        icon: <PublishIcon />
     }, {
         name: "CreateDeployment",
         route: "/commandSender",
         icon: <CreateIcon />
+    }, {
+        name: "Deploy Schedule",
+        route: "/deploySchedule",
+        icon: <ScheduleIcon />
     }, {
         name: "Agent Select",
         route: "/agentSelect",
