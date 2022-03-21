@@ -97,11 +97,11 @@ function StatusBadge(props) {
 export default function deployStatus() {
 
   const [storeFilter, setStoreFilter] = React.useState("");
-  const [packageFilter, setPackageFilter] = React.useState("");  
+  const [packageFilter, setPackageFilter] = React.useState(0);  
   const [packageFilterItems, setPackageFilterItems] = React.useState(null);
   
   if (packageFilterItems == null){
-    axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems(resp.data))
+    axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems([{id:0,name:'All Configs'}].concat(resp.data)))
 	return <p>loading...</p>
   }
   const changeStoreFilter = (e) => {
@@ -122,7 +122,7 @@ export default function deployStatus() {
         id="demo-simple-select"
         label="Type"
 	    onChange={changePackageFilter}>
-       {packageFilterItems.map((i) =><MenuItem value={i["name"]}>{i["name"]}</MenuItem>)}
+       {packageFilterItems.map((i) =><MenuItem value={i["id"]}>{i["name"]}</MenuItem>)}
      </Select>
      <DeployTable storeFilter={storeFilter} packageFilter={packageFilter}/>
 
