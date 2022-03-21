@@ -16,6 +16,9 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
+import axios from "axios"
+import MenuItem from "@mui/material/MenuItem"
+import Select from "@mui/material/Select"
 import CardContent from '@mui/material/CardContent';
 import WarningIcon from '@mui/icons-material/Warning';
 import Button from '@mui/material/Button';
@@ -93,15 +96,63 @@ function StatusBadge(props) {
 
 export default function deployStatus() {
 
-    const [expanded, setExpanded] = React.useState(false);
-    const { data, error } = useSWR("/REMS/deploys", fetcher);
+  const [storeFilter, setStoreFilter] = React.useState("");
+  const [packageFilter, setPackageFilter] = React.useState(0);  
+  const [packageFilterItems, setPackageFilterItems] = React.useState(null);
+  
+  if (packageFilterItems == null){
+    axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems([{id:0,name:'All Configs'}].concat(resp.data)))
+	return <p>loading...</p>
+  }
+  const changeStoreFilter = (e) => {
+	  setStoreFilter(e.target.value)
+  }
+  const changePackageFilter = (e) => {
+	  setPackageFilter(e.target.value)
+  }
+  
+  return (
+    <Root className={classes.content}>
+      <div className={classes.appBarSpacer}/>
+      <Container maxWidth="lg" className={classes.container}>
+	  <TextField value={storeFilter} onChange={changeStoreFilter} label="store"/>
+     <Select
+        value={packageFilter}
+        labelId="demo-simple-select-label"
+        id="demo-simple-select"
+        label="Type"
+	    onChange={changePackageFilter}>
+       {packageFilterItems.map((i) =><MenuItem value={i["id"]}>{i["name"]}</MenuItem>)}
+     </Select>
+     <DeployTable storeFilter={storeFilter} packageFilter={packageFilter}/>
 
+        <Box pt={4}>
+          <Copyright/>
+        </Box>
+      </Container>
+    </Root>
+  );
+}
+
+function DeployTable(props) {
+    const [expanded, setExpanded] = React.useState(false);
+    const {data, error} = useSWR("/REMS/deploys?store=" + props.storeFilter + "&package=" + props.packageFilter, fetcher);
     if (error) return <div>failed to load</div>;
     if (!data) return <div>loading...</div>;
-    return (
-        <Root className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container}>
+    return (<div>
+          {
+          data.map((deploy) => (
+              <Accordion style={{"margin":"15px","background-color":"#FAF9F6"}}>
+                <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls={"panel"+deploy.id+"bh-content"}
+                id={"panel"+deploy.id+"bh-header"}
+                >
+                <Typography sx={{ width: '33%', flexShrink: 0 }}>
+                    Store: { deploy.storeName + " " + deploy.apply_time} 
+                </Typography><StatusBadge itemStatus={deploy.status}/>
+                </AccordionSummary>
+                <AccordionDetails>
                 {
                     data.map((deploy) => (
                         <Accordion key={deploy.id} sx={{ "margin": "15px", "bgcolor": "#FAF9F6" }}>
@@ -140,10 +191,8 @@ export default function deployStatus() {
                         </Accordion>
                     ))
                 }
-                <Box pt={4}>
-                    <Copyright />
-                </Box>
-            </Container>
-        </Root>
-    );
+                </AccordionDetails>
+              </Accordion>
+            ))}
+      </div>)
 }
