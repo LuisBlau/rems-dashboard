@@ -94,6 +94,38 @@ function StatusBadge(props) {
     }
 }
 
+function StatusColor(status) {
+  switch (status) {
+      case "Failed":
+          return "#FCB3B1";
+      case "InProgress":
+        return "#B1E0FC";
+      case "Pending":
+          return "#D6EEFD";
+      case "Succeeded":
+        return "#CDFEB6";
+        case "initial":
+      case "Initial":
+        return "#FAF9F6";
+        default:
+          return "#FAF9F6";
+  }
+}
+
+function StepCommands(step) {
+  switch (step.type){
+    case "shell":
+      return step.cmd+"--"+step.args;
+    case "upload":
+      return step.filename;
+    case "unzip":
+      return step.file;
+    case "apply":
+      return step.product;
+  }
+  return "";
+}
+
 export default function deployStatus() {
 
   const [storeFilter, setStoreFilter] = React.useState("");
@@ -115,17 +147,30 @@ export default function deployStatus() {
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
       <Container maxWidth="lg" className={classes.container}>
-	  <TextField value={storeFilter} onChange={changeStoreFilter} label="store"/>
-     <Select
-        value={packageFilter}
-        labelId="demo-simple-select-label"
-        id="demo-simple-select"
-        label="Type"
-	    onChange={changePackageFilter}>
-       {packageFilterItems.map((i) =><MenuItem value={i["id"]}>{i["name"]}</MenuItem>)}
-     </Select>
+      <Typography align="center" variant="h3">Deployment Status</Typography>
+      <Box pt={2}>
+      <Grid container spacing={3}>
+        <Grid item xs={3} >
+        </Grid>
+        <Grid item xs={3} >
+          <TextField value={storeFilter} onChange={changeStoreFilter} label="store"/>
+        </Grid> 
+        <Grid item xs={1} ></Grid>
+        <Grid item xs={4} >
+          <Select
+              value={packageFilter}
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              label="Type"
+              onChange={changePackageFilter}>
+              {packageFilterItems.map((i) =><MenuItem value={i["id"]}>{i["name"]}</MenuItem>)}
+          </Select>
+        </Grid>
+      </Grid>
+      </Box>
+	  
+     
      <DeployTable storeFilter={storeFilter} packageFilter={packageFilter}/>
-
         <Box pt={4}>
           <Copyright/>
         </Box>
@@ -133,6 +178,7 @@ export default function deployStatus() {
     </Root>
   );
 }
+
 
 function DeployTable(props) {
     const [expanded, setExpanded] = React.useState(false);
@@ -144,52 +190,58 @@ function DeployTable(props) {
           data.map((deploy) => (
               <Accordion style={{"margin":"15px","background-color":"#FAF9F6"}}>
                 <AccordionSummary
+                style={{"background-color":StatusColor(deploy.status)}}
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={"panel"+deploy.id+"bh-content"}
-                id={"panel"+deploy.id+"bh-header"}
+                id={"panel"+deploy.id+"bh-header"} 
                 >
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    Store: { deploy.storeName + " " + deploy.apply_time} 
-                </Typography><StatusBadge itemStatus={deploy.status}/>
+                  <Grid container spacing={3}>
+                    <Grid item xs={1} >
+                      <StatusBadge itemStatus={deploy.status}/>  
+                    </Grid>
+                    <Grid item xs={4} >
+                      <Typography sx={{  flexShrink: 0 }}>
+                          Store: { deploy.storeName} 
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={7} >
+                      <Typography sx={{  flexShrink: 0 }}>
+                          Apply Time: {deploy.apply_time}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                
                 </AccordionSummary>
                 <AccordionDetails>
                 {
-                    data.map((deploy) => (
-                        <Accordion key={deploy.id} sx={{ "margin": "15px", "bgcolor": "#FAF9F6" }}>
-                            <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls={"panel" + deploy.id + "bh-content"}
-                                id={"panel" + deploy.id + "bh-header"} >
-                                <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                                    Store: {deploy.storeName + " " + deploy.apply_time}
-                                </Typography><StatusBadge itemStatus={deploy.status} />
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                {
-                                    deploy.steps.map((step, index) => (
-                                        <Accordion key={index} style={{ "margin": "15px" }}>
-                                            <AccordionSummary
-                                                expandIcon={<ExpandMoreIcon />}
-                                                aria-controls={"panel" + deploy.id + ":" + index + "bh-content"}
-                                                id={"panel" + deploy.id + ":" + index + "bh-header"}
-                                            >
-                                                <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                                                    Type:{step.type}
-                                                </Typography><StatusBadge itemStatus={step.status} />
-                                            </AccordionSummary>
-                                            <AccordionDetails>
-                                                {
-                                                    step.output.map((line) => (
-                                                        line
-                                                    ))
-                                                }
-                                            </AccordionDetails>
-                                        </Accordion>
-                                    ))
-                                }
-                            </AccordionDetails>
-                        </Accordion>
-                    ))
+                  deploy.steps.map((step, index) => (
+                      <Accordion key={index} style={{ "margin": "15px", "background-color":"#FAF9F6" }}>
+                          <AccordionSummary
+                              style={{"background-color":StatusColor(step.status)}}
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls={"panel" + deploy.id + ":" + index + "bh-content"}
+                              id={"panel" + deploy.id + ":" + index + "bh-header"}
+                          >
+                            <Grid container spacing={3}>
+                              <Grid item xs={1} >
+                                <StatusBadge itemStatus={step.status}/>  
+                              </Grid>
+                              <Grid item xs={4} >
+                                <Typography sx={{  flexShrink: 0 }}>
+                                  {step.type} -- {StepCommands(step)}
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                              {
+                                  step.output.map((line) => (
+                                      line
+                                  ))
+                              }
+                          </AccordionDetails>
+                      </Accordion>
+                  ))
                 }
                 </AccordionDetails>
               </Accordion>
