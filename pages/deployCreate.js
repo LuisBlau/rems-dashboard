@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import SaveIcon from '@mui/icons-material/Save';
 import AddTaskIcon from '@mui/icons-material/AddTask';
+import Box from '@mui/material/Box'
 
 import axios from 'axios';
 
@@ -123,27 +124,18 @@ export default function Upload(props) {
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
                 <Grid container direction="column">
-
                     <Grid item >
                         <h1>Create Deployment Configuration</h1>
                     </Grid>
-
                     <Grid item >
                         <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} />
                     </Grid>
-
                     {Object.keys(commands).map(function (idx) {
                         return (<Command id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand} />)
                     })}
 
-                    <Grid item >
-                        <Button variant="contained" color='secondary' fullWidth sx={{ marginTop: 2 }} endIcon={<AddTaskIcon/>} onClick={addCommand}>Add Task to Deployment Config</Button>
-                    </Grid>
-
-                    <Grid>
-                        <Button variant="contained" color='primary' fullWidth sx={{ marginTop: 2 }} endIcon={<SaveIcon/>} onClick={pushCommands}>Save Deployment Configuration</Button>
-                    </Grid>
-
+                    <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Task to Deployment Config</Button>
+                    <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} onClick={pushCommands}>Save Deployment Configuration</Button>
                 </Grid>
             </Container>
         </Root>
