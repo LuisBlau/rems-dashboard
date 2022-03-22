@@ -105,7 +105,7 @@ export default function Command(props) {
                         label="Type"
                         labelId="demo-simple-select-label"
                         onChange={setval("file")}>
-                        {state.downloads.data.map((down) => <MenuItem value={down.id}>{down.filename}</MenuItem>)}
+                        {state.downloads.data.map((down) => <MenuItem value={down.id}>{down.description}</MenuItem>)}
                     </Select>
                     <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} />
                     <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} />
