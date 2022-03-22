@@ -13,6 +13,9 @@ import Copyright from "../src/Copyright";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from '@mui/material/Alert';
 import AlertTitle from "@mui/material/AlertTitle";
+import Typography from '@mui/material/Typography';
+
+
 import axios from 'axios';
 
 const PREFIX = 'deploySchedule';
@@ -132,6 +135,8 @@ export default function deployScheule() {
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
+                <Typography marginBottom={3} align='center' variant="h3">Schedule a Deployment</Typography>
+
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={2} sx={{ alignItems: 'center' }} >
                         <Autocomplete
