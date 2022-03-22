@@ -106,7 +106,13 @@ export default function Upload(props) {
 
 
                     <TextField label="Description" value={description} onChange={updateDescription} />
-                    <Button variant="contained" color="primary" onClick={onFileUpload}  > Upload! </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        disabled={description == "" || selectedFile == null}
+                        onClick={onFileUpload} >
+                        Upload!
+                    </Button>
 
                 </Stack>
 
