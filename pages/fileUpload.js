@@ -7,6 +7,7 @@ import Copyright from "../src/Copyright";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField"
 import axios from "axios"
+import CircularProgress from '@mui/material/CircularProgress';
 
 const PREFIX = 'fileUpload';
 const classes = {
@@ -53,7 +54,7 @@ export default function Upload(props) {
 
 	const [selectedFile,setSelectedFile] = useState(null)
 	const [description,setDescription] = useState("")
-
+	const [progress,setProgress] = useState(0)
 	// On file select (from the pop up)
 	const onFileChange = event => {
 
@@ -76,7 +77,13 @@ export default function Upload(props) {
 
 	// Request made to the backend api
 	// Send formData object
-    axios.post('/api/REMS/uploadfile', formData).then(function(resp){
+    axios.post('/api/REMS/uploadfile', formData,{onUploadProgress:function(e) {
+		const totalLength = e.lengthComputable ? e.total : e.target.getResponseHeader('content-length') || e.target.getResponseHeader('x-decompressed-content-length');
+		if (totalLength !== null) {
+            setProgress(Math.round( (e.loaded * 100) / totalLength ));
+         }
+	}
+	}).then(function(resp){
 		alert("upload successful");
 		window.location.reload(false);
 	})
@@ -93,6 +100,7 @@ export default function Upload(props) {
                 <input type="file" onChange={onFileChange} />
 				<TextField value={description} onChange={updateDescription} label="Description"/>
                 <button onClick={onFileUpload} disabled={description == "" || selectedFile == null}> Upload! </button>
+				<CircularProgress variant="determinate" value={progress} />
                 <UploadGrid/>
             </Container>
 
