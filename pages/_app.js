@@ -1,11 +1,4 @@
-
-
-
-// import { unstable_ClassNameGenerator as ClassNameGenerator } from '@mui/material/className';
 import { styled } from '@mui/material/styles';
-// ClassNameGenerator.configure((componentName) => componentName.replace('Mui', ''));
-
-import '../lib/styles.css'
 import { ThemeProvider } from '@mui/styles';
 import React from "react";
 import PropTypes from "prop-types";
@@ -33,7 +26,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
-import CreateIcon from '@mui/icons-material/Create';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 
 const PREFIX = '_app';
 
@@ -249,23 +242,23 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "DeployStatus",
+        name: "Check Deployment Status",
         route: "/deployStatus",
         icon: <PendingActionsIcon />
     }, {
-        name: "FileUpload",
+        name: "Upload File",
         route: "/fileUpload",
         icon: <PublishIcon />
     }, {
-        name: "CreateDeployment",
-        route: "/commandSender",
-        icon: <CreateIcon />
+        name: "Create Deployment Config",
+        route: "/deployCreate",
+        icon: <AddCircleOutline />
     }, {
-        name: "Deploy Schedule",
+        name: "Schedule a Deployment",
         route: "/deploySchedule",
         icon: <ScheduleIcon />
     }, {
-        name: "Agent Select",
+        name: "Select Agents",
         route: "/agentSelect",
         icon: <ImportantDevicesIcon />
     }, {

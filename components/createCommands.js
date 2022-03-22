@@ -3,12 +3,15 @@ import Select from '@mui/material/Select';
 import React, { Component, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import InputLabel from '@mui/material/InputLabel';
-import fetcher from "../lib/fetcherWithHeader"
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box'
+import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
+
 import axios from 'axios';
 
-
 export default function Command(props) {
+
+    const _width = 150
 
     let [state, setArgs] = useState({ ...props.st, "downloads": [] })
 
@@ -40,7 +43,7 @@ export default function Command(props) {
         "shell": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <Select
+                    <Select sx={{ margin: 1, width: _width }}
                         value={getval("cmd", "cmd")}
                         label="Type"
                         labelId="demo-simple-select-label"
@@ -56,7 +59,7 @@ export default function Command(props) {
         "unzip": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <TextField label="file" variant="standard" onChange={setval("file")} value={getval("file")} />
+                    <TextField sx={{ marginLeft:1, width:_width, marginRight:1 }} label="file" variant="standard" onChange={setval("file")} value={getval("file")} />
                     <TextField label="destination" variant="standard" onChange={setval("directory")} value={getval("directory")} />
                     <TextField label="distribution" variant="standard" onChange={setval("distribute")} value={getval("distribute")} />
                 </div>
@@ -65,7 +68,7 @@ export default function Command(props) {
         "apply": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <Select
+                    <Select sx={{ margin: 1, width: _width }}
                         value={getval("command", "command")}
                         label="Type"
                         labelId="demo-simple-select-label"
@@ -95,33 +98,42 @@ export default function Command(props) {
                 return <p>loading</p>
             }
 
-            return (<div style={{ display: "flex", gap: "20px" }}>
-                <Select
-                    value={getval("file")}
-                    label="Type"
-                    labelId="demo-simple-select-label"
-                    onChange={setval("file")}>
-                    {state.downloads.data.map((down) => <MenuItem value={down.id}>{down.filename}</MenuItem>)}
-                </Select>
-                <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} />
-                <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} />
-            </div>)
+            return (
+                <div style={{ display: "flex", gap: "20px" }}>
+                    <Select sx={{ margin: 1, width: _width }}
+                        value={getval("file")}
+                        label="Type"
+                        labelId="demo-simple-select-label"
+                        onChange={setval("file")}>
+                        {state.downloads.data.map((down) => <MenuItem value={down.id}>{down.filename}</MenuItem>)}
+                    </Select>
+                    <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} />
+                    <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} />
+                </div>
+            )
         }
     }
     const listItems = Object.keys(commands).map((c) => <MenuItem value={c}>{c}</MenuItem>);
-    let comman = commands[state.type === undefined ? "" : state.type]()
+    let comman = commands[(!state.type || state.type === undefined) ? "" : state.type]()
     return (
-        <div style={{ display: "flex", gap: "20px" }}>
-            <Select
-                value={state.type === undefined ? "" : state.type}
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                label="Type"
-                onChange={handlechange}>
-                {listItems}
-            </Select>
+        <Grid container direction='row' >
+            <Grid item>
+                <Select sx={{ margin: 1, width: 120 }}
+                    value={state.type === undefined ? "" : state.type}
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    label="Type"
+                    onChange={handlechange}>
+                    {listItems}
+                </Select>
+            </Grid>
+
             {comman}
-            <Button variant="contained" onClick={() => props.onRemove(props.id)}>Remove</Button>
-        </div>
+
+            <Button variant="contained" sx={{margin: 1}} endIcon={<RemoveDoneIcon />} onClick={() => props.onRemove(props.id)} > Remove Task </Button>
+
+
+        </Grid>
+
     )
 }
