@@ -8,8 +8,10 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField"
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button'
-import Grid from "@mui/material/Grid";
 import { Stack } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import FindInPageIcon from '@mui/icons-material/FindInPage';
+
 
 import axios from "axios"
 
@@ -55,16 +57,23 @@ const Root = styled('main')((
     }
 }));
 
+const Input = styled("input")({
+    display: "none"
+});
+
 export default function Upload(props) {
 
     const [selectedFile, setSelectedFile] = useState(null)
     const [description, setDescription] = useState("")
+    const [fileName, setFileName] = useState("")
 
     // On file select (from the pop up)
     const onFileChange = event => {
 
         // Update the state
+
         setSelectedFile(event.target.files[0]);
+        setFileName(event.target.files[0].name)
 
     };
 
@@ -82,6 +91,7 @@ export default function Upload(props) {
 
         // Request made to the backend api
         // Send formData object
+
         axios.post('/api/REMS/uploadfile', formData).then(function (resp) {
             alert("upload successful");
             window.location.reload(false);
@@ -93,25 +103,26 @@ export default function Upload(props) {
     }
 
     return (
+
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
                 <Typography marginLeft={34} variant="h3">Upload a File</Typography>
 
-                <Stack direction="row" spacing={2} marginTop={4} marginBottom={2}>
+                <Stack direction="row" spacing={3} marginTop={4} marginBottom={2}>
 
-                    <Box pt={2} >
-                        <input type="file" onChange={onFileChange} />
-                    </Box>
+                    <label htmlFor="contained-button-file">
+                        <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+                        <Button variant="contained" color="secondary" component="span" endIcon={< FindInPageIcon />} sx={{ height: "100%" }} > Choose File </Button>
+                    </label>
 
+                    <TextField disabled label="File Name" value={fileName} />
 
                     <TextField label="Description" value={description} onChange={updateDescription} />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        disabled={description == "" || selectedFile == null}
-                        onClick={onFileUpload} >
-                        Upload!
+
+                    <Button variant="contained" color="primary" disabled={description == "" || selectedFile == null}
+                        onClick={onFileUpload} endIcon={< CloudUploadIcon />} >
+                        {"  Upload!  "}
                     </Button>
 
                 </Stack>
