@@ -109,26 +109,31 @@ export default function Upload(props) {
             <Container maxWidth="lg" className={classes.container} >
                 <Typography marginLeft={34} variant="h3">Upload a File</Typography>
 
-                <Stack direction="row" spacing={3} marginTop={4} marginBottom={2}>
+                <Stack direction="row" spacing={2} marginTop={4} marginBottom={2}>
+                    <Box >
+                        <label htmlFor="contained-button-file">
+                            <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+                            <Button variant="contained" color="secondary"
+                                component="span"
+                                endIcon={< FindInPageIcon />}
+                                sx={{ width: 175, height: "100%", marginRight: 0.25 }}
+                            >
+                                Choose File
+                            </Button>
+                        </label>
+                        <TextField disabled label="File Name" value={fileName} />
+                    </Box>
 
-                    <label htmlFor="contained-button-file">
-                        <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
-                        <Button variant="contained" color="secondary" component="span" endIcon={< FindInPageIcon />} sx={{ height: "100%" }} > Choose File </Button>
-                    </label>
-
-                    <TextField disabled label="File Name" value={fileName} />
-
-                    <TextField label="Description" value={description} onChange={updateDescription} />
-
+                    <TextField label="Description" value={description} onChange={updateDescription} sx={{ width: 275 }} />
                     <Button variant="contained" color="primary" disabled={description == "" || selectedFile == null}
-                        onClick={onFileUpload} endIcon={< CloudUploadIcon />} >
-                        {"  Upload!  "}
+                        onClick={onFileUpload} endIcon={< CloudUploadIcon />}
+                        sx={{ width: 175 }}
+                    >
+                        Upload
                     </Button>
 
                 </Stack>
-
                 <UploadGrid />
-
                 <Box pt={4}>
                     <Copyright />
                 </Box>
