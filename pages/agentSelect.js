@@ -15,7 +15,7 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Snackbar from "@mui/material/Snackbar";
 import Box from "@mui/material/Box"
-import { ScreenSearchDesktopTwoTone } from "@mui/icons-material";
+import Typography from '@mui/material/Typography';
 
 
 
@@ -237,6 +237,9 @@ export default function agentSelect() {
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
+
+            <Typography marginBottom={3} marginTop={3} align='center' variant="h3">Select Agents for Deployment</Typography>
+
             <Grid container direction="column" mt={4} align="center" spacing={2} justifyContent="center" alignItems="center">
                 <Grid container align="center" spacing={2} justifyContent="center" alignItems="center">
                     <Grid item>{customList("Choices", left)}</Grid>

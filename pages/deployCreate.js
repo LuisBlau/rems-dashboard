@@ -1,5 +1,3 @@
-// @ts-check
-
 import React, { Component, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
@@ -9,7 +7,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import SaveIcon from '@mui/icons-material/Save';
 import AddTaskIcon from '@mui/icons-material/AddTask';
-import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography';
 
 import axios from 'axios';
 
@@ -124,9 +122,7 @@ export default function Upload(props) {
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
                 <Grid container direction="column">
-                    <Grid item >
-                        <h1>Create Deployment Configuration</h1>
-                    </Grid>
+                    <Typography align="center" variant="h3">Create Deployment Configuration</Typography>
                     <Grid item >
                         <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} />
                     </Grid>

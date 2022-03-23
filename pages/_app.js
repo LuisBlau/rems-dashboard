@@ -242,15 +242,15 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "Check Deployment Status",
+        name: "Check Deploy Status",
         route: "/deployStatus",
         icon: <PendingActionsIcon />
     }, {
-        name: "Upload File",
+        name: "Upload a File",
         route: "/fileUpload",
         icon: <PublishIcon />
     }, {
-        name: "Create Deployment Config",
+        name: "Create Deploy Config",
         route: "/deployCreate",
         icon: <AddCircleOutline />
     }, {

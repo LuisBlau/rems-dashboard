@@ -79,7 +79,7 @@ export default function UploadGrid(props) {
     if (error) return <Root>failed to load</Root>;
     if (!data) return <div>loading...</div>;
     return (
-        <div className="ag-theme-alpine" style={{ padding: 20, height: 400, width:"100%" }}>
+        <div className="ag-theme-alpine" style={{ height: 400, width: "75%" }}>
             <AgGridReact style={{ width: "100%", height: "100%" }}
                 rowData={data} onGridReady={sortGrid}>
                 <AgGridColumn sortable={true} filter={true} field="description"></AgGridColumn>
