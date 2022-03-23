@@ -176,7 +176,7 @@ export default function deployScheule() {
                             <DateTimePicker
                                 id="date-time-local"
                                 disablePast
-                                label="Send Time"
+                                label="Apply Time"
                                 renderInput={(params) => <TextField {...params} helperText="Store Time Zone" />}
                                 value={_dateTime}
                                 onChange={(newValue) => {
