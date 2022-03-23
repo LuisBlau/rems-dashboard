@@ -12,6 +12,7 @@ import Grid from "@mui/material/Grid";
 import { Stack } from '@mui/material';
 
 import axios from "axios"
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 const PREFIX = 'fileUpload';
@@ -57,11 +58,11 @@ const Root = styled('main')((
 
 export default function Upload(props) {
 
-    const [selectedFile, setSelectedFile] = useState(null)
-    const [description, setDescription] = useState("")
-
-    // On file select (from the pop up)
-    const onFileChange = event => {
+	const [selectedFile,setSelectedFile] = useState(null)
+	const [description,setDescription] = useState("")
+	const [progress,setProgress] = useState(0)
+	// On file select (from the pop up)
+	const onFileChange = event => {
 
         // Update the state
         setSelectedFile(event.target.files[0]);
@@ -80,13 +81,19 @@ export default function Upload(props) {
         // Details of the uploaded file
         console.log(selectedFile);
 
-        // Request made to the backend api
-        // Send formData object
-        axios.post('/api/REMS/uploadfile', formData).then(function (resp) {
-            alert("upload successful");
-            window.location.reload(false);
-        })
-    };
+	// Request made to the backend api
+	// Send formData object
+    axios.post('/api/REMS/uploadfile', formData,{onUploadProgress:function(e) {
+		const totalLength = e.lengthComputable ? e.total : e.target.getResponseHeader('content-length') || e.target.getResponseHeader('x-decompressed-content-length');
+		if (totalLength !== null) {
+            setProgress(Math.round( (e.loaded * 100) / totalLength ));
+         }
+	}
+	}).then(function(resp){
+		alert("upload successful");
+		window.location.reload(false);
+	})
+	};
 
     const updateDescription = (e) => {
         setDescription(e.target.value)
@@ -115,7 +122,7 @@ export default function Upload(props) {
                     </Button>
 
                 </Stack>
-
+				<CircularProgress variant="determinate" value={progress} />
                 <UploadGrid />
 
                 <Box pt={4}>
