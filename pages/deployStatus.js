@@ -185,6 +185,7 @@ function DeployTable(props) {
     const { data, error } = useSWR("/REMS/deploys?store=" + props.storeFilter + "&package=" + props.packageFilter, fetcher);
     if (error) return <div>failed to load</div>;
     if (!data) return <div>loading...</div>;
+
     return (<div>
         {
             data.map((deploy, index) => (
@@ -216,7 +217,8 @@ function DeployTable(props) {
                     <AccordionDetails>
                         {
                             deploy.steps.map((step, index) => (
-                                <Accordion key={index} style={{ "margin": "15px", "backgroundColor": "#FAF9F6" }}>
+
+                                < Accordion key={index} style={{ "margin": "15px", "backgroundColor": "#FAF9F6" }}>
                                     <AccordionSummary
                                         style={{ "backgrounColor": StatusColor(step.status) }}
                                         expandIcon={<ExpandMoreIcon />}
@@ -228,7 +230,7 @@ function DeployTable(props) {
                                             </Grid>
                                             <Grid item xs={4} >
                                                 <Typography sx={{ flexShrink: 0 }}>
-                                                    {step.type} -- {StepCommands(step)}
+                                                    {step.type == "apply" ? step.command : step.type} -- {StepCommands(step)}
                                                 </Typography>
                                             </Grid>
                                         </Grid>
@@ -237,7 +239,9 @@ function DeployTable(props) {
                                         {step.output.map((line) => (line))}
                                     </AccordionDetails>
                                 </Accordion>
-                            ))
+                            )
+
+                            )
                         }
                     </AccordionDetails>
                 </Accordion>
