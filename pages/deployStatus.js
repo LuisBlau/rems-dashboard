@@ -201,12 +201,22 @@ function DeployTable(props) {
                             <Grid item xs={1} >
                                 <StatusBadge itemStatus={deploy.status} />
                             </Grid>
-                            <Grid item xs={4} >
+                            <Grid item xs={2} >
                                 <Typography sx={{ flexShrink: 0 }}>
                                     Store: {deploy.storeName}
                                 </Typography>
                             </Grid>
                             <Grid item xs={4} >
+                                <Typography sx={{ flexShrink: 0 }}>
+                                    Config Name: {deploy.package}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={2} >
+                                <Typography sx={{ flexShrink: 0 }}>
+                                    Status: {deploy.status}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={3} >
                                 <Typography sx={{ flexShrink: 0 }}>
                                     Apply Time: {deploy.apply_time}
                                 </Typography>
