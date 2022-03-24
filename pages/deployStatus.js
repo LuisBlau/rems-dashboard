@@ -189,7 +189,7 @@ function DeployTable(props) {
     return (<div>
         {
             data.map((deploy, index) => (
-                <Accordion key={"a-deploy-" + index} style={{ "margin": "15px", "backgroundColor": "#FAF9F6" }}>
+                <Accordion key={"a-deploy-" + index} style={{ "margin": "15px" }}>
                     <AccordionSummary
                         key={"as-deploy-" + index}
                         style={{ "backgroundColor": StatusColor(deploy.status) }}
@@ -218,9 +218,8 @@ function DeployTable(props) {
                         {
                             deploy.steps.map((step, index) => (
 
-                                < Accordion key={index} style={{ "margin": "15px", "backgroundColor": "#FAF9F6" }}>
+                                < Accordion key={index} style={{ "margin": "15px", "backgroundColor": StatusColor(step.status) }}>
                                     <AccordionSummary
-                                        style={{ "backgrounColor": StatusColor(step.status) }}
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls={"panel" + deploy.id + ":" + index + "bh-content"}
                                         id={"panel" + deploy.id + ":" + index + "bh-header"} >
@@ -235,8 +234,8 @@ function DeployTable(props) {
                                             </Grid>
                                         </Grid>
                                     </AccordionSummary>
-                                    <AccordionDetails>
-                                        {step.output.map((line) => (line))}
+                                    <AccordionDetails sx={{ bgcolor: "#FFEBE0" }}>
+                                        {step.output.map((line) => (line + "\n"))}
                                     </AccordionDetails>
                                 </Accordion>
                             )
