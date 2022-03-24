@@ -15,8 +15,12 @@ import Alert from '@mui/material/Alert';
 import AlertTitle from "@mui/material/AlertTitle";
 import Typography from '@mui/material/Typography';
 
-
 import axios from 'axios';
+
+/// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
+const Success_Toast = 4000;
+/// Number of millisec to show Failure toast. Page does not reload after.
+const Fail_Toast = 10000;
 
 const PREFIX = 'deploySchedule';
 
@@ -129,6 +133,10 @@ export default function deployScheule() {
 
         setToastSuccess("Deploy-Config Scheduled");
         setOpenSuccess(true)
+
+        setTimeout(function () {
+            window.location.reload(true);
+        }, Success_Toast + 500)
     };
 
     return (
@@ -197,7 +205,7 @@ export default function deployScheule() {
                 <Snackbar
                     anchorOrigin={{ vertical: "top", horizontal: "center" }}
                     open={openSuccess}
-                    autoHideDuration={3000}
+                    autoHideDuration={Success_Toast}
                     onClose={(event) => { setOpenSuccess(false) }}>
                     <Alert variant="filled" severity="success">
                         <AlertTitle>Success!</AlertTitle>
@@ -208,7 +216,7 @@ export default function deployScheule() {
                 <Snackbar
                     anchorOrigin={{ vertical: "top", horizontal: "center" }}
                     open={openFailure}
-                    autoHideDuration={5000}
+                    autoHideDuration={Fail_Toast}
                     onClose={(event) => { setOpenFailure(false) }}>
                     <Alert variant="filled" severity="error">
                         <AlertTitle>Error!!!</AlertTitle>

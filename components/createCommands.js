@@ -4,7 +4,6 @@ import React, { Component, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box'
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 
 import axios from 'axios';
@@ -16,9 +15,6 @@ export default function Command(props) {
     let [state, setArgs] = useState({ ...props.st, "downloads": [] })
 
     const setProp = props.setst;
-
-    //state["downloads"]= [];
-    //setArgs(state);
 
     const handlechange = (event) => {
         state["type"] = event.target.value
@@ -35,7 +31,7 @@ export default function Command(props) {
         }
     }
     const getval = (name) => {
-        console.log("Getvalue:" + state["arguments"][name])
+        // console.log("Getvalue:" + state["arguments"][name])
         return state["arguments"][name]
     }
     const commands = {
@@ -82,7 +78,6 @@ export default function Command(props) {
             )
         },
         "upload": function (props) {
-            //const [downloads,setDownloads] = useState([])
             console.log("Checked downloads");
             if (state.downloads.length == 0) {
                 console.log("Nope!");
@@ -105,7 +100,7 @@ export default function Command(props) {
                         label="Type"
                         labelId="demo-simple-select-label"
                         onChange={setval("file")}>
-                        {state.downloads.data.map((down) => <MenuItem value={down.id}>{down.description}</MenuItem>)}
+                        {state.downloads.data.map((down, index) => <MenuItem key={"dn-" + index} value={down.id}>{down.description}</MenuItem>)}
                     </Select>
                     <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} />
                     <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} />
@@ -113,8 +108,8 @@ export default function Command(props) {
             )
         }
     }
-    const listItems = Object.keys(commands).map((c) => <MenuItem value={c}>{c}</MenuItem>);
-    let comman = commands[(!state.type || state.type === undefined) ? "" : state.type]()
+    const listItems = Object.keys(commands).map((c, index) => <MenuItem key={"c-" + index} value={c}>{c}</MenuItem>);
+    let command = commands[(!state.type || state.type === undefined) ? "" : state.type]()
     return (
         <Grid container direction='row' >
             <Grid item>
@@ -128,7 +123,7 @@ export default function Command(props) {
                 </Select>
             </Grid>
 
-            {comman}
+            {command}
 
             <Button variant="contained" sx={{margin: 1}} endIcon={<RemoveDoneIcon />} onClick={() => props.onRemove(props.id)} > Remove Task </Button>
 
