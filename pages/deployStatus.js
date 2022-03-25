@@ -128,6 +128,9 @@ function StepCommands(step) {
 
 export default function deployStatus() {
 
+    // Max number of records to pull from database. 0 = all records.
+    const maxRecords = 20;
+
     const [storeFilter, setStoreFilter] = React.useState("");
     const [packageFilter, setPackageFilter] = React.useState(0);
     const [packageFilterItems, setPackageFilterItems] = React.useState(null);
@@ -170,7 +173,7 @@ export default function deployStatus() {
                     </Grid>
                 </Box>
 
-                <DeployTable storeFilter={storeFilter} packageFilter={packageFilter} />
+                <DeployTable storeFilter={storeFilter} packageFilter={packageFilter} maxRecords={maxRecords} />
                 <Box pt={4}>
                     <Copyright />
                 </Box>
@@ -182,7 +185,11 @@ export default function deployStatus() {
 
 function DeployTable(props) {
     const [expanded, setExpanded] = React.useState(false);
-    const { data, error } = useSWR("/REMS/deploys?store=" + props.storeFilter + "&package=" + props.packageFilter, fetcher);
+
+    const { data, error } = useSWR("/REMS/deploys?store=" + props.storeFilter +
+        "&package=" + props.packageFilter +
+        "&records=" + props.maxRecords, fetcher);
+
     if (error) return <div>failed to load</div>;
     if (!data) return <div>loading...</div>;
 
