@@ -79,7 +79,7 @@ export default function Command(props) {
                         </Select>
                     </FormControl>
                     <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")} required={true} />
-                    <TextField variant="standard" sx={{ visibility: "hidden" }} required={true} />
+                    <TextField variant="standard" sx={{ visibility: "hidden" }} />
                 </div>
             )
         },
