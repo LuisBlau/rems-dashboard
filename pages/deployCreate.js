@@ -84,11 +84,13 @@ export default function Upload(props) {
     const addCommand = () => {
         let id = Date.now();
         setCommands(commands => {
-            let jasper = Object.assign({}, commands);   // creating copy of state variable jasper
-            jasper[id] = {};                            // update the name property, assign a new value
+            var jasper = Object();
+            Object.assign(jasper, commands);   // creating copy of state variable jasper
+            jasper[id] = {};                   // update the name property, assign a new value
             return jasper;
         })
     }
+
 
     const handleSuibmit = (event) => {
         event.preventDefault();
@@ -128,13 +130,16 @@ export default function Upload(props) {
     }
 
     const removeCommand = (id) => {
-        console.log(id)
+
         setCommands(commands => {
-            let jasper = Object.assign({}, commands);  // creating copy of state variable jasper
+
+            var jasper = Object();
+
+            Object.assign(jasper, commands);  // creating copy of state variable jasper
             delete jasper[id];
             return jasper;
         })
-        console.log(commands)
+
     }
 
     const setst = (id, state) => {
@@ -165,7 +170,7 @@ export default function Upload(props) {
                         </Grid>
 
                         {Object.keys(commands).map(function (idx) {
-                            console.log("function idx = ", idx)
+
                             return (<Command key={"cmd-" + idx} id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand} />)
                         })}
 

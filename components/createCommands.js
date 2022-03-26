@@ -5,8 +5,10 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
+import FormControl from '@mui/material/FormControl';
 
 import axios from 'axios';
+
 
 export default function Command(props) {
 
@@ -39,41 +41,45 @@ export default function Command(props) {
         "shell": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <Select sx={{ margin: 1, width: _width }}
-                        value={getval("cmd", "cmd")}
-                        label="Type"
-                        labelId="demo-simple-select-label"
-                        onChange={setval("cmd")}>
-                        <MenuItem value="python">python</MenuItem>
-                        <MenuItem value="shell">shell</MenuItem>
-                    </Select>
-                    <TextField label="command" variant="standard" onChange={setval("args")} value={getval("args")} />
-                    <TextField label="path" variant="standard" onChange={setval("path")} value={getval("path")} />
+                    <FormControl required={true} >
+                        <Select sx={{ margin: 1, width: _width }}
+                            value={getval("cmd", "cmd")}
+                            label="Type"
+                            labelId="demo-simple-select-label"
+                            onChange={setval("cmd")}>
+                            <MenuItem value="python">python</MenuItem>
+                            <MenuItem value="shell">shell</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <TextField label="command" variant="standard" onChange={setval("args")} value={getval("args")} required={true} />
+                    <TextField label="path" variant="standard" onChange={setval("path")} value={getval("path")} required={true} />
                 </div>
             )
         },
         "unzip": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <TextField sx={{ marginLeft:1, width:_width, marginRight:1 }} label="file" variant="standard" onChange={setval("file")} value={getval("file")} />
-                    <TextField label="destination" variant="standard" onChange={setval("directory")} value={getval("directory")} />
-                    <TextField label="distribution" variant="standard" onChange={setval("distribute")} value={getval("distribute")} />
+                    <TextField sx={{ marginLeft: 1, width: _width, marginRight: 1 }} label="file" variant="standard" onChange={setval("file")} value={getval("file")} required={true} />
+                    <TextField label="destination" variant="standard" onChange={setval("directory")} value={getval("directory")} required={true} />
+                    <TextField label="distribution" variant="standard" onChange={setval("distribute")} value={getval("distribute")} required={true} />
                 </div>
             )
         },
         "apply": function (props) {
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <Select sx={{ margin: 1, width: _width }}
-                        value={getval("command", "command")}
-                        label="Type"
-                        labelId="demo-simple-select-label"
-                        onChange={setval("command")}>
-                        <MenuItem value="apply">Apply</MenuItem>
-                        <MenuItem value="backout">Backoff</MenuItem>
-                    </Select>
-                    <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")} />
-                    <TextField variant="standard" sx={{ visibility: "hidden" }} />
+                    <FormControl required={true} >
+                        <Select sx={{ margin: 1, width: _width }}
+                            value={getval("command", "command")}
+                            label="Type"
+                            labelId="demo-simple-select-label"
+                            onChange={setval("command")}>
+                            <MenuItem value="apply">Apply</MenuItem>
+                            <MenuItem value="backout">Backoff</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")} required={true} />
+                    <TextField variant="standard" sx={{ visibility: "hidden" }} required={true} />
                 </div>
             )
         },
@@ -95,15 +101,17 @@ export default function Command(props) {
 
             return (
                 <div style={{ display: "flex", gap: "20px" }}>
-                    <Select sx={{ margin: 1, width: _width }}
-                        value={getval("file")}
-                        label="Type"
-                        labelId="demo-simple-select-label"
-                        onChange={setval("file")}>
-                        {state.downloads.data.map((down, index) => <MenuItem key={"dn-" + index} value={down.id}>{down.description}</MenuItem>)}
-                    </Select>
-                    <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} />
-                    <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} />
+                    <FormControl required={true} >
+                        <Select sx={{ margin: 1, width: _width }}
+                            value={getval("file")}
+                            label="Type"
+                            labelId="demo-simple-select-label"
+                            onChange={setval("file")}>
+                            {state.downloads.data.map((down, index) => <MenuItem key={"dn-" + index} value={down.id}>{down.description}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                    <TextField label="Destination Folder" variant="standard" onChange={setval("to_location")} value={getval("to_location")} required={true} />
+                    <TextField label="Destination Filename" variant="standard" onChange={setval("filename")} value={getval("filename")} required={true} />
                 </div>
             )
         }
@@ -122,12 +130,8 @@ export default function Command(props) {
                     {listItems}
                 </Select>
             </Grid>
-
             {command}
-
-            <Button variant="contained" sx={{margin: 1}} endIcon={<RemoveDoneIcon />} onClick={() => props.onRemove(props.id)} > Remove Task </Button>
-
-
+            <Button variant="contained" sx={{ margin: 1 }} endIcon={<RemoveDoneIcon />} onClick={() => props.onRemove(props.id)} > Remove Task </Button>
         </Grid>
 
     )
