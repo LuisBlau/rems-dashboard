@@ -255,12 +255,10 @@ function DeployTable(props) {
                                         </Grid>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ bgcolor: "#FFEBE0" }}>
-                                        {step.output.map((line) => (<p>{line}</p>))}
+                                        {step.output.map((line, idx) => (<p key={"l-" + index + "-" + idx} >{line}</p>))}
                                     </AccordionDetails>
                                 </Accordion>
-                            )
-
-                            )
+                            ))
                         }
                     </AccordionDetails>
                 </Accordion>
