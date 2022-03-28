@@ -84,6 +84,8 @@ function StatusBadge(props) {
             return <Tooltip title="In Progress"><PendingIcon /></Tooltip>
         case "Pending":
             return <Tooltip title="Pending"><WatchLaterIcon /></Tooltip>
+        case "Staged":
+            return <Tooltip title="Staged"><WatchLaterIcon /></Tooltip>
         case "Succeeded":
             return <Tooltip title="Succeeded"><CheckCircleIcon /></Tooltip>
         case "initial":
@@ -101,6 +103,7 @@ function StatusColor(status) {
         case "InProgress":
             return "#B1E0FC";
         case "Pending":
+        case "Staged":
             return "#D6EEFD";
         case "Succeeded":
             return "#CDFEB6";
@@ -252,7 +255,7 @@ function DeployTable(props) {
                                         </Grid>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ bgcolor: "#FFEBE0" }}>
-                                        {step.output.map((line) => (line + "\n"))}
+                                        {step.output.map((line) => (<p>{line}</p>))}
                                     </AccordionDetails>
                                 </Accordion>
                             )
