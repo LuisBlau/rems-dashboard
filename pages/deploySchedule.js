@@ -17,10 +17,10 @@ import Typography from '@mui/material/Typography';
 
 import axios from 'axios';
 
-/// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
-const Success_Toast = 4000;
+/// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
+const Success_Toast = 1500;
 /// Number of millisec to show Failure toast. Page does not reload after.
-const Fail_Toast = 10000;
+const Fail_Toast = 8000;
 
 const PREFIX = 'deploySchedule';
 
@@ -80,6 +80,7 @@ export default function deployScheule() {
     const [_storeList, setStoreList] = useState('');
     const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
+
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState("")
 
@@ -136,7 +137,7 @@ export default function deployScheule() {
 
         setTimeout(function () {
             window.location.reload(true);
-        }, Success_Toast + 500)
+        }, Success_Toast - 500)
     };
 
     return (
