@@ -34,7 +34,9 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
 import CreateIcon from '@mui/icons-material/Create';
-
+import Login from "./login"
+import axios from "axios"
+import { useRouter } from 'next/router'
 const PREFIX = '_app';
 
 const classes = {
@@ -277,7 +279,7 @@ const MenuItems = [
 
 export default function MyApp(props) {
 
-
+    const router = useRouter()
     const { Component, pageProps } = props;
     const [open, setOpen] = React.useState(false);
     const handleDrawerOpen = () => {
@@ -294,7 +296,9 @@ export default function MyApp(props) {
             jssStyles.parentElement.removeChild(jssStyles);
         }
     }, []);
-
+	if (router.pathname .split("/").pop() != "login") {
+     axios.get("/api/checkauth").catch((err) => window.location.href = "/login")
+	}
     return (
         <Root>
             <Head>

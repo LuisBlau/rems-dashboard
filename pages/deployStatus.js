@@ -94,7 +94,7 @@ function StatusBadge(props) {
     }
 }
 
-export default function deployStatus() {
+export default function DeployStatus() {
 
   const [storeFilter, setStoreFilter] = React.useState("");
   const [packageFilter, setPackageFilter] = React.useState(0);  
