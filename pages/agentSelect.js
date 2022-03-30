@@ -16,6 +16,7 @@ import Divider from "@mui/material/Divider";
 import Snackbar from "@mui/material/Snackbar";
 import Box from "@mui/material/Box"
 import Typography from '@mui/material/Typography';
+import { FormControlLabel } from "@mui/material";
 
 
 
@@ -78,15 +79,15 @@ export default function agentSelect() {
     const [checked, setChecked] = React.useState([]);
     const [left, setLeft] = React.useState([]);
     const [right, setRight] = React.useState([]);
-
     const [agents, setAgents] = useState([]);
-    const [index, setIndex] = useState([]);
-
     const [open, setOpen] = useState(false);
-    const [toast, setToast] = useState("No Agents Selected!")
+    const [toast, setToast] = useState("No Agents Selected!");
+    const [onlyMasters, setOnlyMasters] = useState(false);
+
 
     const leftChecked = intersection(checked, left);
     const rightChecked = intersection(checked, right);
+
 
     const handleToggle = (value) => () => {
         const currentIndex = checked.indexOf(value);
@@ -97,7 +98,6 @@ export default function agentSelect() {
         } else {
             newChecked.splice(currentIndex, 1);
         }
-
         setChecked(newChecked);
     };
 
@@ -152,27 +152,46 @@ export default function agentSelect() {
     };
 
 
+    const handleMasterChange = (event) => {
+        setOnlyMasters(event.target.checked)
+    }
+
     useEffect(() => {
-        axios.get("/api/REMS/agents").then(function (response) {
+
+        setAgents([]);
+        setLeft([]);
+        setRight([]);
+
+        const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
+        console.log("database endpoint : ", dbEndpoint)
+
+        axios.get(dbEndpoint).then(function (response) {
             var agents = []
             var agentsIndex = []
             var _index = -1;
-            response.data.forEach(v => {
-                agents.push(v.storeName + ":" + v.agentName)
+            response.data.forEach(dbItem => {
+
+                var listItem = dbItem.storeName;
+                if (!onlyMasters) {
+                    listItem = listItem + ":" + dbItem.agentName
+                }
+
+                agents.push(listItem)
                 handleToggle(++_index)
                 agentsIndex.push(_index)
             })
 
             setAgents(agents);
-            setIndex(agentsIndex)
             setLeft(agentsIndex)
 
+
         });
-    }, []);
+    }, [onlyMasters]);
 
 
     const customList = (title, items) => (
         <Card>
+            <Divider />
             <CardHeader
                 sx={{ px: 2, py: 1 }}
                 avatar={
@@ -237,10 +256,18 @@ export default function agentSelect() {
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
+            <Typography marginTop={5} align='center' variant="h3">Select Agents for Deployment</Typography>
 
-            <Typography marginBottom={3} marginTop={3} align='center' variant="h3">Select Agents for Deployment</Typography>
+            <Grid container direction="column" align="center" spacing={2} justifyContent="center" alignItems="center">
 
-            <Grid container direction="column" mt={4} align="center" spacing={2} justifyContent="center" alignItems="center">
+                <Grid item sx={{ margin: 2 }} >
+                    <FormControlLabel
+                        checked={onlyMasters}
+                        onChange={handleMasterChange}
+                        control={<Checkbox />}
+                        label="Show Only Master Agents" />
+                </Grid>
+
                 <Grid container align="center" spacing={2} justifyContent="center" alignItems="center">
                     <Grid item>{customList("Choices", left)}</Grid>
                     <Grid item>
