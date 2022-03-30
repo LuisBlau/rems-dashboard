@@ -91,8 +91,10 @@ function StatusBadge(props) {
             return <Tooltip title="Pending"><WatchLaterIcon /></Tooltip>
         case "Staged":
             return <Tooltip title="Staged"><WatchLaterIcon /></Tooltip>
+        case "Success":
+        //TODO: remove this after REMS CHANGE.
         case "Succeeded":
-            return <Tooltip title="Succeeded"><CheckCircleIcon /></Tooltip>
+            return <Tooltip title="Success"><CheckCircleIcon /></Tooltip>
         case "initial":
         case "Initial":
             return <Tooltip title="Initial"><StartIcon /></Tooltip>
@@ -116,6 +118,8 @@ function StatusColor(status) {
         case "Pending":
         case "Staged":
             return "#D6EEFD";
+        case "Success":
+        //TODO: remove this after REMS CHANGE.
         case "Succeeded":
             return "#CDFEB6";
         case "initial":
