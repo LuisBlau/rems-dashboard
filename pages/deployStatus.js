@@ -144,7 +144,7 @@ function StepCommands(step) {
     return "";
 }
 
-export default function deployStatus() {
+export default function DeployStatus() {
 
     // Max number of records to pull from database. 0 = all records.
     const maxRecords = 20;
