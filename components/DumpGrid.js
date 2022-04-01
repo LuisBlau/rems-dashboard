@@ -35,12 +35,12 @@ const Root = styled('div')((
 }));
 
 const azureRenderer = function(params) {
-	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
+	return (<a href={'javascript:fetch("' + params.value + '")'}>click me</a>);
 }
 
 const linkRenderer = function(params) {
 	if (params.value == undefined) return ""
-	return '<a href=' + params.value + '>Download</a>';
+	return (<a href=' + params.value + '>Download</a>);
 }
 const sortGrid = function(event) {
   const columnState = {

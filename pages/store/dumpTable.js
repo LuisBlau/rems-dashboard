@@ -58,10 +58,10 @@ export default function releaseOverview() {
 
   const [filterText, setFilterText] = useState("");
 
-  const {data, error} = useSWR("/REMS/release", fetcher);
+  /*const {data, error} = useSWR("/REMS/release", fetcher);
 
   if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
+  if (!data) return <div>loading...</div>; */
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
