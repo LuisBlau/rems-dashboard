@@ -1,11 +1,4 @@
-
-
-
-// import { unstable_ClassNameGenerator as ClassNameGenerator } from '@mui/material/className';
 import { styled } from '@mui/material/styles';
-// ClassNameGenerator.configure((componentName) => componentName.replace('Mui', ''));
-
-import '../lib/styles.css'
 import { ThemeProvider } from '@mui/styles';
 import React from "react";
 import PropTypes from "prop-types";
@@ -37,6 +30,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import Login from "./login"
 import axios from "axios"
 import { useRouter } from 'next/router'
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 const PREFIX = '_app';
 
 const classes = {
@@ -251,23 +245,23 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     {
-        name: "DeployStatus",
+        name: "Check Deploy Status",
         route: "/deployStatus",
         icon: <PendingActionsIcon />
     }, {
-        name: "FileUpload",
+        name: "Upload a File",
         route: "/fileUpload",
         icon: <PublishIcon />
     }, {
-        name: "CreateDeployment",
-        route: "/commandSender",
-        icon: <CreateIcon />
+        name: "Create Deploy Config",
+        route: "/deployCreate",
+        icon: <AddCircleOutline />
     }, {
-        name: "Deploy Schedule",
+        name: "Schedule a Deployment",
         route: "/deploySchedule",
         icon: <ScheduleIcon />
     }, {
-        name: "Agent Select",
+        name: "Select Agents",
         route: "/agentSelect",
         icon: <ImportantDevicesIcon />
     }, {
@@ -302,7 +296,12 @@ export default function MyApp(props) {
     return (
         <Root>
             <Head>
-                <title>My page</title>
+                <title>TGCS | PAS Portal</title>
+                <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+                <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+                <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+                <link rel="manifest" href="/site.webmanifest" />
+                <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
                 <meta
                     name="viewport"
                     content="minimum-scale=1, initial-scale=1, width=device-width"
