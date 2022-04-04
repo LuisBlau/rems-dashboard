@@ -13,7 +13,14 @@ import Copyright from "../src/Copyright";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from '@mui/material/Alert';
 import AlertTitle from "@mui/material/AlertTitle";
+import Typography from '@mui/material/Typography';
+
 import axios from 'axios';
+
+/// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
+const Success_Toast = 1500;
+/// Number of millisec to show Failure toast. Page does not reload after.
+const Fail_Toast = 8000;
 
 const PREFIX = 'deploySchedule';
 
@@ -73,6 +80,7 @@ export default function deployScheule() {
     const [_storeList, setStoreList] = useState('');
     const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
+
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState("")
 
@@ -126,12 +134,18 @@ export default function deployScheule() {
 
         setToastSuccess("Deploy-Config Scheduled");
         setOpenSuccess(true)
+
+        setTimeout(function () {
+            window.location.reload(true);
+        }, Success_Toast - 500)
     };
 
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
+                <Typography marginBottom={3} align='center' variant="h3">Schedule a Deployment</Typography>
+
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={2} sx={{ alignItems: 'center' }} >
                         <Autocomplete
@@ -171,7 +185,7 @@ export default function deployScheule() {
                             <DateTimePicker
                                 id="date-time-local"
                                 disablePast
-                                label="Send Time"
+                                label="Apply Time"
                                 renderInput={(params) => <TextField {...params} helperText="Store Time Zone" />}
                                 value={_dateTime}
                                 onChange={(newValue) => {
@@ -192,7 +206,7 @@ export default function deployScheule() {
                 <Snackbar
                     anchorOrigin={{ vertical: "top", horizontal: "center" }}
                     open={openSuccess}
-                    autoHideDuration={3000}
+                    autoHideDuration={Success_Toast}
                     onClose={(event) => { setOpenSuccess(false) }}>
                     <Alert variant="filled" severity="success">
                         <AlertTitle>Success!</AlertTitle>
@@ -203,7 +217,7 @@ export default function deployScheule() {
                 <Snackbar
                     anchorOrigin={{ vertical: "top", horizontal: "center" }}
                     open={openFailure}
-                    autoHideDuration={5000}
+                    autoHideDuration={Fail_Toast}
                     onClose={(event) => { setOpenFailure(false) }}>
                     <Alert variant="filled" severity="error">
                         <AlertTitle>Error!!!</AlertTitle>
