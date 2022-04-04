@@ -31,7 +31,6 @@ import Login from "./login"
 import axios from "axios"
 import { useRouter } from 'next/router'
 import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
-
 const PREFIX = '_app';
 
 const classes = {
