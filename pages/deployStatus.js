@@ -80,9 +80,9 @@ function StatusBadge(props) {
         case "cancel":
         case "Cancel":
             return <Tooltip title="Canceling"><CancelScheduleSendIcon /></Tooltip>
-        case "canceled":
-        case "Canceled":
-            return <Tooltip title="Canceled"><CancelIcon /></Tooltip>
+        case "cancelled":
+        case "Cancelled":
+            return <Tooltip title="Cancelled"><CancelIcon /></Tooltip>
         case "Failed":
             return <Tooltip title="Failed"><WarningIcon /></Tooltip>
         case "InProgress":
@@ -108,8 +108,8 @@ function StatusColor(status) {
         case "cancel":
         case "Cancel":
             return "#F2FAAB"
-        case "canceled":
-        case "Canceled":
+        case "cancelled":
+        case "Cancelled":
             return "#FACAA4"
         case "Failed":
             return "#FCB3B1";
@@ -144,7 +144,7 @@ function StepCommands(step) {
     return "";
 }
 
-export default function deployStatus() {
+export default function DeployStatus() {
 
     // Max number of records to pull from database. 0 = all records.
     const maxRecords = 20;

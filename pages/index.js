@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from '@mui/material/styles';
 import clsx from "clsx";
 import Realtime from "./registers/realtime_alternative";
-import ExtractTable from "./store/extractTable";
+import DeployStatus from "./deployStatus";
 const PREFIX = 'index';
 
 const classes = {
@@ -55,7 +55,7 @@ export default function Index() {
 
   return (
     <Root className={classes.content}>
-      {/* <ExtractTable /> */}
+      {<DeployStatus/>}
     </Root>
   );
 }
