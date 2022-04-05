@@ -88,7 +88,7 @@ export default function deployScheule() {
     const [toastFailure, setToastFailure] = useState("")
 
     useEffect(() => {
-        axios.get("/api/REMS/deploy-configs").then( function (res) {
+        axios.get("/api/REMS/deploy-configs").then(function (res) {
             console.log("axios response", res)
             var packages = []
             res.data.forEach(v => {
@@ -110,34 +110,23 @@ export default function deployScheule() {
 
         setFormValues(formValues)
 
-        const _body = JSON.stringify(_formValues);
-
-        const requestText = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: _body
-        };
-        //TODO : Add error message if status does not come back OK
-        fetch('/api/deploy-config', requestText)
-            .then(res => {
-                if (res.status != 200) {
-                    setToastFailure("Deploy-Config name and id does not exist.")
+        axios.post('/api/deploy-schedule', _formValues)
+            .then(function (response) {
+                if (response.data.message != "Success") {
+                    setToastFailure(response.data)
                     setOpenFailure(true)
-                    return
+                    return;
+                }
+                else {
+                    setToastSuccess("Deploy-Config Scheduled");
+                    setOpenSuccess(true)
                 }
             })
-            .catch(err => {
-                setToastFailure("Error connecting to server.")
+            .catch(function (error) {
+                setToastFailure(error.message)
                 setOpenFailure(true)
-                return
+                return;
             });
-
-        setToastSuccess("Deploy-Config Scheduled");
-        setOpenSuccess(true)
-
-        setTimeout(function () {
-            window.location.reload(true);
-        }, Success_Toast - 500)
     };
 
     return (
