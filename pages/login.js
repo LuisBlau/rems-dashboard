@@ -64,10 +64,13 @@ export default function Login() {
 	return(
       <Root className={classes.content}>
         <div className={classes.appBarSpacer}/>
-          <Container maxWidth="lg" className={classes.container} style={{margin:100}}>
-		<TextField label="Username" value={username} onChange={updateUsername}/>
-		<TextField label="Password" value={password} onChange={updatePassword}/>
-		<Button onClick={login}>Login</Button>
+		
+          <Container maxWidth="lg" className={classes.container} style={{margin:100,float:"left"}}>
+		  <div>
+		<TextField label="Username" value={username} onChange={updateUsername} style={{display:"block"}}/>
+		<TextField label="Password" type="password" value={password} onChange={updatePassword} style={{display:"block"}}/>
+		<Button onClick={login} style={{display:"block"}} variant="contained">Login</Button>
+		</div>
 		</Container>
         </Root>
 	)
