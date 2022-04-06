@@ -67,7 +67,6 @@ export default function Login() {
           <Container maxWidth="lg" className={classes.container} style={{margin:100}}>
 		<TextField label="Username" value={username} onChange={updateUsername}/>
 		<TextField label="Password" value={password} onChange={updatePassword}/>
-		<p>{message}</p>
 		<Button onClick={login}>Login</Button>
 		</Container>
         </Root>
