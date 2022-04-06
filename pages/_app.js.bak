@@ -291,7 +291,7 @@ export default function MyApp(props) {
         }
     }, []);
 	if (router.pathname .split("/").pop() != "login") {
-     axios.get("/api/auth/checkauth").catch((err) => {
+     axios.get("/api/checkauth").catch((err) => {
 		 if (typeof window !== "undefined") {
 			// browser code
 			window.location.href = "/login"
