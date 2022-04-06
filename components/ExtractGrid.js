@@ -36,7 +36,7 @@ const Root = styled('div')((
 }));
 
 const azureRenderer = function(params) {
-	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
+	return '<a href=javascript:fetch("' + params.value + '")>Request File</a>';
 }
 
 const linkRenderer = function(params) {

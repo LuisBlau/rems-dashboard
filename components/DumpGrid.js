@@ -35,12 +35,12 @@ const Root = styled('div')((
 }));
 
 const azureRenderer = function(params) {
-	return '<a href=javascript:fetch("' + params.value + '")>click me</a>';
+	return (<a href={'javascript:fetch("' + params.value + '")'}>Request File</a>);
 }
 
 const linkRenderer = function(params) {
 	if (params.value == undefined) return ""
-	return '<a href=' + params.value + '>Download</a>';
+	return (<a href=' + params.value + '>Download</a>);
 }
 const sortGrid = function(event) {
   const columnState = {
@@ -67,7 +67,6 @@ export default function DumpGrid(props) {
             return <div className="ag-theme-alpine" style={{height: 400, width: "100%"}}>
 			   <AgGridReact style="width: 100%; height: 100%;"
                rowData={data} onGridReady={sortGrid}>
-			   <AgGridColumn sortable={ true } filter={ true } field="Retailer"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="Store"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="System"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="Reason"></AgGridColumn>
