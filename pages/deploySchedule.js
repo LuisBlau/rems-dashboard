@@ -88,7 +88,7 @@ export default function deployScheule() {
     const [toastFailure, setToastFailure] = useState("")
 
     useEffect(() => {
-        axios.get("/api/REMS/deploy-configs").then(function (res) {
+        axios.get("/api/REMS/deploy-configs").then( function (res) {
             console.log("axios response", res)
             var packages = []
             res.data.forEach(v => {
@@ -100,33 +100,43 @@ export default function deployScheule() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
         formValues.name = _package.label,
             formValues.id = _package.id,
             formValues.storeList = _storeList,
             // Don't adjust for users time zone i.e we are always in store time.
             // en-ZA puts the date in the design doc format except for an extra comma.
-            formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '');
+            formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '').replace(" 24:"," 00:");
 
         setFormValues(formValues)
 
-        axios.post('/api/deploy-schedule', _formValues)
-            .then(function (response) {
-                if (response.data.message != "Success") {
-                    setToastFailure(response.data)
+        const _body = JSON.stringify(_formValues);
+
+        const requestText = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: _body
+        };
+        //TODO : Add error message if status does not come back OK
+        fetch('/api/deploy-config', requestText)
+            .then(res => {
+                if (res.status != 200) {
+                    setToastFailure("Deploy-Config name and id does not exist.")
                     setOpenFailure(true)
-                    return;
-                }
-                else {
-                    setToastSuccess("Deploy-Config Scheduled");
-                    setOpenSuccess(true)
+                    return
                 }
             })
-            .catch(function (error) {
-                setToastFailure(error.message)
+            .catch(err => {
+                setToastFailure("Error connecting to server.")
                 setOpenFailure(true)
-                return;
+                return
             });
+
+        setToastSuccess("Deploy-Config Scheduled");
+        setOpenSuccess(true)
+
+        setTimeout(function () {
+            window.location.reload(true);
+        }, Success_Toast - 500)
     };
 
     return (
