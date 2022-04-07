@@ -71,7 +71,6 @@ export default function DumpGrid(props) {
                <AgGridColumn sortable={ true } filter={ true } field="System"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="Reason"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } comparator={dateComparator} field="Timestamp"></AgGridColumn>
-			   <AgGridColumn sortable={ true } filter={ true } field="Rids"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={azureRenderer} headerName="Azure" field="SBreqLink"></AgGridColumn>
 			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="Download"></AgGridColumn>
            </AgGridReact>
