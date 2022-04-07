@@ -106,7 +106,7 @@ export default function deployScheule() {
             formValues.storeList = _storeList,
             // Don't adjust for users time zone i.e we are always in store time.
             // en-ZA puts the date in the design doc format except for an extra comma.
-            formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '');
+            formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '').replace(" 24:"," 00:");
 
         setFormValues(formValues)
 
