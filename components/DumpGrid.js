@@ -40,7 +40,7 @@ const azureRenderer = function(params) {
 
 const linkRenderer = function(params) {
 	if (params.value == undefined) return ""
-	return (<a href=' + params.value + '>Download</a>);
+	return (<a href={params.value} >Download</a>);
 }
 const sortGrid = function(event) {
   const columnState = {
