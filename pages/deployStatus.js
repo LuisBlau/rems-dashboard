@@ -152,16 +152,28 @@ export default function DeployStatus() {
     const [storeFilter, setStoreFilter] = React.useState("");
     const [packageFilter, setPackageFilter] = React.useState(0);
     const [packageFilterItems, setPackageFilterItems] = React.useState(null);
+    const [statusFilter, setStatusFilter] = React.useState('all');
+    const [statusFilterItems, setStatusFilterItems] = React.useState(null);
 
     if (packageFilterItems == null) {
         axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)))
         return <p>loading...</p>
     }
+
+    if (statusFilterItems == null) {
+        setStatusFilterItems([{ id: 'all', name: 'All Status'}, { id: 'pending', name: 'Pending'}, { id: 'failed', name: 'Failed'}, { id: 'success', name: 'Success'}, { id: 'cancelled', name: 'Cancelled'}])
+        return <p>loading...</p>
+    }
+    
     const changeStoreFilter = (e) => {
         setStoreFilter(e.target.value)
     }
     const changePackageFilter = (e) => {
         setPackageFilter(e.target.value)
+    }
+
+    const changeStatusFilter = (e) => {
+        setStatusFilter(e.target.value)
     }
 
     return (
@@ -170,13 +182,23 @@ export default function DeployStatus() {
             <Container maxWidth="lg" className={classes.container}>
                 <Typography align="center" variant="h3">Deployment Status</Typography>
                 <Box pt={2}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={3} >
+                    <Grid container spacing={4}>
+                        <Grid item xs={1} >
                         </Grid>
                         <Grid item xs={3} >
                             <TextField value={storeFilter} onChange={changeStoreFilter} label="store" />
                         </Grid>
-                        <Grid item xs={1} ></Grid>
+                        <Grid item xs={2} >
+                            <Select
+                                value={statusFilter}
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                label="Type"
+                                onChange={changeStatusFilter}
+                            >
+                                {statusFilterItems.map((i) => <MenuItem key={i} value={i["id"]}>{i["name"]}</MenuItem>)}
+                            </Select>
+                        </Grid>
                         <Grid item xs={4} >
                             <Select
                                 value={packageFilter}
@@ -195,6 +217,7 @@ export default function DeployStatus() {
                     storeFilter={storeFilter}
                     packageFilter={packageFilter}
                     maxRecords={maxRecords}
+                    statusFilter={statusFilter}
                 />
 
                 <Box pt={4}>
@@ -209,7 +232,8 @@ function DeployTable(props) {
 
     const { data, error } = useSWR("/REMS/deploys?store=" + props.storeFilter +
         "&package=" + props.packageFilter +
-        "&records=" + props.maxRecords, fetcher);
+        "&records=" + props.maxRecords + 
+        "&status=" + props.statusFilter, fetcher);
 
     if (error) return <div>failed to load</div>;
     if (!data) return <div>loading...</div>;
