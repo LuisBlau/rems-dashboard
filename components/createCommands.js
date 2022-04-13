@@ -52,7 +52,6 @@ export default function Command(props) {
                         </Select>
                     </FormControl>
                     <TextField label="command" variant="standard" onChange={setval("args")} value={getval("args")} required={true} />
-                    <TextField label="path" variant="standard" onChange={setval("path")} value={getval("path")} required={true} />
                 </div>
             )
         },
