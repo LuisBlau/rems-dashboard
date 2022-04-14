@@ -152,7 +152,7 @@ export default function DeployStatus() {
     const [storeFilter, setStoreFilter] = React.useState("");
     const [packageFilter, setPackageFilter] = React.useState(0);
     const [packageFilterItems, setPackageFilterItems] = React.useState(null);
-    const [statusFilter, setStatusFilter] = React.useState('all');
+    const [statusFilter, setStatusFilter] = React.useState('All');
     const [statusFilterItems, setStatusFilterItems] = React.useState(null);
 
     if (packageFilterItems == null) {
@@ -161,7 +161,7 @@ export default function DeployStatus() {
     }
 
     if (statusFilterItems == null) {
-        setStatusFilterItems([{ id: 'all', name: 'All Status'}, { id: 'pending', name: 'Pending'}, { id: 'failed', name: 'Failed'}, { id: 'success', name: 'Success'}, { id: 'cancelled', name: 'Cancelled'}])
+        setStatusFilterItems([{ id: 'All', name: 'All Status'}, { id: 'Pending', name: 'Pending'}, { id: 'Failed', name: 'Failed'}, { id: 'Success', name: 'Success'}, { id: 'Cancelled', name: 'Cancelled'}])
         return <p>loading...</p>
     }
     
@@ -191,8 +191,8 @@ export default function DeployStatus() {
                         <Grid item xs={2} >
                             <Select
                                 value={statusFilter}
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
+                                labelId="demo-simple-select-label-status"
+                                id="demo-simple-select-status"
                                 label="Type"
                                 onChange={changeStatusFilter}
                             >
@@ -202,8 +202,8 @@ export default function DeployStatus() {
                         <Grid item xs={4} >
                             <Select
                                 value={packageFilter}
-                                labelId="demo-simple-select-label"
-                                id="demo-simple-select"
+                                labelId="demo-simple-select-label-type"
+                                id="demo-simple-select-type"
                                 label="Type"
                                 onChange={changePackageFilter}
                             >
