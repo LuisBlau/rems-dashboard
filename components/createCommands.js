@@ -82,7 +82,7 @@ export default function Command(props) {
                 </div>
             )
         },
-        "transfer": function (props) {
+        "upload": function (props) {
             console.log("Checked downloads");
             if (state.downloads.length == 0) {
                 console.log("Nope!");
