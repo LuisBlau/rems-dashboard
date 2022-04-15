@@ -108,24 +108,35 @@ export default function Upload(props) {
 
         axios.post('/api/sendCommand', commandObj)
             .then(function (response) {
+                
                 if (response.status != 200) {
                     setToastFailure("Error Saving Deployment!!")
                     setOpenFailure(true)
                     return
                 }
+
+                if (response.data.message == "Duplicate") {
+                    setToastFailure("Error - Duplicate Deployment")
+                    setOpenFailure(true)
+                    return 
+
+                }
+                
+
+                setToastSuccess("Configuration Successfully Saved.")
+                setOpenSuccess(true)
+
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, Success_Toast + 500)
+
             })
             .catch(function (error) {
+                console.log(error);
                 setToastFailure("Error connecting to server!!")
                 setOpenFailure(true)
                 return
             });
-
-        setToastSuccess("Configuration Successfully Saved.")
-        setOpenSuccess(true)
-
-        setTimeout(function () {
-            window.location.reload(true);
-        }, Success_Toast + 500)
 
     }
 
