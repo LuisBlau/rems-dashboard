@@ -15,7 +15,10 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Snackbar from "@mui/material/Snackbar";
 import Box from "@mui/material/Box"
+import Select from "@mui/material/Select"
+import MenuItem from "@mui/material/MenuItem"
 import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
 import { FormControlLabel } from "@mui/material";
 
 
@@ -75,6 +78,14 @@ function union(a, b) {
     return [...a, ...not(b, a)];
 }
 
+const storeInformation = {
+    "_id" : "",
+    "id" : "",
+    "retailer_id" : "",
+    "list_name" : "",
+    "agents": []
+}
+
 export default function agentSelect() {
     const [checked, setChecked] = React.useState([]);
     const [left, setLeft] = React.useState([]);
@@ -83,11 +94,22 @@ export default function agentSelect() {
     const [open, setOpen] = useState(false);
     const [toast, setToast] = useState("No Agents Selected!");
     const [onlyMasters, setOnlyMasters] = useState(false);
+    const [newStore, setNewStore] = useState(false);
+    const [storeName, setStoreName] = useState("");
+    const [storeFilter, setStoreFilter] = React.useState(0);
+    const [storeFilterItems, setStoreFilterItems] = React.useState([]);
 
 
     const leftChecked = intersection(checked, left);
     const rightChecked = intersection(checked, right);
 
+    const changeStoreFilter = (e) => {
+        setStoreFilter(e.target.value);
+    };
+
+    const handleStorename = (e) => {
+        setStoreName(e.target.value);
+    };
 
     const handleToggle = (value) => () => {
         const currentIndex = checked.indexOf(value);
@@ -145,10 +167,46 @@ export default function agentSelect() {
                 }
             })
             navigator.clipboard.writeText(agentsText)
+
         }
 
-        setToast(agentsText)
+        if(newStore) {
+            storeInformation.list_name = storeName;
+        }else {
+
+            for (let i=0; i < storeFilterItems.length; i++) {
+                if (storeFilterItems[i].id === storeFilter) {
+                    storeInformation._id = storeFilterItems[i]._id;
+                    storeInformation.id = storeFilterItems[i].id;
+                    storeInformation.retailer_id = storeFilterItems[i].retailer_id;
+                    storeInformation.list_name = storeFilterItems[i].list_name;
+                    break;
+                }
+            }
+        }
+
+        storeInformation.agents = [];
+        right.forEach(val => { 
+            storeInformation.agents.push(agents[val]);
+        });
+
+        axios.post('/api/REMS/save-store-data', storeInformation)
+            .then(function (response) {
+                if (response.status != 200) {
+                    setToast("Error Saving Store-list!!")
+                    setOpen(false)
+                    return
+                }
+            })
+            .catch(function (error) {
+                setToast("Error connecting to server!!")
+                setOpen(false)
+                return
+            });
+
+        setToast("Configuration Successfully Saved.")
         setOpen(true)
+
     };
 
 
@@ -156,37 +214,71 @@ export default function agentSelect() {
         setOnlyMasters(event.target.checked)
     }
 
+    const handleNewStoreChange = (event) => {
+        setNewStore(event.target.checked)
+    }
+
     useEffect(() => {
 
         setAgents([]);
         setLeft([]);
         setRight([]);
+        setStoreFilterItems([]);
 
-        const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
-        console.log("database endpoint : ", dbEndpoint)
+        if(onlyMasters) {
+            const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
+            console.log("database endpoint : ", dbEndpoint)
+    
+            axios.get(dbEndpoint).then(function (response) {
+                var agents = []
+                var agentsIndex = []
+                var _index = -1;
+                response.data.forEach(dbItem => {
+    
+                    var listItem = dbItem.storeName;
+                    if (!onlyMasters) {
+                        listItem = listItem + ":" + dbItem.agentName
+                    }
+    
+                    agents.push(listItem)
+                    handleToggle(++_index)
+                    agentsIndex.push(_index)
+                })
+    
+                setAgents(agents);
+                setLeft(agentsIndex)
+    
+    
+            });
+        }
+       
+        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: '--Select Store--' }].concat(resp.data)));
 
-        axios.get(dbEndpoint).then(function (response) {
-            var agents = []
-            var agentsIndex = []
-            var _index = -1;
-            response.data.forEach(dbItem => {
+        if(!newStore) {
+            const getAgentsDBPoint = "/api/REMS/specific-store-agent-names?storeId=" + storeFilter;
+            console.log("database endpoint : ", getAgentsDBPoint)
 
-                var listItem = dbItem.storeName;
-                if (!onlyMasters) {
-                    listItem = listItem + ":" + dbItem.agentName
-                }
+            axios.get(getAgentsDBPoint).then(function (response) {
+                var agentsArray = []
+                var agentsIndex = []
+                var _index = -1;
+                response.data.forEach(dbItem => {
 
-                agents.push(listItem)
-                handleToggle(++_index)
-                agentsIndex.push(_index)
-            })
+                    console.log("DB Item:"+dbItem);
 
-            setAgents(agents);
-            setLeft(agentsIndex)
+                    agentsArray.push(dbItem)
+                    handleToggle(++_index)
+                    agentsIndex.push(_index)
+                })
 
+                setAgents(agentsArray);
+                setLeft(agentsIndex);
 
-        });
-    }, [onlyMasters]);
+            });
+        }
+        
+
+    }, [onlyMasters, storeFilter]);
 
 
     const customList = (title, items) => (
@@ -258,8 +350,29 @@ export default function agentSelect() {
             <div className={classes.appBarSpacer} />
             <Typography marginTop={5} align='center' variant="h3">Select Agents for Deployment</Typography>
 
-            <Grid container direction="column" align="center" spacing={2} justifyContent="center" alignItems="center">
+            <Grid container direction="column" align="center" spacing={3} justifyContent="center" alignItems="center">
 
+                <Grid item xs={2} spacing={2} sx={{margin: 3 }}>
+                    <Select
+                        value={storeFilter}
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        label="Type"
+                        onChange={changeStoreFilter}
+                    >
+                        {storeFilterItems.map((i) => <MenuItem key={i} value={i["id"]}>{i["list_name"]}</MenuItem>)}
+                    </Select>
+                </Grid>
+
+                <Grid item sx={{ margin: 2 }} >
+                    <FormControlLabel
+                        checked={newStore}
+                        onChange={handleNewStoreChange}
+                        control={<Checkbox />}
+                        label="Add New Store" />
+                    <TextField label="storeName" variant="standard" onChange={handleStorename} value={storeName} disabled={!newStore} />
+                </Grid>
+                
                 <Grid item sx={{ margin: 2 }} >
                     <FormControlLabel
                         checked={onlyMasters}
@@ -319,7 +432,7 @@ export default function agentSelect() {
                     <Grid item>{customList("Chosen", right)}</Grid>
                 </Grid>
                 <Button sx={{ my: 5 }} variant="contained" color="primary" type="submit" onClick={handleSubmit} >
-                    Copy Chosen Agents to Clip Board
+                    Submit
                 </Button>
             </Grid>
             <Snackbar
