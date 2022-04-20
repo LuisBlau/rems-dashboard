@@ -7,7 +7,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Select from '@mui/material/Select';
-
+import Autocomplete from '@mui/material/Autocomplete';
 import SaveIcon from '@mui/icons-material/Save';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import Box from "@mui/material/Box";
@@ -197,7 +197,9 @@ export default function Upload(props) {
 		setCommands(stepsobj)
 		setDeploySelected(true)
 	}
-    const listItems = deploys.map((c, index) => <MenuItem key={index} value={c.name}>{c.name}</MenuItem>);
+    const listItems = deploys.map(function(c, index) {
+		return { "label": c.name, "id":c.name}
+		});
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
@@ -205,15 +207,12 @@ export default function Upload(props) {
                 < form onSubmit={handleSuibmit} >
                     <Grid container direction="column">
                         <Typography align="center" variant="h3">Create Deployment Configuration</Typography>
-                        <p>Load From:</p><Select sx={{ margin: 1, width: 120 }}
-                            value={selectedDeploy}
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            label="Type"
-                            disabled={deploySelected}
-                            onChange={handleSelectedDeploy}>
-                           {listItems}
-                        </Select>
+                        <Autocomplete
+                          disablePortal
+                          options={listItems}
+                          sx={{ width: 300 }}
+                          renderInput={(params) => <TextField {...params} label="Load From" />}
+                        />
                         <Grid item >
                             <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} required={true} />
                         </Grid>
