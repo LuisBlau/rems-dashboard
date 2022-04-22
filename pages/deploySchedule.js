@@ -14,6 +14,12 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from '@mui/material/Alert';
 import AlertTitle from "@mui/material/AlertTitle";
 import Typography from '@mui/material/Typography';
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import InputLabel from "@mui/material/InputLabel";
 
 import axios from 'axios';
 
@@ -87,7 +93,25 @@ export default function deployScheule() {
     const [openFailure, setOpenFailure] = useState(false);
     const [toastFailure, setToastFailure] = useState("")
 
+    const [storeFilterNames, setStoreFilterNames] = React.useState([]);
+    const [storeNames, setStoreNames] = React.useState([]);
+
+    const [storeSelected, setStoreSelected] = useState(false);
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+    PaperProps: {
+        style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        width: 250,
+        },
+    },
+    };
+
     useEffect(() => {
+
+        setStoreNames([]);
+
         axios.get("/api/REMS/deploy-configs").then(function (res) {
             console.log("axios response", res)
             var packages = []
@@ -96,7 +120,36 @@ export default function deployScheule() {
             })
             setOptions(packages);
         })
+
+        axios.get("/api/REMS/store-list").then((resp) => {
+            console.log("Store-list response", resp);
+            var sNames = []
+            resp.data.forEach( v => {
+                sNames.push(v.list_name)
+            })
+            setStoreNames(sNames)
+        });
     }, []); //Second opption [] means only run effect on the first render
+
+    const changeStoreFilter = (event) => {
+        const {
+          target: { value },
+        } = event;
+        setStoreFilterNames(
+          // On autofill we get a stringified value.
+          typeof value === 'string' ? value.split(',') : value,
+        );
+        
+        console.log(value);
+        if(value.length) {
+            setStoreSelected(true);
+            setStoreList(String(value));
+        }else{
+            console.log("in else")
+            setStoreSelected(false);
+        }
+        
+      };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -154,7 +207,24 @@ export default function deployScheule() {
                                     required={true} />
                             )}
                         />
-
+                        <InputLabel id="demo-multiple-checkbox-label">Stores</InputLabel>
+                        <Select
+                            labelId="demo-multiple-checkbox-label"
+                            id="demo-multiple-checkbox"
+                            multiple
+                            value={storeFilterNames}
+                            onChange={changeStoreFilter}
+                            input={<OutlinedInput label="Stores" />}
+                            renderValue={(selected) => selected.join(', ')}
+                            MenuProps={MenuProps}
+                        >
+                            {storeNames.map((name) => (
+                                <MenuItem key={name} value={name}>
+                                <Checkbox checked={storeFilterNames.indexOf(name) > -1} />
+                                <ListItemText primary={name} />
+                                </MenuItem>
+                            ))}
+                        </Select>
                         {/*for handler to work 'name' has to match the formsValue member*/}
                         <TextField
                             id="storeList-input"
@@ -167,7 +237,8 @@ export default function deployScheule() {
                                 setStoreList(event.target.value);
 
                             }}
-                            required={true}
+                            required={!storeSelected}
+                            disabled = {storeSelected}
                             helperText='example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC'
                         />
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
