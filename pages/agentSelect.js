@@ -94,8 +94,8 @@ export default function agentSelect() {
     const [open, setOpen] = useState(false);
     const [toast, setToast] = useState("No Agents Selected!");
     const [onlyMasters, setOnlyMasters] = useState(false);
-    const [newStore, setNewStore] = useState(false);
-    const [storeName, setStoreName] = useState("");
+    const [newStoreList, setnewStoreList] = useState(false);
+    const [listName, setListName] = useState("");
     const [storeFilter, setStoreFilter] = React.useState(0);
     const [storeFilterItems, setStoreFilterItems] = React.useState([]);
 
@@ -107,8 +107,8 @@ export default function agentSelect() {
         setStoreFilter(e.target.value);
     };
 
-    const handleStorename = (e) => {
-        setStoreName(e.target.value);
+    const handleListName = (e) => {
+        setListName(e.target.value);
     };
 
     const handleToggle = (value) => () => {
@@ -170,8 +170,8 @@ export default function agentSelect() {
 
         }
 
-        if(newStore) {
-            storeInformation.list_name = storeName;
+        if(newStoreList) {
+            storeInformation.list_name = listName;
         }else {
 
             for (let i=0; i < storeFilterItems.length; i++) {
@@ -215,7 +215,7 @@ export default function agentSelect() {
     }
 
     const handleNewStoreChange = (event) => {
-        setNewStore(event.target.checked)
+        setnewStoreList(event.target.checked)
     }
 
     useEffect(() => {
@@ -252,9 +252,9 @@ export default function agentSelect() {
             });
         }
        
-        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: '--Select Store--' }].concat(resp.data)));
+        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Select Store' }].concat(resp.data)));
 
-        if(!newStore) {
+        if(!newStoreList) {
             const getAgentsDBPoint = "/api/REMS/specific-store-agent-names?storeId=" + storeFilter;
             console.log("database endpoint : ", getAgentsDBPoint)
 
@@ -366,11 +366,11 @@ export default function agentSelect() {
 
                 <Grid item sx={{ margin: 2 }} >
                     <FormControlLabel
-                        checked={newStore}
+                        checked={newStoreList}
                         onChange={handleNewStoreChange}
                         control={<Checkbox />}
                         label="Add New Store" />
-                    <TextField label="storeName" variant="standard" onChange={handleStorename} value={storeName} disabled={!newStore} />
+                    <TextField label="storeName" variant="standard" onChange={handleListName} value={listName} disabled={!newStoreList} />
                 </Grid>
                 
                 <Grid item sx={{ margin: 2 }} >
