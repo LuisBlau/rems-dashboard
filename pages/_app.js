@@ -268,6 +268,10 @@ const MenuItems = [
         name: "Dumps",
         route: "/store/dumpTable",
         icon: <CloudDownloadIcon />
+    }, {
+        name: "Captures",
+        route: "/store/captureTable",
+        icon: <CloudDownloadIcon />
     }
 ];
 

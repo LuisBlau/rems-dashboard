@@ -91,6 +91,7 @@ export default function agentSelect() {
     const [left, setLeft] = React.useState([]);
     const [right, setRight] = React.useState([]);
     const [agents, setAgents] = useState([]);
+    const [rightAgents, setRightAgents] = useState([]);
     const [open, setOpen] = useState(false);
     const [toast, setToast] = useState("No Agents Selected!");
     const [onlyMasters, setOnlyMasters] = useState(false);
@@ -221,36 +222,35 @@ export default function agentSelect() {
     useEffect(() => {
 
         setAgents([]);
+        setRightAgents([]);
         setLeft([]);
         setRight([]);
         setStoreFilterItems([]);
 
-        if(onlyMasters) {
-            const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
-            console.log("database endpoint : ", dbEndpoint)
     
-            axios.get(dbEndpoint).then(function (response) {
-                var agents = []
-                var agentsIndex = []
-                var _index = -1;
-                response.data.forEach(dbItem => {
-    
-                    var listItem = dbItem.storeName;
-                    if (!onlyMasters) {
-                        listItem = listItem + ":" + dbItem.agentName
-                    }
-    
-                    agents.push(listItem)
-                    handleToggle(++_index)
-                    agentsIndex.push(_index)
-                })
-    
-                setAgents(agents);
-                setLeft(agentsIndex)
-    
-    
-            });
-        }
+        const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
+        console.log("database endpoint : ", dbEndpoint)
+
+        axios.get(dbEndpoint).then(function (response) {
+            var agents = []
+            var agentsIndex = []
+            var _index = -1;
+            response.data.forEach(dbItem => {
+
+                var listItem = dbItem.storeName;
+                if (!onlyMasters) {
+                    listItem = listItem + ":" + dbItem.agentName
+                }
+
+                agents.push(listItem)
+                handleToggle(++_index)
+                agentsIndex.push(_index)
+            })
+
+            setAgents(agents);
+            setLeft(agentsIndex)
+
+        });
        
         axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Select Store' }].concat(resp.data)));
 
@@ -271,8 +271,8 @@ export default function agentSelect() {
                     agentsIndex.push(_index)
                 })
 
-                setAgents(agentsArray);
-                setLeft(agentsIndex);
+                setRightAgents(agentsArray);
+                setRight(agentsIndex);
 
             });
         }
