@@ -36,8 +36,15 @@ const Root = styled('div')((
   }
 }));
 
-const buttonRenderer = function(params) {
+const rmaButtonRenderer = function(params) {
 	return (<Button onClick={() => {
+    params.data['dataCapture']='RMA'
+		axios.post('/api/registers/requestDump', params.data).catch()
+	}}>Click Me!</Button>);
+}
+const eleraButtonRenderer = function(params) {
+	return (<Button onClick={() => {
+    params.data['dataCapture']='EleraClient'
 		axios.post('/api/registers/requestDump', params.data).catch()
 	}}>Click Me!</Button>);
 }
@@ -61,30 +68,26 @@ const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
 };
 
 export default function ExtractRequestGrid(props) {
-  const {data, error} = useSWR([`/REMS/store-list`, props.state], fetcher);
+  const {data, error} = useSWR([`/REMS/agents`, props.state], fetcher);
   if (error) return <Root>failed to load</Root>;
   if (!data) return <div>loading...</div>;
             var registerlist = []
 			for(var x of data) {
-				for(var y of x["agents"]) {
+        console.log(JSON.stringify(x))
 					registerlist.push({
 					"retailer_id": x["retailer_id"],
-					"store_name": x["list_name"],
-					"agent": y,
-					"agent_sb_info":{
-						"retailer_id": x["retailer_id"],
-						"store_name": x["list_name"],
-						"agent": y
-					}
+					"store_name": x["storeName"],
+					"agent": x["agentName"],
 					})
-				}
 			}
             return <div className="ag-theme-alpine" style={{height: 400, width: "100%"}}>
 			   <AgGridReact style="width: 100%; height: 100%;"
                rowData={registerlist} onGridReady={sortGrid}>
+                 <AgGridColumn sortable={ true } filter={ true } field="retailer_id"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="store_name"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="agent"></AgGridColumn>
-			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={buttonRenderer} field="agent"></AgGridColumn>
+			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
+               <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="ElereClient Capture"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }
