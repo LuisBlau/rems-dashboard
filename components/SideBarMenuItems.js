@@ -73,6 +73,10 @@ const MenuItems = [
         name: "DeployStatus",
         route: "/deployStatus",
         icon: <PendingActionsIcon />
+    },{
+        name: "Captures",
+        route: "/store/captureTable",
+        icon: <CloudDownloadIcon />
     }
 ];
 
