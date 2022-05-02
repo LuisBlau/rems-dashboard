@@ -26,6 +26,7 @@ import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StartIcon from '@mui/icons-material/Start';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import BusAlertIcon from '@mui/icons-material/BusAlert';
 
 
 const PREFIX = 'deployStatus';
@@ -84,7 +85,7 @@ function StatusBadge(props) {
         case "Cancelled":
             return <Tooltip title="Cancelled"><CancelIcon /></Tooltip>
         case "Failed":
-            return <Tooltip title="Failed"><WarningIcon /></Tooltip>
+            return <Tooltip title={ props.itemDescription ? props.itemDescription :  "Failed"}><WarningIcon /></Tooltip>
         case "InProgress":
             return <Tooltip title="In Progress"><PendingIcon /></Tooltip>
         case "Pending":
@@ -97,7 +98,10 @@ function StatusBadge(props) {
             return <Tooltip title="Success"><CheckCircleIcon /></Tooltip>
         case "initial":
         case "Initial":
-            return <Tooltip title="Initial"><StartIcon /></Tooltip>
+            if (props.itemDescription)
+                return <Tooltip title={props.itemDescription}><BusAlertIcon /></Tooltip>
+            else
+                return <Tooltip title="Initial"><StartIcon /></Tooltip>
         default:
             return <p>{props.itemStatus}</p>
     }
@@ -291,7 +295,7 @@ function DeployTable(props) {
                         >
                             <Grid container spacing={1}>
                                 <Grid item xs={1} >
-                                    <StatusBadge itemStatus={deploy.status} />
+                                    <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
                                 </Grid>
                                 <Grid item xs={2} >
                                     <Typography sx={{ flexShrink: 0 }}>
