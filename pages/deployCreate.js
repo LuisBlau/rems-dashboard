@@ -1,10 +1,13 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useState,useEffect,useReducer } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
 import Command from "../components/createCommands"
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
+import Select from '@mui/material/Select';
+import Autocomplete from '@mui/material/Autocomplete';
 import SaveIcon from '@mui/icons-material/Save';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import Box from "@mui/material/Box";
@@ -79,8 +82,20 @@ export default function Upload(props) {
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState("")
     const [openFailure, setOpenFailure] = useState(false);
-    const [toastFailure, setToastFailure] = useState("")
-
+    const [deploys, setDeploys] = useState(null)
+	const [selectedDeploy,setSelectedDeploy] = useState(null)
+	const [toastFailure, setToastFailure] = useState("")
+	const [deploySelected, setDeploySelected] = useState("")
+    useEffect(() => {
+        axios.get("/api/REMS/deploy-configs").then(function (res) {
+            console.log("axios response", res)
+            var packages = []
+            res.data.forEach(v => {
+                packages.push(v)
+            })
+            setDeploys(packages);
+        })
+    }, []);
     const addCommand = () => {
         let id = Date.now();
         setCommands(commands => {
@@ -90,7 +105,6 @@ export default function Upload(props) {
             return jasper;
         })
     }
-
 
     const handleSuibmit = (event) => {
         event.preventDefault();
@@ -169,6 +183,34 @@ export default function Upload(props) {
         setcInit(true)
         addCommand()
     }
+	if(deploys == null) {
+		return "loading . . ."
+	}
+	const handleSelectedDeploy = (e) => {
+		setCommands({})
+		setSelectedDeploy(e.target.value)
+		let dep = deploys.filter(d => {return d.name == e.target.value})[0]
+		console.log(dep)
+		let steps = dep.steps.map(function(s,idx) {
+			let obj = {}
+			obj["id"] = idx
+			obj["type"] = s["type"]
+			delete s["type"]
+			obj["arguments"] = s
+			return obj
+		})
+		let stepsobj = {}
+		for(let v of steps) {
+			stepsobj[v["id"]] = v
+		}
+		console.log(stepsobj)
+		setName(e.target.value)
+		setCommands(stepsobj)
+		setDeploySelected(true)
+	}
+    const listItems = deploys.map(function(c, index) {
+		return { "label": c.name, "id":c.name}
+		});
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
@@ -176,6 +218,12 @@ export default function Upload(props) {
                 < form onSubmit={handleSuibmit} >
                     <Grid container direction="column">
                         <Typography align="center" variant="h3">Create Deployment Configuration</Typography>
+                        <Autocomplete
+                          disablePortal
+                          options={listItems}
+                          sx={{ width: 300 }}
+                          renderInput={(params) => <TextField {...params} label="Load From" />}
+                        />
                         <Grid item >
                             <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} required={true} />
                         </Grid>
