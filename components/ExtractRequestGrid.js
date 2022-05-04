@@ -87,7 +87,7 @@ export default function ExtractRequestGrid(props) {
                <AgGridColumn sortable={ true } filter={ true } field="store_name"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="agent"></AgGridColumn>
 			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
-               <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="ElereClient Capture"></AgGridColumn>
+               <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="EleraClient Capture"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }
