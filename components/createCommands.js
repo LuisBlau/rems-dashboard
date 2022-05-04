@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 import axios from 'axios';
 
@@ -78,6 +79,30 @@ export default function Command(props) {
                         </Select>
                     </FormControl>
                     <TextField label="product" variant="standard" onChange={setval("product")} value={getval("product")} required={true} />
+                    <FormControl required={true} >
+                    <InputLabel id="controller-load-label">Controller Load</InputLabel>
+                        <Select sx={{ margin: 1, width: _width }}
+                            value={getval("controllerLoad", "controllerLoad")}
+                            label="Controller Load"
+                            labelId="controller-load-label"
+                            onChange={setval("controllerLoad")}>
+                            <MenuItem value="normal">Normal</MenuItem>
+                            <MenuItem value="staged">Staged</MenuItem>
+                            <MenuItem value="noipl">noipl</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl required={true} >
+                        <InputLabel id="terminal-load-label">Terminal Load</InputLabel>
+                        <Select sx={{ margin: 1, width: _width }}
+                            value={getval("terminalLoad", "terminalLoad")}
+                            label="Terminal Load"
+                            labelId="terminal-load-label"
+                            onChange={setval("terminalLoad")}>
+                             <MenuItem value="normal">Normal</MenuItem>
+                            <MenuItem value="staged">Staged</MenuItem>
+                            <MenuItem value="noipl">noipl</MenuItem>
+                        </Select>
+                    </FormControl>
                     <TextField variant="standard" sx={{ visibility: "hidden" }} />
                 </div>
             )
