@@ -252,7 +252,7 @@ export default function agentSelect() {
 
         });
        
-        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Select Store' }].concat(resp.data)));
+        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Store List' }].concat(resp.data)));
 
         if(!newStoreList) {
             const getAgentsDBPoint = "/api/REMS/specific-store-agent-names?storeId=" + storeFilter;
@@ -369,7 +369,7 @@ export default function agentSelect() {
                         checked={newStoreList}
                         onChange={handleNewStoreChange}
                         control={<Checkbox />}
-                        label="Add New Store" />
+                        label="Create New Store List" />
                     <TextField label="storeName" variant="standard" onChange={handleListName} value={listName} disabled={!newStoreList} />
                 </Grid>
                 
