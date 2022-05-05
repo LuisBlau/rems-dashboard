@@ -21,7 +21,7 @@
     "devextreme": "21.2.6",
     "devextreme-react": "21.2.6",
     "moment": "^2.29.1",
-    "next": "^9.5.5",
+    "next": "^12.1.5-canary.4",
     "prop-types": "^15.8.1",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
