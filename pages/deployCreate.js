@@ -106,7 +106,7 @@ export default function Upload(props) {
         })
     }
 
-    const handleSuibmit = (event) => {
+    const handleSubmit = (event) => {
         event.preventDefault();
 
         let commandList = []
@@ -186,10 +186,11 @@ export default function Upload(props) {
 	if(deploys == null) {
 		return "loading . . ."
 	}
-	const handleSelectedDeploy = (e) => {
+	const handleSelectedDeploy = (e,selectedValue) => {
 		setCommands({})
-		setSelectedDeploy(e.target.value)
-		let dep = deploys.filter(d => {return d.name == e.target.value})[0]
+		console.log(selectedValue)
+		setSelectedDeploy(selectedValue)
+		let dep = deploys.filter(d => {return d.name == selectedValue})[0]
 		console.log(dep)
 		let steps = dep.steps.map(function(s,idx) {
 			let obj = {}
@@ -215,17 +216,19 @@ export default function Upload(props) {
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="lg" className={classes.container} >
-                < form onSubmit={handleSuibmit} >
+                < form onSubmit={handleSubmit} >
                     <Grid container direction="column">
                         <Typography align="center" variant="h3">Create Deployment Configuration</Typography>
                         <Autocomplete
                           disablePortal
                           options={listItems}
+						  disabled={deploySelected}
+						  onInputChange={handleSelectedDeploy}
                           sx={{ width: 300 }}
-                          renderInput={(params) => <TextField {...params} label="Load From" />}
+                          renderInput={(params) => <TextField {...params} label="Load From" disabled={deploySelected} value={params} onChange={handleSelectedDeploy}/>}
                         />
                         <Grid item >
-                            <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} required={true} />
+                            <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} required={true}/>
                         </Grid>
 
                         {Object.keys(commands).map(function (idx) {
