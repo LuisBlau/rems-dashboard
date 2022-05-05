@@ -98,9 +98,8 @@ export default function Command(props) {
                             label="Terminal Load"
                             labelId="terminal-load-label"
                             onChange={setval("terminalLoad")}>
-                             <MenuItem value="normal">Normal</MenuItem>
-                            <MenuItem value="staged">Staged</MenuItem>
-                            <MenuItem value="noipl">noipl</MenuItem>
+                             <MenuItem value="true">True</MenuItem>
+                            <MenuItem value="false">False</MenuItem>
                         </Select>
                     </FormControl>
                     <TextField variant="standard" sx={{ visibility: "hidden" }} />
