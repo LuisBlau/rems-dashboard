@@ -11,6 +11,8 @@ import OverviewReleasePaper from "../../components/Release/OverviewReleasePaper"
 import TextField from "@mui/material/TextField";
 import ExtractGrid from "../../components/ExtractGrid";
 import DumpGrid from "../../components/DumpGrid";
+import Typography from '@mui/material/Typography';
+
 const PREFIX = 'extractTable';
 
 const classes = {
@@ -38,7 +40,7 @@ const Root = styled('main')((
   },
 
   [`& .${classes.appBarSpacer}`]: {
-    paddingTop: 50
+    paddingTop: 80
   },
 
   [`& .${classes.paper}`]: {
@@ -65,7 +67,8 @@ export default function releaseOverview() {
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
-      <Container maxWidth="lg" className={classes.container}>
+      <Typography align="center" variant="h3">Chec Extracts</Typography>
+      <Container maxWidth="xl" className={classes.container}>
       <ExtractGrid/>
       </Container>
     </Root>

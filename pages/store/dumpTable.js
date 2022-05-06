@@ -12,6 +12,7 @@ import TextField from "@mui/material/TextField";
 import ExtractGrid from "../../components/ExtractGrid";
 import DumpGrid from "../../components/DumpGrid";
 const PREFIX = 'dumpTable';
+import Typography from '@mui/material/Typography';
 
 const classes = {
   content: `${PREFIX}-content`,
@@ -38,7 +39,7 @@ const Root = styled('main')((
   },
 
   [`& .${classes.appBarSpacer}`]: {
-  paddingTop: 50
+  paddingTop: 80
 },
 
   [`& .${classes.paper}`]: {
@@ -64,7 +65,8 @@ export default function releaseOverview() {
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
-      <Container maxWidth="lg" className={classes.container}>
+      <Typography align="center" variant="h3">TCxSky Dumps</Typography>
+      <Container maxWidth="xl" className={classes.container}>
 	  <DumpGrid/>
       </Container>
     </Root>

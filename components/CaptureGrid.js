@@ -72,8 +72,8 @@ export default function CaptureGrid(props) {
          <AgGridColumn sortable={ true } filter={ true } field="Agent"></AgGridColumn>
          <AgGridColumn sortable={ true } filter={ true } field="CaptureSource"></AgGridColumn>
          <AgGridColumn sortable={ true } filter={ true } comparator={dateComparator} field="Timestamp"></AgGridColumn>
-			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={azureRenderer} headerName="Azure" field="SBreqLink"></AgGridColumn>
-			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="Download"></AgGridColumn>
+			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={azureRenderer} headerName="Request from Store" field="SBreqLink"></AgGridColumn>
+			   <AgGridColumn sortable={ true } filter={ true } cellRenderer={linkRenderer} field="Download" headerName="Pushed to Cloud"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }

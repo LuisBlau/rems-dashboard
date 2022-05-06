@@ -10,6 +10,8 @@ import Copyright from "../../src/Copyright";
 import OverviewReleasePaper from "../../components/Release/OverviewReleasePaper";
 import TextField from "@mui/material/TextField";
 import CaptureGrid from "../../components/CaptureGrid";
+import Typography from '@mui/material/Typography';
+
 const PREFIX = 'captureTable';
 
 const classes = {
@@ -37,7 +39,7 @@ const Root = styled('main')((
   },
 
   [`& .${classes.appBarSpacer}`]: {
-  paddingTop: 50
+  paddingTop: 80
 },
 
   [`& .${classes.paper}`]: {
@@ -52,6 +54,7 @@ const Root = styled('main')((
   }
 }));
 
+
 export default function releaseOverview() {
 
 
@@ -63,7 +66,8 @@ export default function releaseOverview() {
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>
-      <Container maxWidth="lg" className={classes.container}>
+      <Typography align="center" variant="h3">Data Captures</Typography>
+      <Container maxWidth="xl" className={classes.container}>
 	  <CaptureGrid/>
       </Container>
     </Root>

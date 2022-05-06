@@ -31,6 +31,9 @@ import Login from "./login"
 import axios from "axios"
 import { useRouter } from 'next/router'
 import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import CarCrashIcon from '@mui/icons-material/CarCrash';
+
 const PREFIX = '_app';
 
 const classes = {
@@ -267,10 +270,14 @@ const MenuItems = [
     }, {
         name: "Dumps",
         route: "/store/dumpTable",
-        icon: <CloudDownloadIcon />
+        icon: <CarCrashIcon />
     }, {
         name: "Captures",
         route: "/store/captureTable",
+        icon: <BugReportIcon />
+    }, {
+        name: "DataCapture",
+        route: "/registers/ExtractRequest",
         icon: <CloudDownloadIcon />
     }
 ];

@@ -40,13 +40,19 @@ const rmaButtonRenderer = function(params) {
 	return (<Button onClick={() => {
     params.data['dataCapture']='RMA'
 		axios.post('/api/registers/requestDump', params.data).catch()
-	}}>Click Me!</Button>);
+	}}>Request</Button>);
 }
 const eleraButtonRenderer = function(params) {
 	return (<Button onClick={() => {
     params.data['dataCapture']='EleraClient'
 		axios.post('/api/registers/requestDump', params.data).catch()
-	}}>Click Me!</Button>);
+	}}>Request</Button>);
+}
+const eleraServicesButtonRenderer = function(params) {
+	return (<Button onClick={() => {
+    params.data['dataCapture']='EleraServices'
+		axios.post('/api/registers/requestDump', params.data).catch()
+	}}>Request</Button>);
 }
 
 const sortGrid = function(event) {
@@ -83,11 +89,11 @@ export default function ExtractRequestGrid(props) {
             return <div className="ag-theme-alpine" style={{height: 400, width: "100%"}}>
 			   <AgGridReact style="width: 100%; height: 100%;"
                rowData={registerlist} onGridReady={sortGrid}>
-                 <AgGridColumn sortable={ true } filter={ true } field="retailer_id"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="store_name"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="agent"></AgGridColumn>
 			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="EleraClient Capture"></AgGridColumn>
+               <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraServicesButtonRenderer} field="EleraServices Capture"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }
