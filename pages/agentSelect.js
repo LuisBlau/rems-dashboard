@@ -91,7 +91,6 @@ export default function agentSelect() {
     const [left, setLeft] = React.useState([]);
     const [right, setRight] = React.useState([]);
     const [agents, setAgents] = useState([]);
-    const [rightAgents, setRightAgents] = useState([]);
     const [open, setOpen] = useState(false);
     const [toast, setToast] = useState("No Agents Selected!");
     const [onlyMasters, setOnlyMasters] = useState(false);
@@ -135,23 +134,23 @@ export default function agentSelect() {
 
     const handleAllRight = () => {
         setRight(right.concat(left));
-        setLeft([]);
+        //setLeft([]);
     };
 
     const handleCheckedRight = () => {
         setRight(right.concat(leftChecked));
-        setLeft(not(left, leftChecked));
+        //setLeft(not(left, leftChecked));
         setChecked(not(checked, leftChecked));
     };
 
     const handleCheckedLeft = () => {
-        setLeft(left.concat(rightChecked));
+        //setLeft(left.concat(rightChecked));
         setRight(not(right, rightChecked));
         setChecked(not(checked, rightChecked));
     };
 
     const handleAllLeft = () => {
-        setLeft(left.concat(right));
+        //setLeft(left.concat(right));
         setRight([]);
     };
 
@@ -217,7 +216,6 @@ export default function agentSelect() {
     useEffect(() => {
 
         setAgents([]);
-        setRightAgents([]);
         setLeft([]);
         setRight([]);
         setStoreFilterItems([]);
@@ -225,11 +223,11 @@ export default function agentSelect() {
     
         const dbEndpoint = "/api/REMS/agents?onlyMasters=" + onlyMasters;
         console.log("database endpoint : ", dbEndpoint)
+        var _index = -1;
+        var agents = []
 
         axios.get(dbEndpoint).then(function (response) {
-            var agents = []
             var agentsIndex = []
-            var _index = -1;
             response.data.forEach(dbItem => {
 
                 var listItem = dbItem.storeName;
@@ -242,7 +240,7 @@ export default function agentSelect() {
                 agentsIndex.push(_index)
             })
 
-            setAgents(agents);
+            // setAgents(agents);
             setLeft(agentsIndex)
 
         });
@@ -254,19 +252,19 @@ export default function agentSelect() {
             console.log("database endpoint : ", getAgentsDBPoint)
 
             axios.get(getAgentsDBPoint).then(function (response) {
-                var agentsArray = []
+                // var agentsArray = []
                 var agentsIndex = []
-                var _index = -1;
+                // var _index = -1;
                 response.data.forEach(dbItem => {
 
                     console.log("DB Item:"+dbItem);
 
-                    agentsArray.push(dbItem)
+                    agents.push(dbItem)
                     handleToggle(++_index)
                     agentsIndex.push(_index)
                 })
 
-                setRightAgents(agentsArray);
+                setAgents(agents);
                 setRight(agentsIndex);
 
             });
