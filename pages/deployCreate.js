@@ -215,22 +215,26 @@ export default function Upload(props) {
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container maxWidth="lg" className={classes.container} >
+            <Container maxWidth="xl" className={classes.container} >
                 < form onSubmit={handleSubmit} >
-                    <Grid container direction="column">
                         <Typography align="center" variant="h3">Create Deployment Configuration</Typography>
-                        <Autocomplete
-                          disablePortal
-                          options={listItems}
-						  disabled={deploySelected}
-						  onInputChange={handleSelectedDeploy}
-                          sx={{ width: 300 }}
-                          renderInput={(params) => <TextField {...params} label="Load From" disabled={deploySelected} value={params} onChange={handleSelectedDeploy}/>}
-                        />
-                        <Grid item >
+                        <Grid container spacing={2}>
+                            <Grid item xs={4}>
                             <TextField label="Deploy-Config Name" variant="filled" sx={{ marginBottom: 3 }} onChange={handleNameChange} value={name} required={true}/>
+                            </Grid>
+                            <Grid item xs={4}/>
+                            <Grid item xs={4}>
+                            <Autocomplete
+                            disablePortal
+                            options={listItems}
+                            disabled={deploySelected}
+                            onInputChange={handleSelectedDeploy}
+                            sx={{ width: 300 }}
+                            renderInput={(params) => <TextField {...params} label="Load Existing Config" disabled={deploySelected} value={params} onChange={handleSelectedDeploy}/>}
+                            />
+                            </Grid>
                         </Grid>
-
+                        
                         {Object.keys(commands).map(function (idx) {
 
                             return (<Command key={"cmd-" + idx} id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand} />)
@@ -238,7 +242,7 @@ export default function Upload(props) {
 
                         <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Task to Deployment Config</Button>
                         <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Save Deployment Configuration</Button>
-                    </Grid>
+                    
                 </form>
 
                 <Box pt={4}>
