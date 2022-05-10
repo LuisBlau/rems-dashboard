@@ -82,10 +82,10 @@ export default function Command(props) {
                     <FormControl required={true} >
                     <InputLabel id="controller-load-label">Controller Load</InputLabel>
                         <Select sx={{ margin: 1, width: _width }}
-                            value={getval("controllerLoad", "controllerLoad")}
+                            value={getval("controller_reload", "controller_reload")}
                             label="Controller Load"
                             labelId="controller-load-label"
-                            onChange={setval("controllerLoad")}>
+                            onChange={setval("controller_reload")}>
                             <MenuItem value="normal">Normal</MenuItem>
                             <MenuItem value="staged">Staged</MenuItem>
                             <MenuItem value="noipl">noipl</MenuItem>
@@ -94,10 +94,10 @@ export default function Command(props) {
                     <FormControl required={true} >
                         <InputLabel id="terminal-load-label">Terminal Load</InputLabel>
                         <Select sx={{ margin: 1, width: _width }}
-                            value={getval("terminalLoad", "terminalLoad")}
+                            value={getval("terminal_load", "terminal_load")}
                             label="Terminal Load"
                             labelId="terminal-load-label"
-                            onChange={setval("terminalLoad")}>
+                            onChange={setval("terminal_load")}>
                              <MenuItem value="true">True</MenuItem>
                             <MenuItem value="false">False</MenuItem>
                         </Select>
