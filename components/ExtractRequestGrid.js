@@ -54,6 +54,12 @@ const eleraServicesButtonRenderer = function(params) {
 		axios.post('/api/registers/requestDump', params.data).catch()
 	}}>Request</Button>);
 }
+const checButtonRenderer = function(params) {
+	return (<Button onClick={() => {
+    params.data['dataCapture']='Chec'
+		axios.post('/api/registers/requestDump', params.data).catch()
+	}}>Request</Button>);
+}
 
 const sortGrid = function(event) {
   const columnState = {
@@ -94,6 +100,7 @@ export default function ExtractRequestGrid(props) {
 			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="EleraClient Capture"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraServicesButtonRenderer} field="EleraServices Capture"></AgGridColumn>
+               <AgGridColumn sortable={ true } filter={ true } cellRenderer={checButtonRenderer} field="Chec Capture"></AgGridColumn>
            </AgGridReact>
 		   </div>
 }
