@@ -28,6 +28,12 @@ import StartIcon from '@mui/icons-material/Start';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BusAlertIcon from '@mui/icons-material/BusAlert';
 
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+
 
 const PREFIX = 'deployStatus';
 
@@ -234,6 +240,9 @@ export default function DeployStatus() {
 
 function DeployTable(props) {
 
+    const [open, setOpen] = React.useState(false);
+    const [submitInformation, setSubmitInformation] = React.useState(null);
+
     const { data, error } = useSWR("/REMS/deploys?store=" + props.storeFilter +
         "&package=" + props.packageFilter +
         "&records=" + props.maxRecords + 
@@ -242,15 +251,26 @@ function DeployTable(props) {
     if (error) return <div>failed to load</div>;
     if (!data) return <div>loading...</div>;
 
+    const handleClickOpen = (event) => {
 
-    const handelCancel = (event) => {
+        setOpen(true);
+        setSubmitInformation(event.currentTarget.id);
+    };
+    
+    const handleClose = () => {
+        setOpen(false);
+        setSubmitInformation(null);
+    };
+
+    const handelCancel = () => {
+        setOpen(false);
         //If we use these much we can install 'http-status-codes'
         const INTERNAL_SERVER_ERROR = 500;
         const NOT_FOUND = 404;
         const NOT_MODIFIED = 304;
         const OK = 200;
 
-        const deployInfo = event.currentTarget.id.split("_")
+        const deployInfo = submitInformation.split("_")
         const deployUpdate = {
             storeName: deployInfo[0],
             id: deployInfo[1]
@@ -284,6 +304,21 @@ function DeployTable(props) {
     return (
         data.map((deploy, index) => (
             <Grid key={"gc1-" + index} container alignItems={"center"} spacing={1} >
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    BackdropProps={{style:{backgroundColor: 'transparent'}}}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                    {"Are you sure, you want to cancel this deployment?"}
+                    </DialogTitle>
+                    <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handelCancel} autoFocus>Confirm</Button>
+                    </DialogActions>
+                </Dialog>
                 <Grid item xs={10}>
                     <Accordion key={"a-deploy-" + index} sx={{ "margin": 1 }}>
                         <AccordionSummary
@@ -359,12 +394,13 @@ function DeployTable(props) {
                             deploy.status != "Pending" &&
                             deploy.status != "pending"
                         }
-                        onClick={handelCancel}
+                        onClick={handleClickOpen}
                     >
                         Cancel
                     </Button>
                 </Grid>
             </Grid >
+            
         ))
     )
 };
