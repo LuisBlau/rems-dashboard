@@ -205,7 +205,7 @@ export default function Upload(props) {
 			stepsobj[v["id"]] = v
 		}
 		console.log(stepsobj)
-		setName(e.target.value)
+		setName(selectedValue)
 		setCommands(stepsobj)
 		setDeploySelected(true)
 	}
