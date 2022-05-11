@@ -209,7 +209,7 @@ export default function deployScheule() {
                                     required={true} />
                             )}
                         />
-                        <InputLabel id="demo-multiple-checkbox-label">Stores</InputLabel>
+                        <InputLabel id="demo-multiple-checkbox-label">Distribution List</InputLabel>
                         <Select
                             labelId="demo-multiple-checkbox-label"
                             id="demo-multiple-checkbox"

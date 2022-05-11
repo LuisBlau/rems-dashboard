@@ -93,7 +93,7 @@ export default function agentSelect() {
     const [agents, setAgents] = useState([]);
     const [open, setOpen] = useState(false);
     const [toast, setToast] = useState("No Agents Selected!");
-    const [onlyMasters, setOnlyMasters] = useState(false);
+    const [onlyMasters, setOnlyMasters] = useState(true);
     const [newStoreList, setnewStoreList] = useState(false);
     const [listName, setListName] = useState("");
     const [storeFilter, setStoreFilter] = React.useState(0);
@@ -250,7 +250,7 @@ export default function agentSelect() {
 
         });
        
-        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Store List' }].concat(resp.data)));
+        axios.get("/api/REMS/store-list").then((resp) => setStoreFilterItems([{ id: 0, list_name: 'Update Existing List' }].concat(resp.data)));
 
         if(!newStoreList) {
             const getAgentsDBPoint = "/api/REMS/specific-store-agent-names?storeId=" + storeFilter;
@@ -346,7 +346,7 @@ export default function agentSelect() {
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Typography marginTop={5} align='center' variant="h3">Select Agents for Deployment</Typography>
+            <Typography marginTop={5} align='center' variant="h3">Distribution Lists</Typography>
 
             <Grid container direction="column" align="center" spacing={3} justifyContent="center" alignItems="center">
 
@@ -367,7 +367,7 @@ export default function agentSelect() {
                         checked={newStoreList}
                         onChange={handleNewStoreChange}
                         control={<Checkbox />}
-                        label="Create New Store List" />
+                        label="Create New List" />
                     <TextField label="storeName" variant="standard" onChange={handleListName} value={listName} disabled={!newStoreList} />
                 </Grid>
                 
@@ -376,11 +376,11 @@ export default function agentSelect() {
                         checked={onlyMasters}
                         onChange={handleMasterChange}
                         control={<Checkbox />}
-                        label="Show Only Master Agents" />
+                        label="Store only view" />
                 </Grid>
 
                 <Grid container align="center" spacing={2} justifyContent="center" alignItems="center">
-                    <Grid item>{customList("Choices", left)}</Grid>
+                    <Grid item>{customList("Existing Systems", left)}</Grid>
                     <Grid item>
                         <Grid container direction="column" alignItems="center">
                             <Button
@@ -427,7 +427,7 @@ export default function agentSelect() {
                             </Button>
                         </Grid>
                     </Grid>
-                    <Grid item>{customList("Chosen", right)}</Grid>
+                    <Grid item>{customList("In Distribution List", right)}</Grid>
                 </Grid>
                 <Button sx={{ my: 5 }} variant="contained" color="primary" type="submit" onClick={handleSubmit} >
                     Submit
