@@ -83,7 +83,8 @@ export default function deployScheule() {
 
     const [_formValues, setFormValues] = useState(formValues);
     const [_package, setPackage] = useState(null);
-    const [_storeList, setStoreList] = useState('');
+    const [_storeList, setStoreList] = useState(null);
+    const [_listNames, setListNames] = useState('');
     const [_dateTime, setDateTime] = useState(new Date());
     const [_options, setOptions] = useState([])
 
@@ -143,7 +144,7 @@ export default function deployScheule() {
         console.log(value);
         if(value.length) {
             setStoreSelected(true);
-            setStoreList(String(value));
+            setListNames(String(value));
         }else{
             console.log("in else")
             setStoreSelected(false);
@@ -157,6 +158,7 @@ export default function deployScheule() {
         formValues.name = _package.label,
             formValues.id = _package.id,
             formValues.storeList = _storeList,
+            formValues.listNames = _listNames,
             // Don't adjust for users time zone i.e we are always in store time.
             // en-ZA puts the date in the design doc format except for an extra comma.
             formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '').replace(" 24:"," 00:");
