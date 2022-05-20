@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, {useEffect, useState } from "react";
 import fetcher from "../lib/lib.js";
 import Copyright from "../src/Copyright";
 import axios from "axios"
-
 import { styled } from '@mui/material/styles';
 import useSWR from "swr";
 import Container from "@mui/material/Container";
@@ -17,7 +16,6 @@ import MenuItem from "@mui/material/MenuItem"
 import Select from "@mui/material/Select"
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-
 import WarningIcon from '@mui/icons-material/Warning';
 import CancelIcon from '@mui/icons-material/Cancel'
 import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
@@ -27,7 +25,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StartIcon from '@mui/icons-material/Start';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BusAlertIcon from '@mui/icons-material/BusAlert';
-
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -164,17 +161,13 @@ export default function DeployStatus() {
     const [packageFilterItems, setPackageFilterItems] = React.useState(null);
     const [statusFilter, setStatusFilter] = React.useState('All');
     const [statusFilterItems, setStatusFilterItems] = React.useState(null);
-
-    if (packageFilterItems == null) {
+    useEffect(() => {
         axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)))
-        return <p>loading...</p>
-    }
-
-    if (statusFilterItems == null) {
         setStatusFilterItems([{ id: 'All', name: 'All Status'}, { id: 'Pending', name: 'Pending'}, { id: 'Failed', name: 'Failed'}, { id: 'Success', name: 'Success'}, { id: 'Cancelled', name: 'Cancelled'}])
-        return <p>loading...</p>
-    }
-    
+	}, [])
+    if(packageFilterItems == null) {
+		return "loading . . ."
+	}
     const changeStoreFilter = (e) => {
         setStoreFilter(e.target.value)
     }
@@ -185,7 +178,9 @@ export default function DeployStatus() {
     const changeStatusFilter = (e) => {
         setStatusFilter(e.target.value)
     }
-
+    if(packageFilter == null)
+		return <p>loading...</p>
+	
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
