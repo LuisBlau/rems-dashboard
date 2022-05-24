@@ -1,10 +1,14 @@
 import { styled } from '@mui/material/styles';
 import { ThemeProvider } from '@mui/styles';
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../src/theme";
+import useSWR from "swr";
+import fetcher from "../lib/lib.js";
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -13,6 +17,7 @@ import Badge from "@mui/material/Badge";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Divider from "@mui/material/Divider";
+import Cookies from 'universal-cookie';
 import List from "@mui/material/List";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
@@ -43,7 +48,6 @@ const classes = {
     MuiAppBar: `${PREFIX}-MuiAppBar`,
     appBarSpacer: `${PREFIX}-appBarSpacer`
 };
-
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')((
     {
@@ -289,7 +293,25 @@ const MenuItems = [
 ];
 
 export default function MyApp(props) {
-
+  const cookies = new Cookies();
+  if(cookies.get('retailerId') == undefined) {
+      cookies.set("retailerId","T0BSUTZ",{ path: '/' })
+  }
+  const [ids, setIds] = useState([]);
+  const [dataSet,setDataSet] = useState(false)
+  const [selectedId, setSelectedId] = useState("");
+  if(selectedId == "" && cookies.get('retailerId') != undefined) {
+    setSelectedId(cookies.get("retailerId"))
+	console.log("hello")
+  }
+  const { data, error } = useSWR(
+    '/REMS/retailerids',
+    fetcher
+  );
+    if(data && !dataSet) {
+		setIds(data)
+        setDataSet(true)
+	}
     const router = useRouter()
     const { Component, pageProps } = props;
     const [open, setOpen] = React.useState(false);
@@ -315,6 +337,12 @@ export default function MyApp(props) {
 		 }
 	 } )
 	}
+	const handleSelectedIdChange = (e) => {
+		cookies.set('retailerId', e.target.value,{ path: '/' })
+		setSelectedId(e.target.value)
+		location.reload()
+	}
+		
     return (
         <Root>
             <Head>
@@ -357,6 +385,13 @@ export default function MyApp(props) {
                                     <NotificationsIcon />
                                 </Badge>
                             </IconButton>
+						<Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          value={selectedId}
+                          onChange={handleSelectedIdChange}>
+                          {ids.map((x) => <MenuItem value={x}>{x}</MenuItem>)}
+                        </Select>
                         </Toolbar>
                     </AppBar>
                     <Drawer
