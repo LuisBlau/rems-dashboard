@@ -7,9 +7,9 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Copyright from "../../src/Copyright";
-import OverviewStorePaper from "../../components/Connection/OverviewStorePaper";
+import OverviewAgentPaper from "../../components/Connection/OverviewAgentPaper";
 import TextField from "@mui/material/TextField";
-const PREFIX = 'connectionOverview';
+const PREFIX = 'agentOverview';
 import Typography from '@mui/material/Typography';
 
 const classes = {
@@ -53,41 +53,33 @@ const Root = styled('main')((
 
 const drawerWidth = 240;
 
-export default function ConnectionOverview() {
+export default function AgentOverview(props) {
+  var par = "";
+  if (typeof window !== "undefined") {
+    par = window.location.search;
+   }
+   const params = new URLSearchParams(par);
+   const [filterText, setFilterText] = useState("");
+   const { data, error } = useSWR('/REMS/agents?store='+params.get("store"), fetcher);
 
-
-  const [filterText, setFilterText] = useState("");
-
-  const { data, error } = useSWR(
-    "/REMS/stores",
-    fetcher
-  );
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
-
+   if (error) return <Root> <div className={classes.appBarSpacer} /><div>failed to load</div></Root>;
+  if (!data) return <Root> <div className={classes.appBarSpacer} /><div>loading...</div></Root>;
+  
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
-      <Typography align="center" variant="h4">Enterprise Overview</Typography>
+      <Typography align="center" variant="h4">Store Overview</Typography>
+      <Typography align="center" variant="h6">Store: {params.get("store")}</Typography>
       <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
-          <Grid item xs={8} />
-          <Grid item xs={4}>
-            <TextField
-              id="outlined-basic"
-              label="Filter"
-              variant="outlined"
-              onChange={(event) => setFilterText(event.target.value)}
-            />
-          </Grid>
           {data
-            .filter((store) =>
-              (store.storeName ).includes(filterText.toLowerCase())
+            .filter((agent) =>
+              (agent.agentName ).includes(filterText.toLowerCase())
             )
-            .map((store) => (
+            .map((agent) => (
               <Grid item xs={12}>
                 <Paper className={classes.paper} sx={{backgroundColor:'#dbe2e7'}}>
-                  <OverviewStorePaper data={store} />
+                  <OverviewAgentPaper data={agent} />
                 </Paper>
               </Grid>
             ))}

@@ -33,6 +33,7 @@ import { useRouter } from 'next/router'
 import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
+import HighlightIcon from '@mui/icons-material/Highlight';
 
 const PREFIX = '_app';
 
@@ -247,6 +248,11 @@ const MenuItems = [
         route: "/store/dumpTable",
         icon: <CloudDownloadIcon/>
       }, */
+    { 
+        name: "Enterise Overview",
+        route: "/store/connectionOverview",
+        icon: <HighlightIcon />
+    },
     {
         name: "Check Deploy Status",
         route: "/deployStatus",

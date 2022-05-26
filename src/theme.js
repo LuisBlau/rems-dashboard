@@ -28,6 +28,9 @@ const theme = createTheme( {
       default: "#fff",
     },
   },
+  agent: {
+    backgroundColor: 'gray'
+  }
 });
 
 export default theme;
