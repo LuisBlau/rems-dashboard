@@ -20,6 +20,7 @@ import MenuItem from "@mui/material/MenuItem"
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import { FormControlLabel } from "@mui/material";
+import Stack from '@mui/material/Stack';
 
 
 
@@ -155,7 +156,7 @@ export default function agentSelect() {
         setRight([]);
     };
 
-    const handleSubmit = (event) => {
+    const handleCopyToClipboard = (event) => {
         event.preventDefault();
 
         var agentsText = "No Agents Selected!!";
@@ -167,8 +168,15 @@ export default function agentSelect() {
                 }
             })
             navigator.clipboard.writeText(agentsText)
-
         }
+
+        setToast(agentsText)
+        setOpen(true)
+    };
+
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
 
         if(newStoreList) {
             storeInformation.list_name = listName;
@@ -429,9 +437,18 @@ export default function agentSelect() {
                     </Grid>
                     <Grid item>{customList("In Distribution List", right)}</Grid>
                 </Grid>
-                <Button sx={{ my: 5 }} variant="contained" color="primary" type="submit" onClick={handleSubmit} >
-                    Submit
-                </Button>
+                <Grid container align="center" spacing={10} justifyContent="center" alignItems="center">
+                    <Grid item sx={{ margin: 2 }}>
+                        <Button size="medium" variant="contained" color="primary" type="button" onClick={handleCopyToClipboard} >
+                            Copy to clipboard
+                        </Button>
+                    </Grid>
+                    <Grid item sx={{ margin: 2 }}>
+                        <Button size="medium" variant="contained" color="primary" type="button" onClick={handleSubmit} >
+                            Save
+                        </Button>
+                    </Grid>
+                </Grid>
             </Grid>
             <Snackbar
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
