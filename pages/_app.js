@@ -39,6 +39,7 @@ import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
 import HighlightIcon from '@mui/icons-material/Highlight';
+import Sidebar from '../components/Sidebar';
 
 const PREFIX = '_app';
 
@@ -72,83 +73,6 @@ const Root = styled('div')((
     [`& .${classes.appBarSpacer}`]: {
         paddingTop: 50
     }
-    /*toolbar: {
-      paddingRight: 24, // keep right padding when drawer closed
-    },
-    toolbarIcon: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      padding: "0 8px",
-    },
-    */
-    /*appBar: {
-      zIndex: theme.zIndex.drawer + 1,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-    },
-    appBarShift: {
-      marginLeft: drawerWidth,
-      width: `calc(100% - ${drawerWidth}px)`,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    },*/
-    /*menuButton: {
-      marginRight: 36,
-    },
-    menuButtonHidden: {
-      display: "none",
-    },
-    title: {
-      flexGrow: 1,
-    },
-    */
-    /*  drawerPaper: {
-        position: "relative",
-        whiteSpace: "nowrap",
-        width: drawerWidth,
-        transition: theme.transitions.create("width", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      },
-      drawerPaperClose: {
-        overflowX: "hidden",
-        transition: theme.transitions.create("width", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up("sm")]: {
-          width: theme.spacing(9),
-        },
-      },
-    */
-    /*  content: {
-        flexGrow: 1,
-        height: "100vh",
-        overflow: "auto",
-      },
-      container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
-      },
-      */
-    /*
-     fixedHeight: {
-       height: 240,
-     },
-     */
 }));
 
 const drawerWidth = 240;
@@ -253,42 +177,59 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     { 
+        id: "overview",
         name: "Enterise Overview",
         route: "/store/connectionOverview",
         icon: <HighlightIcon />
     },
     {
-        name: "Check Deploy Status",
+        id: "softwareDeploy",
+        name:"Software Distribution",
+        icon: <PendingActionsIcon />,
         route: "/deployStatus",
-        icon: <PendingActionsIcon />
-    }, {
-        name: "Upload a File",
-        route: "/fileUpload",
-        icon: <PublishIcon />
-    }, {
-        name: "Create Deploy Config",
-        route: "/deployCreate",
-        icon: <AddCircleOutline />
-    }, {
-        name: "Schedule a Deployment",
-        route: "/deploySchedule",
-        icon: <ScheduleIcon />
-    }, {
-        name: "Select Agents",
-        route: "/agentSelect",
-        icon: <ImportantDevicesIcon />
-    }, {
-        name: "Dumps",
-        route: "/store/dumpTable",
-        icon: <CarCrashIcon />
-    }, {
-        name: "Captures",
+        items:[
+            {
+                id:"uploadFile",
+                name: "Upload a File",
+                route: "/fileUpload",
+                icon: <PublishIcon />
+            }, {
+                id:"deployConfig",
+                name: "Create Deploy Config",
+                route: "/deployCreate",
+                icon: <AddCircleOutline />
+            }, {
+                id:"scheduleDeploy",
+                name: "Schedule a Deployment",
+                route: "/deploySchedule",
+                icon: <ScheduleIcon />
+            }, {
+                id:"selectAgents",
+                name: "Select Agents",
+                route: "/agentSelect",
+                icon: <ImportantDevicesIcon />
+            }
+        ]
+    },
+    {
+        id:"Doc Collection",
+        name:"Doc Collection",
         route: "/store/captureTable",
-        icon: <BugReportIcon />
-    }, {
-        name: "DataCapture",
-        route: "/registers/ExtractRequest",
-        icon: <CloudDownloadIcon />
+        icon: <BugReportIcon />,
+        items: [
+    
+            {
+                id:"dumps",
+                name: "Dumps",
+                route: "/store/dumpTable",
+                icon: <CarCrashIcon />
+            }, {
+                id:"dataCapture",
+                name: "DataCapture",
+                route: "/registers/ExtractRequest",
+                icon: <CloudDownloadIcon />
+            }
+        ]
     }
 ];
 
@@ -403,7 +344,8 @@ export default function MyApp(props) {
                             </IconButton>
                         </DrawerHeader>
                         <Divider />
-                        <List>
+                        <Sidebar items={MenuItems}></Sidebar>
+                        {/*<List>
                             {MenuItems.map((item) => {
                                 return (
                                     <Link key={item.name} href={item.route}>
@@ -427,7 +369,7 @@ export default function MyApp(props) {
                                     </Link>
                                 );
                             })}
-                        </List>
+                        </List>*/}
                     </Drawer>
                     <div className={classes.appBarSpacer} />
                     <Component {...pageProps} />
