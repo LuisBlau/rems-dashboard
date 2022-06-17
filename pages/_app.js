@@ -39,6 +39,8 @@ import { MsalProvider, useMsal } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
 import { msalInstance } from "./authConfig"; 
 
+import { Button } from "@mui/material";
+
 const PREFIX = '_app';
 
 const classes = {
@@ -396,17 +398,18 @@ export default function MyApp(props) {
                                 }} >
                                 <MenuIcon />
                             </IconButton>
-                            <Typography
-                                component="div"
-                                variant="h6"
-                                noWrap >
-                                Dashboard
-                            </Typography>
                             <IconButton color="inherit">
                                 <Badge badgeContent={0} color="secondary">
                                     <NotificationsIcon />
                                 </Badge>
                             </IconButton>
+                            <Typography
+                                component="div"
+                                variant="h6"
+                                noWrap style={{ flex: 1}} >
+                                Dashboard
+                            </Typography>
+                            <Button variant="contained" onClick={() => instance.loginRedirect(loginRequest)}>Sign In</Button>
                         </Toolbar>
                     </AppBar>
                     <Drawer

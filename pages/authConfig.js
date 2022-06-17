@@ -35,7 +35,7 @@ export const msalConfig = {
         clientId: "fcc64b87-a540-4586-9284-ba9a26f7d27a", // This is the ONLY mandatory field that you need to supply.
         authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose SUSI as your default authority.
         knownAuthorities: [b2cPolicies.authorityDomain], // Mark your B2C tenant's domain as trusted.
-        redirectUri: "http://localhost:3000", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
+        redirectUri: "https://localhost:3000", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
         navigateToLoginRequestUrl: false // If "true", will navigate back to the original request location before processing the auth code response.
     },
     cache: {
