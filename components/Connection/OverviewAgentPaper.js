@@ -1,3 +1,5 @@
+import useSWR from "swr";
+import fetcher from "../../lib/lib";
 import { Button, Grid, LinearProgress, Typography } from "@mui/material";
 import { styled } from '@mui/material/styles';
 import React from "react";
@@ -20,14 +22,36 @@ const Root = styled('div')((
 }));
 
 
+
+function ScreenCapture(props) {
+  const {data, error} = useSWR(
+    "/REMS/agentScreenShot?storeName="+props.data.storeName+"&agentName="+props.data.agentName 
+    ,fetcher);
+
+
+  if (error) return <div>No screenshot </div>;
+  if (!data) return <div>loading...</div>;
+  return (
+    <Root>
+          <Typography>
+            Screenshot
+          </Typography>
+          <Typography>
+            {data.last_updated}
+          </Typography>
+          <img class="card-img-top" src={"data:image/png;base64," + data.image} width={300} height={300} alt="Card image cap" />
+    </Root>
+  );
+}
+
 export default function OverviewAgentPaper(props) {
 
   var jsonCommand = { Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Reload"};
   const reload_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
   jsonCommand.Command = "Dump";
-  const dump_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+  const dump_link=         'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
   jsonCommand.Command = "ScreenCapture";
-  const screencapture_link='javascript:fetch("/api/registers/commands/"' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+  const screencapture_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
   jsonCommand.Command = "Wake";
   const wake_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
   jsonCommand.Command = "Sleep";
@@ -89,6 +113,9 @@ export default function OverviewAgentPaper(props) {
             Screen Shot
           </Button>
         </Link>
+      </Grid>
+      <Grid item xs={10}>
+        <ScreenCapture data={props.data} />
       </Grid>
     </Grid>
   );
