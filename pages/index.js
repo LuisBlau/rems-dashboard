@@ -60,13 +60,6 @@ const Root = styled('main')((
 
 const drawerWidth = 240;
 
-function SignInButton() {
-  // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
-  const { instance } = useMsal();
-
-  return <button onClick={() => instance.loginRedirect()}>Sign In</button>;
-}
-
 function WelcomeUser() {
   const { accounts } = useMsal();
   const username = accounts[0].username;
@@ -103,7 +96,6 @@ export default function Index() {
     </AuthenticatedTemplate>
     <UnauthenticatedTemplate>
       <p>This will only render if a user is not signed-in.</p>
-      <SignInButton />
     </UnauthenticatedTemplate>
   </div>
   );

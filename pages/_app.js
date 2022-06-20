@@ -35,9 +35,9 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
 import HighlightIcon from '@mui/icons-material/Highlight';
 
-import { MsalProvider, useMsal } from "@azure/msal-react";
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate, } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
-import { msalInstance } from "./authConfig"; 
+import { msalInstance } from "./authConfig";
 
 import { Button } from "@mui/material";
 
@@ -295,6 +295,27 @@ const MenuItems = [
     }
 ];
 
+function SignInButton() {
+    // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+    const { instance } = useMsal();
+  
+    return <Button variant="contained" onClick={() => instance.loginRedirect()}>Sign In</Button>;
+}
+
+function SignOutButton() {
+    // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+    const { instance } = useMsal();
+  
+    return <Button  variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}>Sign Out</Button>;
+}
+  
+function WelcomeUser() {
+    const { accounts } = useMsal();
+    const username = accounts[0].username;
+  
+    return <p>Welcome, {username}</p>;
+}
+
 export default function MyApp(props) {
 
     const { instance } = useMsal();
@@ -409,7 +430,12 @@ export default function MyApp(props) {
                                 noWrap style={{ flex: 1}} >
                                 Dashboard
                             </Typography>
-                            <Button variant="contained" onClick={() => instance.loginRedirect(loginRequest)}>Sign In</Button>
+                            <AuthenticatedTemplate>
+                                <SignOutButton />
+                            </AuthenticatedTemplate>
+                            <UnauthenticatedTemplate>
+                                <SignInButton />
+                            </UnauthenticatedTemplate>
                         </Toolbar>
                     </AppBar>
                     <Drawer
