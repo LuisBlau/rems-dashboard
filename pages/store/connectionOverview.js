@@ -132,7 +132,7 @@ function RemsStatus(props) {
       <Paper elevation={3} className={classes.paper} sx={{backgroundColor:'#dbe2e7'}}>
       <Grid container spacing={1}>
         <Grid item xs={2.5}>
-          <RemsConnected up={data.up}/>
+          <RemsConnected up={data.rems}/>
         </Grid>
         <Grid item xs={2.5}>
           <CloudConnected up={data.cloud}/>

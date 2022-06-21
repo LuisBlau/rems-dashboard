@@ -224,6 +224,11 @@ const MenuItems = [
                 route: "/store/dumpTable",
                 icon: <CarCrashIcon />
             }, {
+                id:"extracts",
+                name: "Chec Extracts",
+                route: "/store/extractTable",
+                icon: <CarCrashIcon />
+            }, {
                 id:"dataCapture",
                 name: "DataCapture",
                 route: "/registers/ExtractRequest",
