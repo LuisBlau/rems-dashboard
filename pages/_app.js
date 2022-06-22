@@ -1,5 +1,4 @@
 import { styled } from '@mui/material/styles';
-import { ThemeProvider } from '@mui/styles';
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
@@ -303,83 +302,81 @@ export default function MyApp(props) {
                     content="minimum-scale=1, initial-scale=1, width=device-width"
                 />
             </Head>
-            <ThemeProvider theme={theme}>
-                {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-                <div className={classes.root}>
-                    <CssBaseline />
-                    <AppBar position="absolute" open={open} >
-                        <Toolbar>
-                            <IconButton
-                                edge="start"
-                                color="inherit"
-                                aria-label="open drawer"
-                                onClick={handleDrawerOpen}
-                                sx={{
-                                    marginRight: 5,
-                                    ...(open && { display: 'none' }),
-                                }} >
-                                <MenuIcon />
-                            </IconButton>
-                            <Typography
-                                component="div"
-                                variant="h6"
-                                noWrap >
-                                Dashboard
-                            </Typography>
-                            <IconButton color="inherit">
-                                <Badge badgeContent={0} color="secondary">
-                                    <NotificationsIcon />
-                                </Badge>
-                            </IconButton>
-						<Select
-                          labelId="demo-simple-select-label"
-                          id="demo-simple-select"
-                          value={selectedId}
-                          onChange={handleSelectedIdChange}>
-                          {ids.map((x) => <MenuItem value={x}>{x}</MenuItem>)}
-                        </Select>
-                        </Toolbar>
-                    </AppBar>
-                    <Drawer
-                        variant="permanent"
-                        open={open} >
-                        <DrawerHeader>
-                            <IconButton onClick={handleDrawerClose}>
-                                {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                            </IconButton>
-                        </DrawerHeader>
-                        <Divider />
-                        <Sidebar items={MenuItems}></Sidebar>
-                        {/*<List>
-                            {MenuItems.map((item) => {
-                                return (
-                                    <Link key={item.name} href={item.route}>
-                                        <ListItemButton
+            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <div className={classes.root}>
+                <CssBaseline />
+                <AppBar position="absolute" open={open} >
+                    <Toolbar>
+                        <IconButton
+                            edge="start"
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={handleDrawerOpen}
+                            sx={{
+                                marginRight: 5,
+                                ...(open && { display: 'none' }),
+                            }} >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography
+                            component="div"
+                            variant="h6"
+                            noWrap >
+                            Dashboard
+                        </Typography>
+                        <IconButton color="inherit">
+                            <Badge badgeContent={0} color="secondary">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={selectedId}
+                        onChange={handleSelectedIdChange}>
+                        {ids.map((x) => <MenuItem value={x}>{x}</MenuItem>)}
+                    </Select>
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    variant="permanent"
+                    open={open} >
+                    <DrawerHeader>
+                        <IconButton onClick={handleDrawerClose}>
+                            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                        </IconButton>
+                    </DrawerHeader>
+                    <Divider />
+                    <Sidebar items={MenuItems}></Sidebar>
+                    {/*<List>
+                        {MenuItems.map((item) => {
+                            return (
+                                <Link key={item.name} href={item.route}>
+                                    <ListItemButton
+                                        sx={{
+                                            minHeight: 48,
+                                            justifyContent: open ? 'initial' : 'center',
+                                            px: 2.5,
+                                        }}
+                                    >
+                                        <ListItemIcon
                                             sx={{
-                                                minHeight: 48,
-                                                justifyContent: open ? 'initial' : 'center',
-                                                px: 2.5,
+                                                minWidth: 0,
+                                                mr: open ? 3 : 'auto',
+                                                justifyContent: 'center',
                                             }}
                                         >
-                                            <ListItemIcon
-                                                sx={{
-                                                    minWidth: 0,
-                                                    mr: open ? 3 : 'auto',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                {item.icon}</ListItemIcon>
-                                            <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
-                                        </ListItemButton>
-                                    </Link>
-                                );
-                            })}
-                        </List>*/}
-                    </Drawer>
-                    <div className={classes.appBarSpacer} />
-                    <Component {...pageProps} />
-                </div>
-            </ThemeProvider>
+                                            {item.icon}</ListItemIcon>
+                                        <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
+                                    </ListItemButton>
+                                </Link>
+                            );
+                        })}
+                    </List>*/}
+                </Drawer>
+                <div className={classes.appBarSpacer} />
+                <Component {...pageProps} />
+            </div>
         </Root>
     );
 }
