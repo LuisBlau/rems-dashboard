@@ -183,45 +183,66 @@ const MenuItems = [
         icon: <CloudDownloadIcon/>
       }, */
     { 
+        id: "overview",
         name: "Enterise Overview",
         route: "/store/connectionOverview",
         icon: <HighlightIcon />
     },
     {
-        name: "Check Deploy Status",
+        id: "softwareDeploy",
+        name:"Software Distribution",
+        icon: <PendingActionsIcon />,
         route: "/deployStatus",
-        icon: <PendingActionsIcon />
-    }, {
-        name: "Upload a File",
-        route: "/fileUpload",
-        icon: <PublishIcon />
-    }, {
-        name: "Create Deploy Config",
-        route: "/deployCreate",
-        icon: <AddCircleOutline />
-    }, {
-        name: "Schedule a Deployment",
-        route: "/deploySchedule",
-        icon: <ScheduleIcon />
-    }, {
-        name: "Select Agents",
-        route: "/agentSelect",
-        icon: <ImportantDevicesIcon />
-    }, {
-        name: "Dumps",
-        route: "/store/dumpTable",
-        icon: <CarCrashIcon />
-    }, {
-        name: "Captures",
+        items:[
+            {
+                id:"uploadFile",
+                name: "Upload a File",
+                route: "/fileUpload",
+                icon: <PublishIcon />
+            }, {
+                id:"deployConfig",
+                name: "Create Deploy Config",
+                route: "/deployCreate",
+                icon: <AddCircleOutline />
+            }, {
+                id:"scheduleDeploy",
+                name: "Schedule a Deployment",
+                route: "/deploySchedule",
+                icon: <ScheduleIcon />
+            }, {
+                id:"selectAgents",
+                name: "Select Agents",
+                route: "/agentSelect",
+                icon: <ImportantDevicesIcon />
+            }
+        ]
+    },
+    {
+        id:"Doc Collection",
+        name:"Doc Collection",
         route: "/store/captureTable",
-        icon: <BugReportIcon />
-    }, {
-        name: "DataCapture",
-        route: "/registers/ExtractRequest",
-        icon: <CloudDownloadIcon />
+        icon: <BugReportIcon />,
+        items: [
+    
+            {
+                id:"dumps",
+                name: "Dumps",
+                route: "/store/dumpTable",
+                icon: <CarCrashIcon />
+            }, {
+                id:"extracts",
+                name: "Chec Extracts",
+                route: "/store/extractTable",
+                icon: <CarCrashIcon />
+            }, {
+                id:"dataCapture",
+                name: "DataCapture",
+                route: "/registers/ExtractRequest",
+                icon: <CloudDownloadIcon />
+            }
+        ]
     }
 ];
-
 function SignInButton() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
@@ -363,6 +384,8 @@ export default function MyApp(props) {
             </Head>
             
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <AuthenticatedTemplate>
+      
             <div className={classes.root}>
                 <CssBaseline />
                 <AppBar position="absolute" open={open} >
@@ -406,18 +429,19 @@ export default function MyApp(props) {
                         </IconButton>
                     </DrawerHeader>
                     <Divider />
-                    <List>
+                    <Sidebar items={MenuItems}></Sidebar>
+                    {/*<List>
                         {MenuItems.map((item) => {
                             return (
-                                    <Link key={item.name} href={item.route}>
-                                        <ListItemButton
-                                            sx={{
-                                                minHeight: 48,
-                                                justifyContent: open ? 'initial' : 'center',
-                                                px: 2.5,
-                                            }}
-                                        >
-                                            <ListItemIcon
+                                <Link key={item.name} href={item.route}>
+                                    <ListItemButton
+                                        sx={{
+                                            minHeight: 48,
+                                            justifyContent: open ? 'initial' : 'center',
+                                            px: 2.5,
+                                        }}
+                                    >
+                                        <ListItemIcon
                                             sx={{
                                                 minWidth: 0,
                                                 mr: open ? 3 : 'auto',
@@ -430,12 +454,16 @@ export default function MyApp(props) {
                                 </Link>
                             );
                         })}
-                    </List>
+                    </List>*/}
                 </Drawer>
                 <div className={classes.appBarSpacer} />
                 <Component {...pageProps} />
             </div>
-            
+            </AuthenticatedTemplate>
+            <UnauthenticatedTemplate>
+              <RedirectBlock></RedirectBlock>
+            </UnauthenticatedTemplate>
+
         </Root>
         </MsalProvider>
     );
