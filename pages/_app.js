@@ -243,6 +243,16 @@ const MenuItems = [
         ]
     }
 ];
+
+function RedirectBlock() {
+    // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+    const { instance } = useMsal();
+  
+    instance.loginRedirect();
+
+    return null;
+}
+
 function SignInButton() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
