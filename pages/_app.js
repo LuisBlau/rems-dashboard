@@ -35,6 +35,12 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
 import HighlightIcon from '@mui/icons-material/Highlight';
 
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate, } from "@azure/msal-react";
+import { EventType, InteractionType } from "@azure/msal-browser";
+import { msalInstance } from "./authConfig";
+
+import { Button } from "@mui/material";
+
 const PREFIX = '_app';
 
 const classes = {
@@ -146,6 +152,7 @@ const Root = styled('div')((
      },
      */
 }));
+
 
 const drawerWidth = 240;
 
@@ -288,7 +295,30 @@ const MenuItems = [
     }
 ];
 
+function SignInButton() {
+    // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+    const { instance } = useMsal();
+  
+    return <Button variant="contained" onClick={() => instance.loginRedirect()}>Sign In</Button>;
+}
+
+function SignOutButton() {
+    // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+    const { instance } = useMsal();
+  
+    return <Button  variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}>Sign Out</Button>;
+}
+  
+function WelcomeUser() {
+    const { accounts } = useMsal();
+    const username = accounts[0].username;
+  
+    return <p>Welcome, {username}</p>;
+}
+
 export default function MyApp(props) {
+
+    const { instance } = useMsal();
 
     const router = useRouter()
     const { Component, pageProps } = props;
@@ -307,15 +337,57 @@ export default function MyApp(props) {
             jssStyles.parentElement.removeChild(jssStyles);
         }
     }, []);
-	if (router.pathname .split("/").pop() != "login") {
-     axios.get("/api/auth/checkauth").catch((err) => {
-		 if (typeof window !== "undefined") {
-			// browser code
-			window.location.href = "/login"
-		 }
-	 } )
-	}
+
+  /**
+   * Using the event API, you can register an event callback that will do something when an event is emitted. 
+   * When registering an event callback in a react component you will need to make sure you do 2 things.
+   * 1) The callback is registered only once
+   * 2) The callback is unregistered before the component unmounts.
+   * For more, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md
+   */
+    React.useEffect(() => {
+        const callbackId = instance.addEventCallback((event) => {
+            if (event.eventType === EventType.LOGIN_FAILURE) {
+                if (event.error && event.error.errorMessage.indexOf("AADB2C90118") > -1) {
+                if (event.interactionType === InteractionType.Redirect) {
+                    instance.loginRedirect(b2cPolicies.authorities.forgotPassword);
+                } else if (event.interactionType === InteractionType.Popup) {
+                    instance.loginPopup(b2cPolicies.authorities.forgotPassword)
+                    .catch(e => {
+                        return;
+                    });
+                }
+                }
+            }
+            if (event.eventType === EventType.LOGIN_SUCCESS || event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
+                if (event?.payload && event.payload.idTokenClaims["acr"]) {
+                /**
+                 * We need to reject id tokens that were not issued with the default sign-in policy.
+                 * "acr" claim in the token tells us what policy is used (NOTE: for new policies (v2.0), use "tfp" instead of "acr").
+                 * To learn more about B2C tokens, visit https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
+                 */
+                console.log(event.payload);
+                if (event.payload.idTokenClaims["acr"] === b2cPolicies.names.forgotPassword) {
+                    window.alert("Password has been reset successfully. \nPlease sign-in with your new password.");
+                    //return instance.logout();
+                } else if (event.payload.idTokenClaims["acr"] === b2cPolicies.names.editProfile) {
+                    window.alert("Profile has been edited successfully. \nPlease sign-in again.");
+                    return instance.logout();
+                }
+                }
+            }
+        });
+
+        return () => {
+            if (callbackId) {
+              instance.removeEventCallback(callbackId);
+            }
+          };
+        }, []);
+    
+
     return (
+        <MsalProvider instance={msalInstance}>
         <Root>
             <Head>
                 <title>TGCS | PAS Portal</title>
@@ -329,6 +401,7 @@ export default function MyApp(props) {
                     content="minimum-scale=1, initial-scale=1, width=device-width"
                 />
             </Head>
+            
             <ThemeProvider theme={theme}>
                 {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                 <div className={classes.root}>
@@ -346,17 +419,23 @@ export default function MyApp(props) {
                                 }} >
                                 <MenuIcon />
                             </IconButton>
-                            <Typography
-                                component="div"
-                                variant="h6"
-                                noWrap >
-                                Dashboard
-                            </Typography>
                             <IconButton color="inherit">
                                 <Badge badgeContent={0} color="secondary">
                                     <NotificationsIcon />
                                 </Badge>
                             </IconButton>
+                            <Typography
+                                component="div"
+                                variant="h6"
+                                noWrap style={{ flex: 1}} >
+                                Dashboard
+                            </Typography>
+                            <AuthenticatedTemplate>
+                                <SignOutButton />
+                            </AuthenticatedTemplate>
+                            <UnauthenticatedTemplate>
+                                <SignInButton />
+                            </UnauthenticatedTemplate>
                         </Toolbar>
                     </AppBar>
                     <Drawer
@@ -398,7 +477,9 @@ export default function MyApp(props) {
                     <Component {...pageProps} />
                 </div>
             </ThemeProvider>
+            
         </Root>
+        </MsalProvider>
     );
 }
 
