@@ -163,7 +163,7 @@ export default function DeployStatus() {
     const [statusFilterItems, setStatusFilterItems] = React.useState(null);
     useEffect(() => {
         axios.get("/api/REMS/deploy-configs").then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)))
-        setStatusFilterItems([{ id: 'All', name: 'All Status'}, { id: 'Pending', name: 'Pending'}, { id: 'Failed', name: 'Failed'}, { id: 'Success', name: 'Success'}, { id: 'Cancelled', name: 'Cancelled'}])
+        setStatusFilterItems([{ id: 'All', name: 'All Status'}, { id: 'Pending', name: 'Pending'}, { id: 'Failed', name: 'Failed'}, { id: 'Success', name: 'Success'}, { id: 'Cancel', name: 'Cancelled'}])
 	}, [])
     if(packageFilterItems == null) {
 		return "loading . . ."

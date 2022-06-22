@@ -1,10 +1,13 @@
 import { styled } from '@mui/material/styles';
-import { ThemeProvider } from '@mui/styles';
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Head from "next/head";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "../src/theme";
+import useSWR from "swr";
+import fetcher from "../lib/lib.js";
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -13,6 +16,7 @@ import Badge from "@mui/material/Badge";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Divider from "@mui/material/Divider";
+import Cookies from 'universal-cookie';
 import List from "@mui/material/List";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
@@ -34,6 +38,7 @@ import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
 import HighlightIcon from '@mui/icons-material/Highlight';
+import Sidebar from '../components/Sidebar';
 
 import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate, } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
@@ -49,7 +54,6 @@ const classes = {
     MuiAppBar: `${PREFIX}-MuiAppBar`,
     appBarSpacer: `${PREFIX}-appBarSpacer`
 };
-
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')((
     {
@@ -74,83 +78,6 @@ const Root = styled('div')((
     [`& .${classes.appBarSpacer}`]: {
         paddingTop: 50
     }
-    /*toolbar: {
-      paddingRight: 24, // keep right padding when drawer closed
-    },
-    toolbarIcon: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      padding: "0 8px",
-    },
-    */
-    /*appBar: {
-      zIndex: theme.zIndex.drawer + 1,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-    },
-    appBarShift: {
-      marginLeft: drawerWidth,
-      width: `calc(100% - ${drawerWidth}px)`,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    },*/
-    /*menuButton: {
-      marginRight: 36,
-    },
-    menuButtonHidden: {
-      display: "none",
-    },
-    title: {
-      flexGrow: 1,
-    },
-    */
-    /*  drawerPaper: {
-        position: "relative",
-        whiteSpace: "nowrap",
-        width: drawerWidth,
-        transition: theme.transitions.create("width", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      },
-      drawerPaperClose: {
-        overflowX: "hidden",
-        transition: theme.transitions.create("width", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up("sm")]: {
-          width: theme.spacing(9),
-        },
-      },
-    */
-    /*  content: {
-        flexGrow: 1,
-        height: "100vh",
-        overflow: "auto",
-      },
-      container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
-      },
-      */
-    /*
-     fixedHeight: {
-       height: 240,
-     },
-     */
 }));
 
 
@@ -320,6 +247,25 @@ export default function MyApp(props) {
 
     const { instance } = useMsal();
 
+  const cookies = new Cookies();
+  if(cookies.get('retailerId') == undefined) {
+      cookies.set("retailerId","T0BSUTZ",{ path: '/' })
+  }
+  const [ids, setIds] = useState([]);
+  const [dataSet,setDataSet] = useState(false)
+  const [selectedId, setSelectedId] = useState("");
+  if(selectedId == "" && cookies.get('retailerId') != undefined) {
+    setSelectedId(cookies.get("retailerId"))
+	console.log("hello")
+  }
+  const { data, error } = useSWR(
+    '/REMS/retailerids',
+    fetcher
+  );
+    if(data && !dataSet) {
+		setIds(data)
+        setDataSet(true)
+	}
     const router = useRouter()
     const { Component, pageProps } = props;
     const [open, setOpen] = React.useState(false);
@@ -337,6 +283,20 @@ export default function MyApp(props) {
             jssStyles.parentElement.removeChild(jssStyles);
         }
     }, []);
+	if (router.pathname .split("/").pop() != "login") {
+     axios.get("/api/auth/checkauth").catch((err) => {
+		 if (typeof window !== "undefined") {
+			// browser code
+			window.location.href = "/login"
+		 }
+	 } )
+	}
+	const handleSelectedIdChange = (e) => {
+		cookies.set('retailerId', e.target.value,{ path: '/' })
+		setSelectedId(e.target.value)
+		location.reload()
+	}
+		
 
   /**
    * Using the event API, you can register an event callback that will do something when an event is emitted. 
@@ -402,54 +362,53 @@ export default function MyApp(props) {
                 />
             </Head>
             
-            <ThemeProvider theme={theme}>
-                {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-                <div className={classes.root}>
-                    <CssBaseline />
-                    <AppBar position="absolute" open={open} >
-                        <Toolbar>
-                            <IconButton
-                                edge="start"
-                                color="inherit"
-                                aria-label="open drawer"
-                                onClick={handleDrawerOpen}
-                                sx={{
-                                    marginRight: 5,
-                                    ...(open && { display: 'none' }),
-                                }} >
-                                <MenuIcon />
-                            </IconButton>
-                            <IconButton color="inherit">
-                                <Badge badgeContent={0} color="secondary">
-                                    <NotificationsIcon />
-                                </Badge>
-                            </IconButton>
-                            <Typography
-                                component="div"
-                                variant="h6"
-                                noWrap style={{ flex: 1}} >
-                                Dashboard
-                            </Typography>
-                            <AuthenticatedTemplate>
-                                <SignOutButton />
-                            </AuthenticatedTemplate>
-                            <UnauthenticatedTemplate>
-                                <SignInButton />
-                            </UnauthenticatedTemplate>
-                        </Toolbar>
-                    </AppBar>
-                    <Drawer
-                        variant="permanent"
-                        open={open} >
-                        <DrawerHeader>
-                            <IconButton onClick={handleDrawerClose}>
-                                {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                            </IconButton>
-                        </DrawerHeader>
-                        <Divider />
-                        <List>
-                            {MenuItems.map((item) => {
-                                return (
+            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <div className={classes.root}>
+                <CssBaseline />
+                <AppBar position="absolute" open={open} >
+                    <Toolbar>
+                        <IconButton
+                            edge="start"
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={handleDrawerOpen}
+                            sx={{
+                                marginRight: 5,
+                                ...(open && { display: 'none' }),
+                            }} >
+                            <MenuIcon />
+                        </IconButton>
+                        <IconButton color="inherit">
+                            <Badge badgeContent={0} color="secondary">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                        <Typography
+                            component="div"
+                            variant="h6"
+                            noWrap style={{ flex: 1}} >
+                            Dashboard
+                        </Typography>
+                        <AuthenticatedTemplate>
+                            <SignOutButton />
+                        </AuthenticatedTemplate>
+                        <UnauthenticatedTemplate>
+                            <SignInButton />
+                        </UnauthenticatedTemplate>
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    variant="permanent"
+                    open={open} >
+                    <DrawerHeader>
+                        <IconButton onClick={handleDrawerClose}>
+                            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                        </IconButton>
+                    </DrawerHeader>
+                    <Divider />
+                    <List>
+                        {MenuItems.map((item) => {
+                            return (
                                     <Link key={item.name} href={item.route}>
                                         <ListItemButton
                                             sx={{
@@ -459,24 +418,23 @@ export default function MyApp(props) {
                                             }}
                                         >
                                             <ListItemIcon
-                                                sx={{
-                                                    minWidth: 0,
-                                                    mr: open ? 3 : 'auto',
-                                                    justifyContent: 'center',
-                                                }}
-                                            >
-                                                {item.icon}</ListItemIcon>
-                                            <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
-                                        </ListItemButton>
-                                    </Link>
-                                );
-                            })}
-                        </List>
-                    </Drawer>
-                    <div className={classes.appBarSpacer} />
-                    <Component {...pageProps} />
-                </div>
-            </ThemeProvider>
+                                            sx={{
+                                                minWidth: 0,
+                                                mr: open ? 3 : 'auto',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            {item.icon}</ListItemIcon>
+                                        <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
+                                    </ListItemButton>
+                                </Link>
+                            );
+                        })}
+                    </List>
+                </Drawer>
+                <div className={classes.appBarSpacer} />
+                <Component {...pageProps} />
+            </div>
             
         </Root>
         </MsalProvider>

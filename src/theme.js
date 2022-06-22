@@ -1,36 +1,52 @@
-import { createTheme, ThemeProvider, makeStyles } from '@mui/material/styles';
+import { createTheme, ThemeProvider, makeStyles, ThemeOptions } from '@mui/material/styles';
+import React from "react";
 
-
-// Create a theme instance.
-const theme = createTheme( {
-  overrides: {
-    MuiLinearProgress: {
-      root: {
-        height: 7,
-        borderRadius: 100
-      }
-    }
-  },
+const themeOptions = {
   palette: {
+    type: 'dark',
     primary: {
-      main: "#556cd6",
+      main: '#96405b',
+      light: '#e0cdd3',
     },
     secondary: {
-      main: "#D6556C",
-    },
-    a: {
-      textDecoration: "none",
+      main: '#7c70b3',
     },
     error: {
-      main: "#fc0f03",
+      main: '#ef2d1f',
     },
-    background: {
-      default: "#fff",
+  },
+};
+
+// Create a theme instance.
+/*const theme = createTheme( {
+  
+  palette: {
+    type: 'dark',
+    primary: {
+      main: '#96405b',
+      light: '#e0cdd3',
+    },
+    secondary: {
+      main: '#7c70b3',
+    },
+    error: {
+      main: '#ef2d1f',
     },
   },
   agent: {
     backgroundColor: 'gray'
   }
+});*/
+
+const theme = createTheme({
+  type: 'dark',
+  palette: {
+    type: 'dark',
+    primary: {
+      main: '#FFFFFF',
+    },
+  },
 });
+
 
 export default theme;
