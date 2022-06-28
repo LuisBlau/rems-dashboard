@@ -173,18 +173,10 @@ const MenuItems = [
         name: "VPD Info",
         route: "/controller/vpdOverview",
         icon: <NetworkCheckIcon/>,
-      },{
-        name: "Extracts",
-        route: "/store/extractTable",
-        icon: <BackupOutlinedIcon/>
-      }, {
-        name: "Dumps",
-        route: "/store/dumpTable",
-        icon: <CloudDownloadIcon/>
-      }, */
+      } */
     { 
         id: "overview",
-        name: "Enterise Overview",
+        name: "Enterprise Overview",
         route: "/store/connectionOverview",
         icon: <HighlightIcon />
     },
@@ -394,7 +386,6 @@ export default function MyApp(props) {
             </Head>
             
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <AuthenticatedTemplate>
       
             <div className={classes.root}>
                 <CssBaseline />
@@ -422,6 +413,18 @@ export default function MyApp(props) {
                             noWrap style={{ flex: 1}} >
                             Dashboard
                         </Typography>
+                        <IconButton color="inherit">
+                            <Badge badgeContent={0} color="secondary">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={selectedId}
+                        onChange={handleSelectedIdChange}>
+                        {ids.map((x) => <MenuItem value={x}>{x}</MenuItem>)}
+                    </Select>
                         <AuthenticatedTemplate>
                             <SignOutButton />
                         </AuthenticatedTemplate>
@@ -469,10 +472,6 @@ export default function MyApp(props) {
                 <div className={classes.appBarSpacer} />
                 <Component {...pageProps} />
             </div>
-            </AuthenticatedTemplate>
-            <UnauthenticatedTemplate>
-              <RedirectBlock></RedirectBlock>
-            </UnauthenticatedTemplate>
 
         </Root>
         </MsalProvider>
