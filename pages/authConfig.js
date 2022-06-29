@@ -91,3 +91,7 @@ export const protectedResources = {
  export const loginRequest = {
     scopes: [...protectedResources.apiHello.scopes]
 };
+
+export default function authConfig() {
+    return null
+}
