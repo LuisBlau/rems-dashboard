@@ -31,7 +31,6 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
 import CreateIcon from '@mui/icons-material/Create';
-import Login from "./login"
 import axios from "axios"
 import { useRouter } from 'next/router'
 import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
@@ -39,10 +38,12 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import CarCrashIcon from '@mui/icons-material/CarCrash';
 import HighlightIcon from '@mui/icons-material/Highlight';
 import Sidebar from '../components/Sidebar';
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 
-import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate, } from "@azure/msal-react";
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate,MsalAuthenticationTemplate } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
-import { msalInstance } from "./authConfig";
+import { msalInstance, getMsalConfig } from "./authConfig";
 
 import { Button } from "@mui/material";
 
@@ -76,7 +77,7 @@ const Root = styled('div')((
     },
 
     [`& .${classes.appBarSpacer}`]: {
-        paddingTop: 50
+        paddingTop: 80
     }
 }));
 
@@ -239,17 +240,21 @@ const MenuItems = [
 function RedirectBlock() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
-  
+
     instance.loginRedirect();
 
     return null;
 }
 
+function signInClickHandler(instance) {
+    instance.loginRedirect();
+}
+
+
 function SignInButton() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
-  
-    return <Button variant="contained" onClick={() => instance.loginRedirect()}>Sign In</Button>;
+    return <Button variant="contained" onClick={() => signInClickHandler(instance)}>Sign In</Button>
 }
 
 function SignOutButton() {
@@ -270,21 +275,21 @@ export default function MyApp(props) {
 
     const { instance } = useMsal();
 
-  const cookies = new Cookies();
-  if(cookies.get('retailerId') == undefined) {
-      cookies.set("retailerId","T0BSUTZ",{ path: '/' })
-  }
-  const [ids, setIds] = useState([]);
-  const [dataSet,setDataSet] = useState(false)
-  const [selectedId, setSelectedId] = useState("");
-  if(selectedId == "" && cookies.get('retailerId') != undefined) {
-    setSelectedId(cookies.get("retailerId"))
-	console.log("hello")
-  }
-  const { data, error } = useSWR(
-    '/REMS/retailerids',
-    fetcher
-  );
+    const cookies = new Cookies();
+    if(cookies.get('retailerId') == undefined) {
+        cookies.set("retailerId","T0BSUTZ",{ path: '/' })
+    }
+    const [ids, setIds] = useState([]);
+    const [dataSet,setDataSet] = useState(false)
+    const [selectedId, setSelectedId] = useState("");
+    if(selectedId == "" && cookies.get('retailerId') != undefined) {
+        setSelectedId(cookies.get("retailerId"))
+    }
+    const { data, error } = useSWR(
+        '/REMS/retailerids',
+        fetcher
+    );
+
     if(data && !dataSet) {
 		setIds(data)
         setDataSet(true)
@@ -306,14 +311,6 @@ export default function MyApp(props) {
             jssStyles.parentElement.removeChild(jssStyles);
         }
     }, []);
-	if (router.pathname .split("/").pop() != "login") {
-     axios.get("/api/auth/checkauth").catch((err) => {
-		 if (typeof window !== "undefined") {
-			// browser code
-			window.location.href = "/login"
-		 }
-	 } )
-	}
 	const handleSelectedIdChange = (e) => {
 		cookies.set('retailerId', e.target.value,{ path: '/' })
 		setSelectedId(e.target.value)
@@ -388,6 +385,7 @@ export default function MyApp(props) {
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
       
             <div className={classes.root}>
+            {/*<MsalAuthenticationTemplate interactionType={InteractionType.Popup}>*/}
                 <CssBaseline />
                 <AppBar position="absolute" open={open} >
                     <Toolbar>
@@ -469,8 +467,24 @@ export default function MyApp(props) {
                         })}
                     </List>*/}
                 </Drawer>
-                <div className={classes.appBarSpacer} />
-                <Component {...pageProps} />
+                <div className={classes.appBarSpacer} />    
+                <AuthenticatedTemplate>
+                    <Component {...pageProps} />
+                </AuthenticatedTemplate>
+                <UnauthenticatedTemplate>
+                <Container maxWidth="lg" className={classes.container}>
+                <Grid item xs={12}>
+                    </Grid>
+                                    <Grid item xs={12}>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Typography align="center" variant="h4">Sign in to access the portal</Typography>
+                    </Grid>
+                    
+                </Container>
+                </UnauthenticatedTemplate>
+                {/*</MsalAuthenticationTemplate>*/}
+                
             </div>
 
         </Root>

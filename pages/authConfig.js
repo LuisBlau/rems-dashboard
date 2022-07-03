@@ -12,7 +12,7 @@ import { PublicClientApplication } from "@azure/msal-browser";
  * To learn more about user flows, visit: https://docs.microsoft.com/en-us/azure/active-directory-b2c/user-flow-overview
  * To learn more about custom policies, visit: https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview
  */
-export const b2cPolicies = {
+export var b2cPolicies = {
     names: {
         signUpSignIn: "b2c_1_susi"
     },
@@ -30,12 +30,12 @@ export const b2cPolicies = {
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md 
  */
-export const msalConfig = {
+var msalConfig = {
     auth: {
-        clientId: "fcc64b87-a540-4586-9284-ba9a26f7d27a", // This is the ONLY mandatory field that you need to supply.
+        clientId: process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID, // This is the ONLY mandatory field that you need to supply.
         authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose SUSI as your default authority.
         knownAuthorities: [b2cPolicies.authorityDomain], // Mark your B2C tenant's domain as trusted.
-        redirectUri: "https://localhost:3000", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
+        redirectUri: process.env.NEXT_PUBLIC_REDIRECT, // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
         navigateToLoginRequestUrl: false // If "true", will navigate back to the original request location before processing the auth code response.
     },
     cache: {
@@ -67,7 +67,12 @@ export const msalConfig = {
     }
 };
 
-const msalInstance = new PublicClientApplication(msalConfig); 
+export function getMsalConfig() {
+    return msalConfig
+}
+
+
+const msalInstance = new PublicClientApplication(getMsalConfig()); 
 
 export { msalInstance }
 

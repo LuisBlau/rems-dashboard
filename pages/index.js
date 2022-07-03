@@ -25,7 +25,8 @@ const classes = {
   content: `${PREFIX}-content`,
   container: `${PREFIX}-container`,
   paper: `${PREFIX}-paper`,
-  fixedHeight: `${PREFIX}-fixedHeight`
+  fixedHeight: `${PREFIX}-fixedHeight`,
+  appBarSpacer: `${PREFIX}-appBarSpacer`
 };
 
 const Root = styled('main')((
@@ -39,7 +40,7 @@ const Root = styled('main')((
     overflow: "auto",
   },
   [`& .${classes.appBarSpacer}`]: {
-    paddingTop: 50
+    paddingTop: 80
   },
   [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
@@ -63,8 +64,9 @@ const drawerWidth = 240;
 function WelcomeUser() {
   const { accounts } = useMsal();
   const username = accounts[0].username;
-
-  return <p>Welcome, {username}</p>;
+  
+  window.location.href = "/store/connectionOverview"
+  return <div/>;
 }
 
 
@@ -80,23 +82,14 @@ export default function Index() {
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   return (
-    <div >
-            <div className={classes.appBarSpacer} />
-            <Typography>Hello1</Typography>
-            <Typography>Hello2</Typography>
-            <Typography>Hello3</Typography>
-            <Typography>Hello4</Typography>
-    <Head>
-      <title>Azure AD Authentication using MSAL and Next.js</title>
-    </Head>
-
-    <AuthenticatedTemplate>
-      <p>This will only render if a user is signed-in.</p>
-      <WelcomeUser />
-    </AuthenticatedTemplate>
-    <UnauthenticatedTemplate>
-      <p>This will only render if a user is not signed-in.</p>
-    </UnauthenticatedTemplate>
-  </div>
+    <Root >
+      <div className={classes.appBarSpacer} />
+      <AuthenticatedTemplate>
+        <WelcomeUser />
+      </AuthenticatedTemplate>
+      <UnauthenticatedTemplate>
+        <Typography align="center" variant="h4">Sign in to access the portal</Typography>
+      </UnauthenticatedTemplate>
+  </Root>
   );
 }
