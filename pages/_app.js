@@ -182,13 +182,15 @@ const MenuItems = [
         id: "overview",
         name: "Enterprise Overview",
         route: "/store/connectionOverview",
-        icon: <HighlightIcon />
+        icon: <HighlightIcon />,
+        roles: ["admin", "user"]
     },
     {
         id: "softwareDeploy",
         name:"Software Distribution",
         icon: <PendingActionsIcon />,
         route: "/deployStatus",
+        roles: ["admin"],
         items:[
             {
                 id:"uploadFile",
@@ -223,6 +225,7 @@ const MenuItems = [
         name:"Doc Collection",
         route: "/store/captureTable",
         icon: <BugReportIcon />,
+        roles: ["admin"],
         items: [
     
             {
@@ -275,6 +278,7 @@ function SignOutButton() {
 function WelcomeUser() {
     const { accounts } = useMsal();
     const username = accounts[0].username;
+    console.log(accounts[0]);
   
     return <p>Welcome, {username}</p>;
 }
@@ -440,6 +444,7 @@ export default function MyApp(props) {
                     </Select>
                         <AuthenticatedTemplate >
                             <SignOutButton />
+                            <WelcomeUser/>
                         </AuthenticatedTemplate>
                         <UnauthenticatedTemplate>
                             <SignInButton />

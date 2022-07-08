@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -34,7 +34,9 @@ const sidebarTheme = createTheme({
 })
 */
 
-function SidebarItem({ name, icon, route, items, ...rest }) {
+import axios from 'axios';
+
+function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
     return (
       <>
         <Link key={name} href={route}>
@@ -59,8 +61,25 @@ function SidebarItem({ name, icon, route, items, ...rest }) {
       </>
     )
   }
+
+  function checkRole(item) {
+
+    const [role, setRole] = useState(null);
+    if(role === null) {
+      axios.get("/api/REMS/getRoleDetails?email=brent.shores@toshibagcs.com").then((resp) => {
+        if(resp.data) {
+            setRole(resp.data.role);
+        }
+      });
+    }
+    
+    return item.roles.indexOf(role) !== -1;
+  }
   
-  function Sidebar({ items}) {
+  function Sidebar({ items, depthStep, depth }) {
+
+    
+
     return (
       //<ThemeProvider theme={sidebarTheme}>
         <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
