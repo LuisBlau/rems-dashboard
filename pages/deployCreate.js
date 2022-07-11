@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid';
 import Select from '@mui/material/Select';
 import Autocomplete from '@mui/material/Autocomplete';
 import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import Box from "@mui/material/Box";
 import Copyright from "../src/Copyright";
@@ -78,6 +79,7 @@ export default function Upload(props) {
     const [cInit, setcInit] = useState(false)
     const [name, setName] = useState("")
     const [commands, setCommands] = useState({})
+    const [configId, setConfigId] = useState(null);
 
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState("")
@@ -104,6 +106,33 @@ export default function Upload(props) {
             jasper[id] = {};                   // update the name property, assign a new value
             return jasper;
         })
+    }
+
+    const deleteDeploymentConfig = () => {
+        console.log("In Delete Config method");
+        console.log(configId);
+        if(configId ) {
+            axios.get("/api/REMS/delete-deploy-config?id="+configId).then(function (resp) {
+                console.log("axios response", resp)
+                if(resp.status == 200) {
+                    setToastSuccess(resp.data.message);
+                    setOpenSuccess(true)
+                }else {
+                    setToastFailure(resp.data.message);
+                    setOpenFailure(true)
+                }
+            })
+    
+            setTimeout(function () {
+                 window.location.reload(true);
+            }, Success_Toast + 500)
+        }else {
+            console.log("In else block")
+            setToastFailure("Please select existing deployment config");
+            setOpenFailure(true)
+            return;
+
+        }        
     }
 
     const handleSubmit = (event) => {
@@ -191,6 +220,7 @@ export default function Upload(props) {
 		console.log(selectedValue)
 		setSelectedDeploy(selectedValue)
 		let dep = deploys.filter(d => {return d.name == selectedValue})[0]
+        setConfigId(dep.id);
 		console.log(dep)
 		let steps = dep.steps.map(function(s,idx) {
 			let obj = {}
@@ -241,6 +271,7 @@ export default function Upload(props) {
                         })}
 
                         <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Task to Deployment Config</Button>
+                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<DeleteIcon />} onClick={deleteDeploymentConfig}>Delete Deployment Configuration</Button>
                         <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Save Deployment Configuration</Button>
                     
                 </form>
