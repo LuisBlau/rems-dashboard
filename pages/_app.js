@@ -17,6 +17,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Divider from "@mui/material/Divider";
 import Cookies from 'universal-cookie';
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import List from "@mui/material/List";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
@@ -209,6 +210,11 @@ const MenuItems = [
                 icon: <ImportantDevicesIcon />
             }
         ]
+    },
+	{
+    name: "SNMP",
+    route: "/snmp",
+    icon: <SystemUpdateAltIcon/>,
     },
     {
         id:"Doc Collection",

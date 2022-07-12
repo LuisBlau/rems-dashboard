@@ -77,7 +77,11 @@ const MenuItems = [
         name: "Captures",
         route: "/store/captureTable",
         icon: <CloudDownloadIcon />
-    }
+    },{
+    name: "SNMP",
+    route: "/snmp",
+    icon: <SystemUpdateAltIcon/>,
+  }
 ];
 
 /*
