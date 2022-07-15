@@ -36,6 +36,12 @@ const Root = styled('div')((
   }
 }));
 
+const skyButtonRenderer = function(params) {
+	return (<Button onClick={() => {
+    params.data['dataCapture']='SkyLogs'
+		axios.post('/api/registers/requestDump', params.data).catch()
+	}}>Request</Button>);
+}
 const rmaButtonRenderer = function(params) {
 	return (<Button onClick={() => {
     params.data['dataCapture']='RMA'
@@ -97,6 +103,7 @@ export default function ExtractRequestGrid(props) {
                rowData={registerlist} onGridReady={sortGrid}>
                <AgGridColumn sortable={ true } filter={ true } field="store_name"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } field="agent"></AgGridColumn>
+			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={skyButtonRenderer} field="SKY Logs Capture"></AgGridColumn>
 			         <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="EleraClient Capture"></AgGridColumn>
                <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraServicesButtonRenderer} field="EleraServices Capture"></AgGridColumn>
