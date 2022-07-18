@@ -46,6 +46,8 @@ import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate,M
 import { EventType, InteractionType } from "@azure/msal-browser";
 import { msalInstance, getMsalConfig } from "./authConfig";
 
+
+import { ThemeProvider } from '@emotion/react';
 import { Button } from "@mui/material";
 
 const PREFIX = '_app';
@@ -373,8 +375,11 @@ export default function MyApp(props) {
     
 
     return (
+        
         <MsalProvider instance={msalInstance}>
+        <ThemeProvider theme={theme}>
         <Root>
+            
             <Head>
                 <title>TGCS | PAS Portal</title>
                 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -414,6 +419,7 @@ export default function MyApp(props) {
                         <Typography
                             component="div"
                             variant="h6"
+                            paddingLeft={1}
                             noWrap style={{ flex: 1}} >
                             Dashboard
                         </Typography>
@@ -427,9 +433,9 @@ export default function MyApp(props) {
                         id="demo-simple-select"
                         value={selectedId}
                         onChange={handleSelectedIdChange}>
-                        {ids.map((x) => <MenuItem value={x}>{x}</MenuItem>)}
+                        {ids.map((x) => <MenuItem sx={{mt: 1}} value={x}>{x}</MenuItem>)}
                     </Select>
-                        <AuthenticatedTemplate>
+                        <AuthenticatedTemplate >
                             <SignOutButton />
                         </AuthenticatedTemplate>
                         <UnauthenticatedTemplate>
@@ -492,9 +498,12 @@ export default function MyApp(props) {
                 {/*</MsalAuthenticationTemplate>*/}
                 
             </div>
-
+           
+            
         </Root>
+        </ThemeProvider>
         </MsalProvider>
+        
     );
 }
 
