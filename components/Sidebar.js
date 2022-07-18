@@ -6,14 +6,14 @@ import ListItemText from "@mui/material/ListItemText";
 import { ListItemSecondaryAction } from '@mui/material';
 import Link from "next/link";
 
-function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
+function SidebarItem({ name, icon, route, items, ...rest }) {
     return (
       <>
         <Link key={name} href={route}>
         <ListItem button dense {...rest} >
-          <ListItemIcon style={{ paddingLeft: depth * depthStep }}>{icon}</ListItemIcon>
-          <ListItemText style={{ paddingLeft: depth * depthStep }}>
-            <span>{name}</span>
+          <ListItemIcon >{icon}</ListItemIcon>
+          <ListItemText >
+            {name}
           </ListItemText>
         </ListItem>
         </Link>
@@ -22,8 +22,7 @@ function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...r
             {items.map((subItem) => (
               <SidebarItem
                 key={subItem.name}
-                depth={depth + 1}
-                depthStep={depthStep}
+                
                 {...subItem}
               />
             ))}
@@ -33,15 +32,14 @@ function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...r
     )
   }
   
-  function Sidebar({ items, depthStep, depth }) {
+  function Sidebar({ items}) {
     return (
-      <div className="sidebar">
+      <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <List disablePadding dense>
           {items.map((sidebarItem, index) => (
             <SidebarItem
               key={`${sidebarItem.id}${index}`}
-              depthStep={depthStep}
-              depth={depth}
+              
               {...sidebarItem}
             />
           ))}

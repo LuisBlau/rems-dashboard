@@ -129,7 +129,7 @@ function RemsStatus(props) {
   if (!data) return <div>loading...</div>;
   return (
     <Root>
-      <Paper elevation={3} className={classes.paper} sx={{backgroundColor:'#dbe2e7'}}>
+      <Paper elevation={3} className={classes.paper} >
       <Grid container spacing={1}>
         <Grid item xs={2.5}>
           <RemsConnected up={data.rems}/>
@@ -171,7 +171,7 @@ function FilterStores(props) {
 )
 .map((store) => (
   <Grid item xs={6}>
-    <Paper className={classes.paper} sx={{backgroundColor:'#dbe2e7'}}>
+    <Paper className={classes.paper}>
       <OverviewStorePaper data={store} />
     </Paper>
   </Grid>

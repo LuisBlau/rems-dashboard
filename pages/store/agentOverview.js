@@ -57,36 +57,42 @@ export default function AgentOverview(props) {
   var par = "";
   if (typeof window !== "undefined") {
     par = window.location.search;
-   }
-   const params = new URLSearchParams(par);
-   const [filterText, setFilterText] = useState("");
-   const { data, error } = useSWR('/REMS/agents?store='+params.get("store"), fetcher);
+  }
+  const params = new URLSearchParams(par);
+  const [filterText, setFilterText] = useState("");
+  const { data, error } = useSWR('/REMS/agents?store='+params.get("store"), fetcher);
 
-   if (error) return <Root> <div className={classes.appBarSpacer} /><div>failed to load</div></Root>;
+  if (error) return <Root> <div className={classes.appBarSpacer} /><div>failed to load</div></Root>;
   if (!data) return <Root> <div className={classes.appBarSpacer} /><div>loading...</div></Root>;
   
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
-      <Typography align="center" variant="h4">Store Overview</Typography>
-      <Typography align="center" variant="h6">Store: {params.get("store")}</Typography>
       <Container maxWidth="lg" className={classes.container}>
-        <Grid container spacing={3}>
-          {data
-            .filter((agent) =>
-              (agent.agentName ).includes(filterText.toLowerCase())
-            )
-            .map((agent) => (
-              <Grid item xs={12}>
-                <Paper className={classes.paper} sx={{backgroundColor:'#dbe2e7'}}>
-                  <OverviewAgentPaper data={agent} />
-                </Paper>
-              </Grid>
-            ))}
-        </Grid>
-        <Box pt={4}>
-          <Copyright />
-        </Box>
+        <Container maxWidth="lg" className={classes.container}>
+          <Grid item xs={8.5}>
+            <Typography align="center" variant="h4">Store Overview</Typography>
+            <Typography align="center" variant="h6">Store: {params.get("store")}</Typography>
+          </Grid>
+        </Container>
+        <Container maxWidth="lg" className={classes.container}>
+          <Grid container spacing={3}>
+            {data
+              .filter((agent) =>
+                (agent.agentName ).includes(filterText.toLowerCase())
+              )
+              .map((agent) => (
+                <Grid item xs={3}>
+                  <Paper className={classes.paper}>
+                    <OverviewAgentPaper data={agent} />
+                  </Paper>
+                </Grid>
+              ))}
+          </Grid>
+          <Box pt={4}>
+            <Copyright />
+          </Box>
+        </Container>
       </Container>
     </Root>
   );
