@@ -10,6 +10,7 @@ import CardHeader from "@mui/material/CardHeader";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
+import FindInPageIcon from '@mui/icons-material/FindInPage';
 import Checkbox from "@mui/material/Checkbox";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
@@ -21,7 +22,8 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import { FormControlLabel } from "@mui/material";
 import Stack from '@mui/material/Stack';
-
+import Papa from "papaparse";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 
 const PREFIX = 'agents';
@@ -33,6 +35,10 @@ const classes = {
     paper: `${PREFIX}-paper`,
     fixedHeight: `${PREFIX}-fixedHeight`
 };
+
+const Input = styled("input")({
+    display: "none"
+});
 
 const Root = styled('main')((
     {
@@ -103,6 +109,82 @@ export default function agentSelect() {
 
     const leftChecked = intersection(checked, left);
     const rightChecked = intersection(checked, right);
+
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [fileName, setFileName] = useState("")
+    const allowedExtensions = ["csv", "plain"];
+
+    const onFileChange = event => {
+        const inputFile = event.target.files[0];
+        if (inputFile) {
+            const fileExtension = inputFile?.type.split("/")[1];
+            console.log(inputFile?.type.split("/"));
+    
+            if (!allowedExtensions.includes(fileExtension)) {
+                alert("Please input a csv or txt file");
+                return;
+            }
+    
+            setSelectedFile(inputFile);
+            setFileName(inputFile.name); 
+        }
+    };
+
+    const onFileUpload = () => {
+
+        // If user clicks the parse button without
+        // a file we show a error
+        if (!selectedFile) return setToast("Enter a valid file");
+
+        const fileExtension = selectedFile?.type.split("/")[1];
+ 
+        // Initialize a reader which allows user
+        // to read any file or blob.
+        const reader = new FileReader();
+         
+        // Event listener on reader when the file
+        // loads, we parse it and set the data.
+        const storeList = [];
+        if(fileExtension === "csv") {
+            reader.onload = async ({ target }) => {
+                const csv = Papa.parse(target.result, { 
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        console.log(results.data);
+                        results.data.map(x => storeList.push(x[0]));
+                    }
+                });
+    
+                setAgents(agents.concat(storeList));
+            
+                const indexArr = [];
+                const currentLength = agents.length;
+                storeList.forEach(val => {
+                    indexArr.push(currentLength++);
+                })
+                setLeft(left.concat(indexArr));
+             
+            };
+        }else {
+            reader.onload = async (e) => { 
+                const text = (e.target.result)
+                storeList = text.split(/\r?\n/);
+
+                setAgents(agents.concat(storeList));
+                const indexArr = [];
+                const currentLength = agents.length;
+                storeList.forEach(val => {
+                    indexArr.push(currentLength++);
+                })
+                setLeft(left.concat(indexArr));
+            };
+        }
+        
+        reader.readAsText(selectedFile);
+        
+    };
+
 
     const changeStoreFilter = (e) => {
         setStoreFilter(e.target.value);
@@ -377,6 +459,26 @@ export default function agentSelect() {
                         control={<Checkbox />}
                         label="Create New List" />
                     <TextField label="storeName" variant="standard" onChange={handleListName} value={listName} disabled={!newStoreList} />
+                </Grid>
+
+                <Grid item sx={{ margin: 3 }} >
+                    <Box >
+                        <label htmlFor="contained-button-file">
+                            <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+                            <Button variant="contained" color="secondary"
+                                component="span"
+                                endIcon={< FindInPageIcon />}
+                                sx={{ width: 175, height: "100%", margin: 1 }}>
+                                Choose File
+                            </Button>
+                        </label>
+                        <TextField disabled label="File Name" value={fileName} />
+                        <Button variant="contained" color="primary" disabled={selectedFile == null}
+                            onClick={onFileUpload} endIcon={< CloudUploadIcon />}
+                            sx={{ width: 175, margin: 1 }}>
+                            Upload File
+                        </Button>
+                    </Box>
                 </Grid>
                 
                 <Grid item sx={{ margin: 2 }} >
