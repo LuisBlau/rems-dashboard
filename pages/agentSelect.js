@@ -163,7 +163,7 @@ export default function agentSelect() {
                 storeList.forEach(val => {
                     indexArr.push(currentLength++);
                 })
-                setLeft(left.concat(indexArr));
+                setRight(right.concat(indexArr));
              
             };
         }else {
@@ -177,7 +177,7 @@ export default function agentSelect() {
                 storeList.forEach(val => {
                     indexArr.push(currentLength++);
                 })
-                setLeft(left.concat(indexArr));
+                setRight(right.concat(indexArr));
             };
         }
         
