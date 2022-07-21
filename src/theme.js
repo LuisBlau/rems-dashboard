@@ -3,18 +3,22 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
-    mode: "dark",
+    mode: 'light',
     primary: {
-      main: '#96405b',
-      dark: '#e0cdd3',
+      main: '#484848',
+      contrastText: '#e4e4e4',
     },
     secondary: {
       main: '#7c70b3',
     },
     error: {
       main: '#ef2d1f',
-    }
+    },
+    background: {
+      default: '#f3f2f2',
+    },
   },
 })
 
 export default theme;
+

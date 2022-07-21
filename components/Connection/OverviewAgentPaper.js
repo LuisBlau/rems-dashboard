@@ -151,13 +151,13 @@ function DisplaySalesApplication(props) {
   if (isElmo) {
     return (
       <grid item xs={12}>
-        <Typography>SA: ELMO as of {String(timeSince(date=date))}</Typography>
+        <Typography>Costl online: {String(timeSince(date=date))}</Typography>
       </grid>
     );
   }
   return (
     <grid item xs={12}>
-        <Typography>SA: None</Typography>
+        <Typography>Unknown application</Typography>
     </grid>
   );
 }
@@ -203,7 +203,7 @@ export default function OverviewAgentPaper(props) {
         </Grid>
         <Grid container spacing={1}>
           <Grid className={classes.barHeight} item xs={12}>
-            <Typography>Last Check: {props.data.last_updated}</Typography>
+            <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
           </Grid>
         </Grid>
   {/*

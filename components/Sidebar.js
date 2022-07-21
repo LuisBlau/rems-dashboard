@@ -5,6 +5,34 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { ListItemSecondaryAction } from '@mui/material';
 import Link from "next/link";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const sidebarTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#d2d2d2',
+      light: '#e0cdd3',
+    },
+    secondary: {
+      main: '#7c70b3',
+    },
+    error: {
+      main: '#ef2d1f',
+    },
+    background: {
+      default: '#202020',
+      paper: '#484848',
+    },
+    text: {
+      primary: 'rgba(214,211,211,0.87)',
+      secondary: 'rgba(210,208,208,0.54)',
+      disabled: 'rgba(121,120,120,0.38)',
+      hint: 'rgba(251,251,251,0.38)',
+    },
+  }
+})
+
 
 function SidebarItem({ name, icon, route, items, ...rest }) {
     return (
@@ -34,7 +62,8 @@ function SidebarItem({ name, icon, route, items, ...rest }) {
   
   function Sidebar({ items}) {
     return (
-      <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
+      <ThemeProvider theme={sidebarTheme}>
+        <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <List disablePadding dense>
           {items.map((sidebarItem, index) => (
             <SidebarItem
@@ -45,6 +74,7 @@ function SidebarItem({ name, icon, route, items, ...rest }) {
           ))}
         </List>
       </div>
+      </ThemeProvider>
     )
   }
 
