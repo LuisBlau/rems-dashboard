@@ -1,13 +1,25 @@
 import useSWR from "swr";
 import fetcher from "../../lib/lib";
-import { Button, Grid, Container, LinearProgress, Typography } from "@mui/material";
+import { Button, Grid, Container, LinearProgress, Typography, IconButton } from "@mui/material";
 import { styled } from '@mui/material/styles';
 import { StarIcon, StarHalfIcon } from '@mui/icons-material';
+import Tooltip from '@mui/material/Tooltip';
+import CachedIcon from '@mui/icons-material/Cached';
+import DirtyLensIcon from '@mui/icons-material/DirtyLens';
+import PhotoIcon from '@mui/icons-material/Photo';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Backdrop from '@mui/material/Backdrop';
 import React from "react";
 import Link from "@mui/material/Link";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import { data } from "jquery";
 const PREFIX = 'OverviewAgentPaper';
 
 const classes = {
@@ -24,40 +36,69 @@ const Root = styled('div')((
     height: 50
   }
 }));
+function DumpAgent(props) {
+  var jsonCommand = { Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Dump"};
+  const dump_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+  return (
+    <Tooltip title="Dump">
+      <Link href={dump_link}>
+        <IconButton>
+          <DirtyLensIcon fontSize="large"/>
+        </IconButton>
+      </Link>
+    </Tooltip>
+);
+}
+function ReloadAgent(props) {
+  var jsonCommand = { Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Reload"};
+  const reload_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+  return (
+    <Tooltip title="Reload">
+      <Link href={reload_link}>
+        <IconButton>
+          <CachedIcon fontSize="large"/>
+        </IconButton>
+      </Link>
+    </Tooltip>
 
+);
+}
 function DisplayScreenShot(props) {
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: '#f75777',
-    border: '2px solid #000',
-    outline: '#7c70b3',
-    boxShadow: 24,
-    p: 4,
+
+  const handleClickOpen = () => {
+    setOpen(true);
   };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const style = {
+    maxWidth: "100%",
+    maxHeight: "100%",
+  };
+
   return (
-    <Grid item xs={12}>
-      <Button variant="contained" size="medium" onClick={handleOpen} >Screenshot</Button>
-      <Modal
+    <div>
+      <Tooltip title="Screenshot">
+          <IconButton onClick={handleClickOpen}>
+            <PhotoIcon fontSize="large"/>
+          </IconButton>
+      </Tooltip>
+      <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        sx={style}
       >
-        <Box sx={style}>
+        <DialogContent>
           <ScreenCapture data={props.data} />
-        </Box>
-      </Modal>
-    </Grid>
-  )
-
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
+
 function ScreenCapture(props) {
   
   const {data, error} = useSWR(
@@ -68,13 +109,13 @@ function ScreenCapture(props) {
   if (!data) return <div>loading...</div>;
   return (
     <Root>
-          <Typography>
+      <Typography align="center">
             Screenshot
           </Typography>
-          <Typography>
+      <Typography align="center">
             {data.last_updated}
           </Typography>
-          <img class="card-img-top" src={"data:image/png;base64," + data.image} width={300} height={300} alt="Card image cap" />
+      <img class="card-img-top" src={"data:image/png;base64," + data.image} style={{ maxWidth: "100%", maxHeight: "calc(100vh - 64px)" }} alt="Card image cap" />
     </Root>
   );
 }
@@ -214,7 +255,6 @@ export default function OverviewAgentPaper(props) {
               </Button>
           </Grid>
         </Grid>
-  */}
         <Grid container spacing={1}>
           <Grid item xs={12}>
             <Link href={dump_link}>
@@ -224,7 +264,7 @@ export default function OverviewAgentPaper(props) {
             </Link>
           </Grid>
         </Grid>
-  {/*
+  
         <Grid container spacing={1}>
           <Grid item xs={12}>
             <Button variant="contained" href={sleep_link} size="medium">
@@ -235,11 +275,12 @@ export default function OverviewAgentPaper(props) {
 */}
         <Grid container spacing={1}>
           <Grid item xs={12}>
-            <Link href={wake_link}>
-              <Button variant="contained" size="medium">
-                Reload
-              </Button>
-            </Link>
+            <DumpAgent data={props.data}/>
+          </Grid>
+        </Grid>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <ReloadAgent data={props.data}/>
             </Grid>
         </Grid>
         <Grid container spacing={1}>

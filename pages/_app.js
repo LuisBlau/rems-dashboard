@@ -1,3 +1,4 @@
+
 import { styled } from '@mui/material/styles';
 import React, { useState } from "react";
 import PropTypes from "prop-types";
@@ -59,7 +60,7 @@ const classes = {
     appBarSpacer: `${PREFIX}-appBarSpacer`
 };
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('div')((
+const Root = styled('main')((
     {
         theme
     }
@@ -402,6 +403,7 @@ export default function MyApp(props) {
                     <Toolbar>
                         <IconButton
                             edge="start"
+                            
                             color="inherit"
                             aria-label="open drawer"
                             onClick={handleDrawerOpen}
@@ -411,8 +413,8 @@ export default function MyApp(props) {
                             }} >
                             <MenuIcon />
                         </IconButton>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={0} color="secondary">
+                        <IconButton >
+                            <Badge badgeContent={0} >
                                 <NotificationsIcon />
                             </Badge>
                         </IconButton>
@@ -423,12 +425,14 @@ export default function MyApp(props) {
                             noWrap style={{ flex: 1}} >
                             Dashboard
                         </Typography>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={0} color="secondary">
+                        <IconButton >
+                            <Badge badgeContent={0} >
                                 <NotificationsIcon />
                             </Badge>
                         </IconButton>
-                    <Select
+                    <CssBaseline />
+                    <Select 
+                        
                         labelId="demo-simple-select-label"
                         id="demo-simple-select"
                         value={selectedId}

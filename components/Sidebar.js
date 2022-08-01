@@ -6,7 +6,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { ListItemSecondaryAction } from '@mui/material';
 import Link from "next/link";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
+/*
 const sidebarTheme = createTheme({
   palette: {
     mode: 'light',
@@ -32,7 +32,7 @@ const sidebarTheme = createTheme({
     },
   }
 })
-
+*/
 
 function SidebarItem({ name, icon, route, items, ...rest }) {
     return (
@@ -62,7 +62,7 @@ function SidebarItem({ name, icon, route, items, ...rest }) {
   
   function Sidebar({ items}) {
     return (
-      <ThemeProvider theme={sidebarTheme}>
+      //<ThemeProvider theme={sidebarTheme}>
         <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <List disablePadding dense>
           {items.map((sidebarItem, index) => (
@@ -74,7 +74,7 @@ function SidebarItem({ name, icon, route, items, ...rest }) {
           ))}
         </List>
       </div>
-      </ThemeProvider>
+      //</ThemeProvider>
     )
   }
 
