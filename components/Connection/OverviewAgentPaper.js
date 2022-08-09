@@ -285,19 +285,25 @@ function ReloadAgent(props) {
             <Grid container spacing={1}>
               <Grid className={classes.barHeight} item xs={12}>
               {
-                  (hasStatus&& statusType=="ELMO") &&<Typography>"ui_state":"{props.data.status.ELMO.ui_state}"</Typography>
+                  (hasStatus&& statusType=="ELMO") &&<Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
                 }
                 {
-                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"ui_state":"{props.data.status.DeviceBroker.ui_state}"</Typography>
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
                 }
                 {
-                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"ui_substate":"{props.data.status.DeviceBroker.ui_substate}"</Typography>
+                  (hasStatus&& statusType=="ELMO") &&<Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
                 }
                 {
-                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"pinpad_stage":"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
                 }
                 {
-                  (!hasStatus) &&<Typography>No Status Found"</Typography>
+                  (hasStatus&& statusType=="ELMO") &&<Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
+                }
+                {
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
+                }
+                {
+                  (!hasStatus) &&<Typography>No Status Found</Typography>
                 }
               </Grid>
             </Grid>
