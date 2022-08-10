@@ -1,44 +1,44 @@
-  import useSWR from "swr";
-  import fetcher from "../../lib/lib";
+    import useSWR from "swr";
+    import fetcher from "../../lib/lib";
 import { Button, Grid, Container, LinearProgress, Typography, IconButton } from "@mui/material";
-  import { styled } from '@mui/material/styles';
-  import { StarIcon, StarHalfIcon } from '@mui/icons-material';
+    import { styled } from '@mui/material/styles';
+    import { StarIcon, StarHalfIcon } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import CachedIcon from '@mui/icons-material/Cached';
 import DirtyLensIcon from '@mui/icons-material/DirtyLens';
 import PhotoIcon from '@mui/icons-material/Photo';
-  import Modal from '@mui/material/Modal';
-  import Box from '@mui/material/Box';
+    import Modal from '@mui/material/Modal';
+    import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Backdrop from '@mui/material/Backdrop';
-  import React from "react";
-  import Link from "@mui/material/Link";
+    import React from "react";
+    import Link from "@mui/material/Link";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { data } from "jquery";
-  import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
-  import renderer from "devextreme/core/renderer";
-  import ReactDOM from'react-dom';
-  const PREFIX = 'OverviewAgentPaper';
+    import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
+    import renderer from "devextreme/core/renderer";
+    import ReactDOM from'react-dom';
+    const PREFIX = 'OverviewAgentPaper';
 
-  const classes = {
-    barHeight: `${PREFIX}-barHeight`
-  };
+    const classes = {
+      barHeight: `${PREFIX}-barHeight`
+    };
 
-  // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-  const Root = styled('div')((
-    {
-      theme
-    }
-  ) => ({
-    [`& .${classes.barHeight}`]: {
-      height: 50
-    }
-  }));
+    // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+    const Root = styled('div')((
+      {
+        theme
+      }
+    ) => ({
+      [`& .${classes.barHeight}`]: {
+        height: 50
+      }
+    }));
 function DumpAgent(props) {
   var jsonCommand = { Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Dump"};
   const dump_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
@@ -66,8 +66,8 @@ function ReloadAgent(props) {
 
 );
 }
-  function DisplayScreenShot(props) {
-    const [open, setOpen] = React.useState(false);
+    function DisplayScreenShot(props) {
+      const [open, setOpen] = React.useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -77,12 +77,12 @@ function ReloadAgent(props) {
     setOpen(false);
   };
 
-    const style = {
+      const style = {
     maxWidth: "100%",
     maxHeight: "100%",
-    };
+      };
 
-    return (
+      return (
     <div>
       <Tooltip title="Screenshot">
           <IconButton onClick={handleClickOpen}>
@@ -90,211 +90,228 @@ function ReloadAgent(props) {
           </IconButton>
       </Tooltip>
       <Dialog
-          open={open}
-          onClose={handleClose}
+            open={open}
+            onClose={handleClose}
         sx={style}
-        >
+          >
         <DialogContent>
-            <ScreenCapture data={props.data} />
+              <ScreenCapture data={props.data} />
         </DialogContent>
       </Dialog>
     </div>
   );
-  }
+    }
 
-  function ScreenCapture(props) {
-    
-    const {data, error} = useSWR(
-      "/REMS/agentScreenShot?storeName="+props.data.storeName+"&agentName="+props.data.agentName
-      ,fetcher);
+    function ScreenCapture(props) {
+      
+      const {data, error} = useSWR(
+        "/REMS/agentScreenShot?storeName="+props.data.storeName+"&agentName="+props.data.agentName
+        ,fetcher);
 
-    if (error) return <div>No screenshot </div>;
-    if (!data) return <div>loading...</div>;
-    return (
-      <Root>
+      if (error) return <div>No screenshot </div>;
+      if (!data) return <div>loading...</div>;
+      return (
+        <Root>
       <Typography align="center">
-              Screenshot
-            </Typography>
+                Screenshot
+              </Typography>
       <Typography align="center">
-              {data.last_updated}
-            </Typography>
+                {data.last_updated}
+              </Typography>
       <img class="card-img-top" src={"data:image/png;base64," + data.image} style={{ maxWidth: "100%", maxHeight: "calc(100vh - 64px)" }} alt="Card image cap" />
-      </Root>
-    );
-  }
-  function timeSince(date) {
-    var seconds = ((new Date() - new Date(date)) / 1000)
+        </Root>
+      );
+    }
+    function timeSince(date) {
+      var seconds = ((new Date() - new Date(date)) / 1000)
 
-    var interval = seconds / 31536000;
-    console.log(String(interval))
+      var interval = seconds / 31536000;
+      console.log(String(interval))
 
-    if (interval > 1) {
-      return Math.floor(interval) + " years ago";
+      if (interval > 1) {
+        return Math.floor(interval) + " years ago";
+      }
+      interval = seconds / 2592000;
+      if (interval > 1) {
+        return Math.floor(interval) + " months ago";
+      }
+      interval = seconds / 86400;
+      if (interval > 1) {
+        return Math.floor(interval) + " days ago";
+      }
+      interval = seconds / 3600;
+      if (interval > 1) {
+        return Math.floor(interval) + " hours ago";
+      }
+      interval = seconds / 60;
+      if (interval > 1) {
+        return Math.floor(interval) + " minutes ago";
+      }
+      return Math.floor(seconds) + " seconds ago";
     }
-    interval = seconds / 2592000;
-    if (interval > 1) {
-      return Math.floor(interval) + " months ago";
-    }
-    interval = seconds / 86400;
-    if (interval > 1) {
-      return Math.floor(interval) + " days ago";
-    }
-    interval = seconds / 3600;
-    if (interval > 1) {
-      return Math.floor(interval) + " hours ago";
-    }
-    interval = seconds / 60;
-    if (interval > 1) {
-      return Math.floor(interval) + " minutes ago";
-    }
-    return Math.floor(seconds) + " seconds ago";
-  }
 
-  function DisplayMasterStar(props) {
-    if (props.data.is_master) {
+    function DisplayMasterStar(props) {
+      if (props.data.is_master) {
+        return (
+          <Grid item xs={12}>
+            <Typography>Master</Typography>
+          </Grid>
+        )
+      }
       return (
         <Grid item xs={12}>
-          <Typography>Master</Typography>
+            &nbsp;
         </Grid>
       )
     }
-    return (
-      <Grid item xs={12}>
-          &nbsp;
-      </Grid>
-    )
-  }
 
-  function DisplayOnOffStatus(props) {
-    if (props.data.online) {
+    function DisplayOnOffStatus(props) {
+      if (props.data.online) {
+        return (
+          <Grid item xs={4}>
+            <Typography>Online</Typography>
+          </Grid>
+        )
+      }
       return (
         <Grid item xs={4}>
-          <Typography>Online</Typography>
+          <Typography>Offline</Typography>
         </Grid>
       )
     }
-    return (
-      <Grid item xs={4}>
-        <Typography>Offline</Typography>
-      </Grid>
-    )
-  }
 
-  function DisplaySalesApplication(props) {
-    const {data, error} = useSWR(
-      "/REMS/agents?store="+props.data.storeName+"&agentName="+props.data.agentName,
-      fetcher
-    );
+    function DisplaySalesApplication(props) {
+      const {data, error} = useSWR(
+        "/REMS/agents?store="+props.data.storeName+"&agentName="+props.data.agentName,
+        fetcher
+      );
 
-    if (error) return <div>failed to load </div>;
-    if (!data) return <div>loading...</div>;
+      if (error) return <div>failed to load </div>;
+      if (!data) return <div>loading...</div>;
 
-    var displayData = data[0]?.status
-    const isElmo = displayData?.ELMO
-    const isDB = displayData?.DeviceBroker
-    var date = displayData?.snapshot
+      var displayData = data[0]?.status
+      const isElmo = displayData?.ELMO
+      const isDB = displayData?.DeviceBroker
+      
+      var date = displayData?.snapshot
 
-    if (isElmo) {
+      if (isElmo) {
+        return (
+          <grid item xs={12}>
+            <Typography>Costl online: {String(timeSince(date=date))}</Typography>
+          </grid>
+        );
+        
+      }
+      else if(isDB){
+        return(
+          <grid item xs={12}>
+            <Typography>WebPos</Typography>
+            <Typography>{props.data.isUIstate}</Typography>
+          </grid>
+        );
+      }
       return (
         <grid item xs={12}>
-          <Typography>Costl online: {String(timeSince(date=date))}</Typography>
+            <Typography>Unknown application</Typography>
         </grid>
       );
+    }
+
+
+    export default function OverviewAgentPaper(props) {
+
+      var jsonCommand = {Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Reload"};
+      const reload_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+      jsonCommand.Command = "Dump";
+      const dump_link=         'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+      jsonCommand.Command = "ScreenCapture";
+      const screencapture_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+      jsonCommand.Command = "Wake";
+      const wake_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
+      jsonCommand.Command = "Sleep";
+      const sleep_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
       
+      var hasStatus= false
+      var statusType=""
+      if(props.data.hasOwnProperty("status")){
+        if(props.data.status.hasOwnProperty("ELMO")){
+          hasStatus=true
+          statusType="ELMO"
+      }
+      if(props.data.status.hasOwnProperty("DeviceBroker")){
+        hasStatus=true
+        statusType="DeviceBroker"
     }
-    else if(isDB){
-      return(
-        <grid item xs={12}>
-          <Typography>WebPos</Typography>
-          <Typography>{props.data.isUIstate}</Typography>
-        </grid>
-      );
-    }
-    return (
-      <grid item xs={12}>
-          <Typography>Unknown application</Typography>
-      </grid>
-    );
-  }
+      
 
-  function DisplayStatus(props){
-    var displayData = data[0]?.status
-    var is
+      }
 
-  }
-
-
-  export default function OverviewAgentPaper(props) {
-
-    var jsonCommand = {Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Reload"};
-    const reload_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-    jsonCommand.Command = "Dump";
-    const dump_link=         'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-    jsonCommand.Command = "ScreenCapture";
-    const screencapture_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-    jsonCommand.Command = "Wake";
-    const wake_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-    jsonCommand.Command = "Sleep";
-    const sleep_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-    
-
-    return (
-      <Grid container>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Typography variant="h5">{props.data.agentName}</Typography>
+      return (
+        <Grid container>
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <Typography variant="h5">{props.data.agentName}</Typography>
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <DisplayMasterStar data={props.data} />
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <DisplayMasterStar data={props.data} />
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid className={classes.barHeight} container spacing={1}>
-            <Grid item xs={4}>
-              <DisplayOnOffStatus data={props.data} />
+            <Grid className={classes.barHeight} container spacing={1}>
+              <Grid item xs={4}>
+                <DisplayOnOffStatus data={props.data} />
+              </Grid>
+              <Grid item xs={4}>
+                <Typography>OS: {props.data.os}</Typography>
+              </Grid>
             </Grid>
-            <Grid item xs={4}>
-              <Typography>OS: {props.data.os}</Typography>
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <DisplaySalesApplication data={props.data} />
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <DisplaySalesApplication data={props.data} />
+            <Grid container spacing={1}>
+              <Grid className={classes.barHeight} item xs={12}>
+                <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid className={classes.barHeight} item xs={12}>
-              <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
+            <Grid container spacing={1}>
+              <Grid className={classes.barHeight} item xs={12}>
+              <Typography>Status:</Typography>   
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid className={classes.barHeight} item xs={12}>
-            <Typography>Status:</Typography>   
-            </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid className={classes.barHeight} item xs={12}>
+            <Grid container spacing={1}>
+              <Grid className={classes.barHeight} item xs={12}>
               {
-            props.data.status.hasOwnProperty("DeviceBroker")&&<Typography>"ui_state":"{props.data.status.DeviceBroker.ui_state}"</Typography>   
-              }{
-                props.data.status.hasOwnProperty("DeviceBroker")&&<Typography>"ui_substate":{props.data.status.DeviceBroker.ui_substate}</Typography>
-              }{
-                props.data.status.hasOwnProperty("DeviceBroker")&&<Typography>"pinpad_stage":{props.data.status.DeviceBroker.pinpad_stage};</Typography>
-              }
+                  (hasStatus&& statusType=="ELMO") &&<Typography>"ui_state":"{props.data.status.ELMO.ui_state}"</Typography>
+                }
+                {
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"ui_state":"{props.data.status.DeviceBroker.ui_state}"</Typography>
+                }
+                {
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"ui_substate":"{props.data.status.DeviceBroker.ui_substate}"</Typography>
+                }
+                {
+                  (hasStatus&& statusType=="DeviceBroker") &&<Typography>"pinpad_stage":"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
+                }
+                {
+                  (!hasStatus) &&<Typography>No Status Found"</Typography>
+                }
+              </Grid>
             </Grid>
-          </Grid>
 
 
 
-    {/*
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-                <Button variant="contained" href={reload_link} size="medium">
-                  Reload
-                </Button>
+      {/*
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                  <Button variant="contained" href={reload_link} size="medium">
+                    Reload
+                  </Button>
+              </Grid>
             </Grid>
-          </Grid>
         <Grid container spacing={1}>
           <Grid item xs={12}>
             <Link href={dump_link}>
@@ -305,43 +322,43 @@ function ReloadAgent(props) {
           </Grid>
         </Grid>
   
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Button variant="contained" href={sleep_link} size="medium">
-                Sleep
-              </Button>
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <Button variant="contained" href={sleep_link} size="medium">
+                  Sleep
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-  */}
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
+    */}
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
             <DumpAgent data={props.data}/>
           </Grid>
         </Grid>
         <Grid container spacing={1}>
           <Grid item xs={12}>
             <ReloadAgent data={props.data}/>
-              </Grid>
-          </Grid>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <DisplayScreenShot data={props.data} />
+                </Grid>
             </Grid>
-          </Grid>
-      </Grid>
-    );
-  }
-  /*
-  function ColoredProgressBar(props) {
-    const color = props.percent > 50 ? "primary" : "secondary";
-    return (
-      <LinearProgress
-        style={{height: "7px" }}
-        height={100}
-        variant={"determinate"}
-        value={props.percent}
-        color={color}
-      />
-    );
-  }
-  */
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <DisplayScreenShot data={props.data} />
+              </Grid>
+            </Grid>
+        </Grid>
+      );
+    }
+    /*
+    function ColoredProgressBar(props) {
+      const color = props.percent > 50 ? "primary" : "secondary";
+      return (
+        <LinearProgress
+          style={{height: "7px" }}
+          height={100}
+          variant={"determinate"}
+          value={props.percent}
+          color={color}
+        />
+      );
+    }
+    */
