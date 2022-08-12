@@ -126,10 +126,10 @@ export default function snmp(props) {
 		}
 		let cookies = new Cookies();
         let commandObj = {
-          "retailer_id":cookies.get('retailerId'),
+          "retailer":cookies.get('retailerId'),
           "storeName":selectedStore,
           "agentName": selectedStore + "-CP",
-          "filename":"/cdrive/f_drive/rma/user/rma/rmauser.properties",
+          "configFile":"/cdrive/f_drive/rma/user/rma/rmauser.properties",
           "type":"property",
 		  "category":"rma",
 		  "values":[
