@@ -86,7 +86,9 @@ export default function snmp(props) {
     const [toastSuccess, setToastSuccess] = useState("")
     const [openFailure, setOpenFailure] = useState(false);
     const [stores, setStores] = useState(null)
+	const [agents, setAgents] = useState(null)
 	const [selectedStore,setSelectedStore] = useState(null)
+	const [selectedAgent,setSelectedAgent] = useState(null)
 	const [toastFailure, setToastFailure] = useState("")
 	const [deploySelected, setDeploySelected] = useState("")
     useEffect(() => {
@@ -128,7 +130,7 @@ export default function snmp(props) {
         let commandObj = {
           "retailer":cookies.get('retailerId'),
           "storeName":selectedStore,
-          "agentName": selectedStore + "-CP",
+          "agentName": selectedAgent,
           "configFile":"/cdrive/f_drive/rma/user/rma/rmauser.properties",
           "type":"property",
 		  "category":"rma",
@@ -211,6 +213,18 @@ export default function snmp(props) {
 	}
 	const handleSelectedStore = (e,selectedValue) => {
 		setSelectedStore(selectedValue)
+		axios.get("/api/REMS/agents?store=" + selectedValue).then(function (res) {
+            console.log("axios response", res)
+            var packages = []
+            res.data.forEach(v => {
+                packages.push(v["agentName"])
+            })
+            setAgents(packages);
+        });
+	}
+	
+	const handleSelectedAgent = (e,selectedValue) => {
+		setSelectedAgent(selectedValue)
 	}
     return (
         <Root className={classes.content}>
@@ -227,6 +241,14 @@ export default function snmp(props) {
                             onInputChange={handleSelectedStore}
                             sx={{ width: 300 }}
                             renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore}/>}
+                            />
+							<Autocomplete
+							disabled={agents == null}
+                            disablePortal
+                            options={agents}
+                            onInputChange={handleSelectedAgent}
+                            sx={{ width: 300 }}
+                            renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent}/>}
                             />
                             </Grid>
                         </Grid>
