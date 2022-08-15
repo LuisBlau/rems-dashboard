@@ -71,8 +71,12 @@ export function getMsalConfig() {
     return msalConfig
 }
 
-
-const msalInstance = new PublicClientApplication(getMsalConfig()); 
+const msalInstance = new PublicClientApplication(getMsalConfig()
+//,
+//{
+//    scopes: ["openid", "user.read", "email", "user"]
+//}
+); 
 
 export { msalInstance }
 
@@ -94,7 +98,7 @@ export const protectedResources = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
  export const loginRequest = {
-    scopes: [...protectedResources.apiHello.scopes]
+    scopes: ["openid", "email", "profile"]
 };
 
 export default function authConfig() {

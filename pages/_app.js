@@ -44,7 +44,7 @@ import Grid from "@mui/material/Grid";
 
 import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate,MsalAuthenticationTemplate } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
-import { msalInstance, getMsalConfig } from "./authConfig";
+import { msalInstance, getMsalConfig, loginRequest } from "./authConfig";
 
 
 import { ThemeProvider } from '@emotion/react';
@@ -248,17 +248,68 @@ const MenuItems = [
     }
 ];
 
+
+function WelcomeUser() {
+
+    const [accessToken, setAccessToken] = useState(null);
+
+    const { accounts } = useMsal();
+    const username = accounts[0].username;
+    console.log("User logged in")
+    console.log(accounts)
+
+    function RequestAccessToken() {
+        const request = {
+            ...loginRequest,
+            account: accounts[0]
+        };
+    
+        // Silently acquires an access token which is then attached to a request for Microsoft Graph data
+        msalInstance.acquireTokenSilent(request).then((response) => {
+            console.log("Access Token acquired1")
+        console.log(JSON.stringify(response))
+        console.log("end")
+            setAccessToken(response.accessToken);
+        }).catch((e) => {
+            msalInstance.acquireTokenPopup(request).then((response) => {
+                setAccessToken(response.accessToken);
+            });
+        });
+    }
+
+    if ( accessToken )
+    {
+        console.log("Access Token acquired2")
+        console.log(accessToken)
+        console.log("end")
+        }
+
+    return <root>
+        <p>Welcome, {username}</p>
+        { accessToken ? 
+            <p> Accedss Token Acquired!</p>
+            :<Button variant="secondary" onClick={RequestAccessToken}>Request Access Token</Button>
+            
+        }
+        </root>
+}
+
+
+
+
 function RedirectBlock() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
 
-    instance.loginRedirect();
+    console.log("Login redirect with scope")
+    instance.loginRedirect({ scopes: ["openid", "user.read", "email", "user"]});
 
     return null;
 }
 
 function signInClickHandler(instance) {
-    instance.loginRedirect();
+    console.log("signIn redirect with scope")
+    instance.loginRedirect({ scopes: ["openid", "email", "profile"]});
 }
 
 
@@ -275,13 +326,7 @@ function SignOutButton() {
     return <Button  variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}>Sign Out</Button>;
 }
   
-function WelcomeUser() {
-    const { accounts } = useMsal();
-    const username = accounts[0].username;
-    console.log(accounts[0]);
-  
-    return <p>Welcome, {username}</p>;
-}
+
 
 export default function MyApp(props) {
 
@@ -489,6 +534,7 @@ export default function MyApp(props) {
                 </Drawer>
                 <div className={classes.appBarSpacer} />    
                 <AuthenticatedTemplate>
+                    <WelcomeUser/>
                     <Component {...pageProps} />
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
