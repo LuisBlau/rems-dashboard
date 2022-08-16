@@ -123,20 +123,23 @@ export default function snmp(props) {
 		let deviceAddresses = {}
 		for (let c in commandList) {
 			let realidx = (parseInt(c) + 1)
-			deviceTypes["com.tgcs.rma.pas.snmpDeviceType" + realidx.toString()] = commandList[c]["arguments"]["DeviceType"]
-			deviceAddresses["com.tgcs.rma.pas.snmpDeviceAddress" + realidx.toString()] = commandList[c]["arguments"]["ipaddress"]
+			deviceTypes["com.tgcs.retail.snmpDevice.type" + realidx.toString()] = commandList[c]["arguments"]["DeviceType"]
+			deviceAddresses["com.tgcs.retail.snmpDevice.networkName" + realidx.toString()] = commandList[c]["arguments"]["ipaddress"]
 		}
 		let cookies = new Cookies();
         let commandObj = {
           "retailer":cookies.get('retailerId'),
           "storeName":selectedStore,
           "agentName": selectedAgent,
-          "configFile":"/cdrive/f_drive/rma/user/rma/rmauser.properties",
+          "configFile":"user/rma/rmauser.properties",
           "type":"property",
 		  "category":"rma",
 		  "values":[
+              {
+                 "com.tgcs.retail.snmpDevices.Enabled":"true"
+              },
               {
-                 "com.tgcs.rma.pas.snmpDevices": commandList.length
+                 "com.tgcs.retail.snmpDevices.count":commandList.length
               },
 				deviceTypes,
 				deviceAddresses
@@ -231,7 +234,7 @@ export default function snmp(props) {
             <div className={classes.appBarSpacer} />
             <Container maxWidth="xl" className={classes.container} >
                 < form onSubmit={handleSubmit} >
-                        <Typography align="center" variant="h3">Create Snmp Request</Typography>
+                        <Typography align="center" variant="h3">Set SNMP Devices</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={4}/>
                             <Grid item xs={4}>
