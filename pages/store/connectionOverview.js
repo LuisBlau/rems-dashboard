@@ -112,7 +112,7 @@ function CloudConnected(props) {
 }
 function PasConnected(props) {
   if(props.up) {
-    return <Tooltip title="PAS Assistence On"><HandymanIcon fontSize="large"/></Tooltip>
+    return <Tooltip title="PAS Assistance On"><HandymanIcon fontSize="large"/></Tooltip>
   } else {
     return <Typography></Typography>
   }
