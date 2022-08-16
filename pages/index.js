@@ -2,15 +2,10 @@ import React from "react";
 import { styled } from '@mui/material/styles';
 import clsx from "clsx";
 import Typography from '@mui/material/Typography';
-import Realtime from "./registers/realtime_alternative";
-import DeployStatus from "./deployStatus";
-import { msalInstance } from "./authConfig"; 
 import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
-  useMsal,
 } from '@azure/msal-react';
-import Head from 'next/head';
 
 const PREFIX = 'index';
 
@@ -61,15 +56,6 @@ const Root = styled('main')((
 
 const drawerWidth = 240;
 
-function WelcomeUser() {
-  const { accounts } = useMsal();
-  const username = accounts[0].username;
-  
-  window.location.href = "/store/connectionOverview"
-  return <div/>;
-}
-
-
 export default function Index() {
 
   const [open, setOpen] = React.useState(true);
@@ -85,7 +71,7 @@ export default function Index() {
     <Root >
       <div className={classes.appBarSpacer} />
       <AuthenticatedTemplate>
-        <WelcomeUser />
+        {/* <WelcomeUser /> */}
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Typography align="center" variant="h4">Sign in to access the portal</Typography>

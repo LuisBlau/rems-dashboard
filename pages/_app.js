@@ -18,21 +18,14 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Divider from "@mui/material/Divider";
 import Cookies from 'universal-cookie';
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
-import List from "@mui/material/List";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import ScheduleIcon from '@mui/icons-material/Schedule';
-import Link from "next/link";
 import PublishIcon from '@mui/icons-material/Publish';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices';
-import CreateIcon from '@mui/icons-material/Create';
-import axios from "axios"
 import { useRouter } from 'next/router'
 import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
 import BugReportIcon from '@mui/icons-material/BugReport';
@@ -41,12 +34,9 @@ import HighlightIcon from '@mui/icons-material/Highlight';
 import Sidebar from '../components/Sidebar';
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-
-import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate,MsalAuthenticationTemplate } from "@azure/msal-react";
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 import { EventType, InteractionType } from "@azure/msal-browser";
-import { msalInstance, getMsalConfig, loginRequest } from "./authConfig";
-
-
+import { msalInstance } from "./authConfig";
 import { ThemeProvider } from '@emotion/react';
 import { Button } from "@mui/material";
 
@@ -83,7 +73,6 @@ const Root = styled('main')((
         paddingTop: 80
     }
 }));
-
 
 const drawerWidth = 240;
 
@@ -248,54 +237,13 @@ const MenuItems = [
     }
 ];
 
-
 function WelcomeUser() {
-
-    const [accessToken, setAccessToken] = useState(null);
-
     const { accounts } = useMsal();
     const username = accounts[0].username;
-    console.log("User logged in")
-    console.log(accounts)
-
-    function RequestAccessToken() {
-        const request = {
-            ...loginRequest,
-            account: accounts[0]
-        };
+    console.log("User logged in: " + username)
     
-        // Silently acquires an access token which is then attached to a request for Microsoft Graph data
-        msalInstance.acquireTokenSilent(request).then((response) => {
-            console.log("Access Token acquired1")
-        console.log(JSON.stringify(response))
-        console.log("end")
-            setAccessToken(response.accessToken);
-        }).catch((e) => {
-            msalInstance.acquireTokenPopup(request).then((response) => {
-                setAccessToken(response.accessToken);
-            });
-        });
-    }
-
-    if ( accessToken )
-    {
-        console.log("Access Token acquired2")
-        console.log(accessToken)
-        console.log("end")
-        }
-
-    return <root>
-        <p>Welcome, {username}</p>
-        { accessToken ? 
-            <p> Accedss Token Acquired!</p>
-            :<Button variant="secondary" onClick={RequestAccessToken}>Request Access Token</Button>
-            
-        }
-        </root>
+    return null
 }
-
-
-
 
 function RedirectBlock() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
@@ -312,7 +260,6 @@ function signInClickHandler(instance) {
     instance.loginRedirect({ scopes: ["openid", "email", "profile"]});
 }
 
-
 function SignInButton() {
     // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
     const { instance } = useMsal();
@@ -325,8 +272,6 @@ function SignOutButton() {
   
     return <Button  variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}>Sign Out</Button>;
 }
-  
-
 
 export default function MyApp(props) {
 
@@ -373,7 +318,6 @@ export default function MyApp(props) {
 		setSelectedId(e.target.value)
 		location.reload()
 	}
-		
 
   /**
    * Using the event API, you can register an event callback that will do something when an event is emitted. 
@@ -403,8 +347,8 @@ export default function MyApp(props) {
                  * "acr" claim in the token tells us what policy is used (NOTE: for new policies (v2.0), use "tfp" instead of "acr").
                  * To learn more about B2C tokens, visit https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
                  */
-                console.log(event.payload);
-                if (event.payload.idTokenClaims["acr"] === b2cPolicies.names.forgotPassword) {
+                 console.log(event.payload);
+                 if (event.payload.idTokenClaims["acr"] === b2cPolicies.names.forgotPassword) {
                     window.alert("Password has been reset successfully. \nPlease sign-in with your new password.");
                     //return instance.logout();
                 } else if (event.payload.idTokenClaims["acr"] === b2cPolicies.names.editProfile) {
