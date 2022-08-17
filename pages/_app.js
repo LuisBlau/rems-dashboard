@@ -468,7 +468,7 @@ export default function MyApp(props) {
                         id="demo-simple-select"
                         value={selectedId}
                         onChange={handleSelectedIdChange}>
-                        {ids.map((x) => <MenuItem sx={{mt: 1}} value={x}>{x}</MenuItem>)}
+                        {ids.map((x) => <MenuItem key={x} sx={{mt: 1}} value={x}>{x}</MenuItem>)}
                     </Select>
                         <AuthenticatedTemplate >
                             <SignOutButton />
