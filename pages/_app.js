@@ -145,8 +145,8 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const MenuItems = [];
 let userRolesChecked = false;
 let userRoles = [];
-let menuPopulated = false;
 let gettingRoles = false;
+let hasBaseMenuItems = false;
 
 function WelcomeUser() {
     const { accounts } = useMsal();
@@ -155,49 +155,49 @@ function WelcomeUser() {
         getRoles(username);
     }
 
-    if (userRolesChecked && !menuPopulated){
-        populateSidebar();
-    }
-    
+    populateSidebar();
     return null;
 }
 
 function populateSidebar() {
     console.log("populating sidebar for roles: " + userRoles);
-    MenuItems.push(
-        /*  {
-            name: "Dashboard",
-            route: "/",
-            icon: <DashboardIcon/>
-        }, {
-            name: "Store Release Levels",
-            route: "/store/releaseOverview",
-            icon: <SystemUpdateAltIcon/>,
-        }, {
-            name: "Store Connection",
-            route: "/store/connectionOverview",
-            icon: <SettingsInputComponentIcon/>,
-        }, {
-            name: "All Seeing Eye",
-            route: "/registers/allSeeingEye",
-            icon: <Visibility/>,
-        }, {
-            name: "SCO Drive Use",
-            route: "/controller/lowMemoryOverview",
-            icon: <Storage/>,
-        }, {
-            name: "VPD Info",
-            route: "/controller/vpdOverview",
-            icon: <NetworkCheckIcon/>,
-        } */
-        { 
-            id: "overview",
-            name: "Enterprise Overview",
-            route: "/store/connectionOverview",
-            icon: <HighlightIcon />,
-            roles: ["admin", "user"]
-        },
-    );
+    if (!hasBaseMenuItems){
+        MenuItems.push(
+            /*  {
+                name: "Dashboard",
+                route: "/",
+                icon: <DashboardIcon/>
+            }, {
+                name: "Store Release Levels",
+                route: "/store/releaseOverview",
+                icon: <SystemUpdateAltIcon/>,
+            }, {
+                name: "Store Connection",
+                route: "/store/connectionOverview",
+                icon: <SettingsInputComponentIcon/>,
+            }, {
+                name: "All Seeing Eye",
+                route: "/registers/allSeeingEye",
+                icon: <Visibility/>,
+            }, {
+                name: "SCO Drive Use",
+                route: "/controller/lowMemoryOverview",
+                icon: <Storage/>,
+            }, {
+                name: "VPD Info",
+                route: "/controller/vpdOverview",
+                icon: <NetworkCheckIcon/>,
+            } */
+            { 
+                id: "overview",
+                name: "Enterprise Overview",
+                route: "/store/connectionOverview",
+                icon: <HighlightIcon />,
+                roles: ["admin", "user"]
+            },
+        );
+    }
+    
     if (userRoles.includes("admin") || userRoles.includes("devops")) {
         MenuItems.push({
             id: "softwareDeploy",
@@ -231,12 +231,15 @@ function populateSidebar() {
         },)
     }
 
-	MenuItems.push({
-        name: "SNMP",
-        route: "/snmp",
-        icon: <SystemUpdateAltIcon/>,
-        },
-    );
+    if (!hasBaseMenuItems) {
+        MenuItems.push({
+            name: "SNMP",
+            route: "/snmp",
+            icon: <SystemUpdateAltIcon/>,
+            },
+        );
+        hasBaseMenuItems = true;
+    }
 
     if (userRoles.includes("admin") || userRoles.includes("support")){
         MenuItems.push(
@@ -268,7 +271,6 @@ function populateSidebar() {
             },
         )
     }
-   menuPopulated = true;
 }
 
 function RedirectBlock() {
