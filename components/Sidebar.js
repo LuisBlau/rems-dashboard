@@ -34,7 +34,6 @@ const sidebarTheme = createTheme({
 })
 */
 
-import axios from 'axios';
 
 function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
     return (
@@ -60,20 +59,6 @@ function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...r
         ) : null}
       </>
     )
-  }
-
-  function checkRole(item) {
-
-    const [role, setRole] = useState(null);
-    if(role === null) {
-      axios.get("/api/REMS/getRoleDetails?email=brent.shores@toshibagcs.com").then((resp) => {
-        if(resp.data) {
-            setRole(resp.data.role);
-        }
-      });
-    }
-    
-    return item.roles.indexOf(role) !== -1;
   }
   
   function Sidebar({ items, depthStep, depth }) {

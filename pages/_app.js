@@ -39,6 +39,7 @@ import { EventType, InteractionType } from "@azure/msal-browser";
 import { msalInstance } from "./authConfig";
 import { ThemeProvider } from '@emotion/react';
 import { Button } from "@mui/material";
+import axios from 'axios';
 
 const PREFIX = '_app';
 
@@ -141,108 +142,133 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     }),
 );
 
-const MenuItems = [
-    /*  {
-        name: "Dashboard",
-        route: "/",
-        icon: <DashboardIcon/>
-      }, {
-        name: "Store Release Levels",
-        route: "/store/releaseOverview",
-        icon: <SystemUpdateAltIcon/>,
-      }, {
-        name: "Store Connection",
-        route: "/store/connectionOverview",
-        icon: <SettingsInputComponentIcon/>,
-      }, {
-        name: "All Seeing Eye",
-        route: "/registers/allSeeingEye",
-        icon: <Visibility/>,
-      }, {
-        name: "SCO Drive Use",
-        route: "/controller/lowMemoryOverview",
-        icon: <Storage/>,
-      }, {
-        name: "VPD Info",
-        route: "/controller/vpdOverview",
-        icon: <NetworkCheckIcon/>,
-      } */
-    { 
-        id: "overview",
-        name: "Enterprise Overview",
-        route: "/store/connectionOverview",
-        icon: <HighlightIcon />,
-        roles: ["admin", "user"]
-    },
-    {
-        id: "softwareDeploy",
-        name:"Software Distribution",
-        icon: <PendingActionsIcon />,
-        route: "/deployStatus",
-        roles: ["admin"],
-        items:[
-            {
-                id:"uploadFile",
-                name: "Upload a File",
-                route: "/fileUpload",
-                icon: <PublishIcon />
-            }, {
-                id:"deployConfig",
-                name: "Create Deploy Config",
-                route: "/deployCreate",
-                icon: <AddCircleOutline />
-            }, {
-                id:"scheduleDeploy",
-                name: "Schedule a Deployment",
-                route: "/deploySchedule",
-                icon: <ScheduleIcon />
-            }, {
-                id:"selectAgents",
-                name: "Select Agents",
-                route: "/agentSelect",
-                icon: <ImportantDevicesIcon />
-            }
-        ]
-    },
-	{
-    name: "SNMP",
-    route: "/snmp",
-    icon: <SystemUpdateAltIcon/>,
-    },
-    {
-        id:"Doc Collection",
-        name:"Doc Collection",
-        route: "/store/captureTable",
-        icon: <BugReportIcon />,
-        roles: ["admin"],
-        items: [
-    
-            {
-                id:"dumps",
-                name: "Dumps",
-                route: "/store/dumpTable",
-                icon: <CarCrashIcon />
-            }, {
-                id:"extracts",
-                name: "Chec Extracts",
-                route: "/store/extractTable",
-                icon: <CarCrashIcon />
-            }, {
-                id:"dataCapture",
-                name: "DataCapture",
-                route: "/registers/ExtractRequest",
-                icon: <CloudDownloadIcon />
-            }
-        ]
-    }
-];
+const MenuItems = [];
+let userRolesChecked = false;
+let userRoles = [];
+let menuPopulated = false;
+let gettingRoles = false;
 
 function WelcomeUser() {
     const { accounts } = useMsal();
     const username = accounts[0].username;
-    console.log("User logged in: " + username)
+    if (!userRolesChecked && !gettingRoles) {
+        getRoles(username);
+    }
+
+    if (userRolesChecked && !menuPopulated){
+        populateSidebar();
+    }
     
-    return null
+    return null;
+}
+
+function populateSidebar() {
+    console.log("populating sidebar for roles: " + userRoles);
+    MenuItems.push(
+        /*  {
+            name: "Dashboard",
+            route: "/",
+            icon: <DashboardIcon/>
+        }, {
+            name: "Store Release Levels",
+            route: "/store/releaseOverview",
+            icon: <SystemUpdateAltIcon/>,
+        }, {
+            name: "Store Connection",
+            route: "/store/connectionOverview",
+            icon: <SettingsInputComponentIcon/>,
+        }, {
+            name: "All Seeing Eye",
+            route: "/registers/allSeeingEye",
+            icon: <Visibility/>,
+        }, {
+            name: "SCO Drive Use",
+            route: "/controller/lowMemoryOverview",
+            icon: <Storage/>,
+        }, {
+            name: "VPD Info",
+            route: "/controller/vpdOverview",
+            icon: <NetworkCheckIcon/>,
+        } */
+        { 
+            id: "overview",
+            name: "Enterprise Overview",
+            route: "/store/connectionOverview",
+            icon: <HighlightIcon />,
+            roles: ["admin", "user"]
+        },
+    );
+    if (userRoles.includes("admin") || userRoles.includes("devops")) {
+        MenuItems.push({
+            id: "softwareDeploy",
+            name:"Software Distribution",
+            icon: <PendingActionsIcon />,
+            route: "/deployStatus",
+            roles: ["admin"],
+            items:[
+                {
+                    id:"uploadFile",
+                    name: "Upload a File",
+                    route: "/fileUpload",
+                    icon: <PublishIcon />
+                }, {
+                    id:"deployConfig",
+                    name: "Create Deploy Config",
+                    route: "/deployCreate",
+                    icon: <AddCircleOutline />
+                }, {
+                    id:"scheduleDeploy",
+                    name: "Schedule a Deployment",
+                    route: "/deploySchedule",
+                    icon: <ScheduleIcon />
+                }, {
+                    id:"selectAgents",
+                    name: "Select Agents",
+                    route: "/agentSelect",
+                    icon: <ImportantDevicesIcon />
+                }
+            ]
+        },)
+    }
+
+	MenuItems.push({
+        name: "SNMP",
+        route: "/snmp",
+        icon: <SystemUpdateAltIcon/>,
+        },
+    );
+
+    if (userRoles.includes("admin") || userRoles.includes("support")){
+        MenuItems.push(
+            {
+                id:"Doc Collection",
+                name:"Doc Collection",
+                route: "/store/captureTable",
+                icon: <BugReportIcon />,
+                roles: ["admin"],
+                items: [
+            
+                    {
+                        id:"dumps",
+                        name: "Dumps",
+                        route: "/store/dumpTable",
+                        icon: <CarCrashIcon />
+                    }, {
+                        id:"extracts",
+                        name: "Chec Extracts",
+                        route: "/store/extractTable",
+                        icon: <CarCrashIcon />
+                    }, {
+                        id:"dataCapture",
+                        name: "DataCapture",
+                        route: "/registers/ExtractRequest",
+                        icon: <CloudDownloadIcon />
+                    }
+                ]
+            },
+        )
+    }
+   menuPopulated = true;
 }
 
 function RedirectBlock() {
@@ -271,6 +297,22 @@ function SignOutButton() {
     const { instance } = useMsal();
   
     return <Button  variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}>Sign Out</Button>;
+}
+
+async function getRoles(username) {
+    console.log("Getting Roles for: " + username);
+    gettingRoles = true;
+    await axios.get("/api/REMS/getRoleDetails?email=" + username).then((resp) => { 
+        if (resp.data.role) {
+            userRoles = resp.data.role;
+            console.log(userRoles);
+        } 
+    });
+    if (userRoles.length > 0){
+        userRolesChecked = true;
+    } else {
+        console.log("USER NEEDS AT LEAST ONE ROLE");
+    }
 }
 
 export default function MyApp(props) {
