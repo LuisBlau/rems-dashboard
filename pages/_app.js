@@ -159,7 +159,6 @@ function WelcomeUser() {
 }
 
 function populateSidebar() {
-    console.log("populating sidebar for roles: " + userRoles);
     if (!MenuItems.some(x => x.name == "Enterprise Overview")){
         MenuItems.push(
             /*  {
@@ -300,12 +299,10 @@ function SignOutButton() {
 }
 
 async function getRoles(username) {
-    console.log("Getting Roles for: " + username);
     gettingRoles = true;
     await axios.get("/api/REMS/getRoleDetails?email=" + username).then((resp) => { 
         if (resp.data.role) {
             userRoles = resp.data.role;
-            console.log(userRoles);
         } 
     });
     if (userRoles.length > 0){
