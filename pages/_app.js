@@ -146,9 +146,6 @@ const MenuItems = [];
 let userRolesChecked = false;
 let userRoles = [];
 let gettingRoles = false;
-let hasBaseMenuItems = false;
-let hasSoftwareMenuItems = false;
-let hasDocsMenuItems = false;
 
 function WelcomeUser() {
     const { accounts } = useMsal();
@@ -163,7 +160,7 @@ function WelcomeUser() {
 
 function populateSidebar() {
     console.log("populating sidebar for roles: " + userRoles);
-    if (!hasBaseMenuItems){
+    if (!MenuItems.some(x => x.name == "Enterprise Overview")){
         MenuItems.push(
             /*  {
                 name: "Dashboard",
@@ -200,7 +197,7 @@ function populateSidebar() {
         );
     }
     
-    if ((userRoles.includes("admin") || userRoles.includes("devops")) && !hasSoftwareMenuItems) {
+    if ((userRoles.includes("admin") || userRoles.includes("devops")) && !MenuItems.some(x => x.id == "softwareDeploy")) {
         MenuItems.push({
             id: "softwareDeploy",
             name:"Software Distribution",
@@ -231,20 +228,18 @@ function populateSidebar() {
                 }
             ]
         },);
-        hasSoftwareMenuItems = true;
     }
 
-    if (!hasBaseMenuItems) {
+    if (!MenuItems.some(x => x.name == "SNMP")) {
         MenuItems.push({
             name: "SNMP",
             route: "/snmp",
             icon: <SystemUpdateAltIcon/>,
             },
         );
-        hasBaseMenuItems = true;
     }
 
-    if ((userRoles.includes("admin") || userRoles.includes("support")) && !hasDocsMenuItems){
+    if ((userRoles.includes("admin") || userRoles.includes("support")) && !MenuItems.some(x => x.id == "Doc Collection")){
         MenuItems.push(
             {
                 id:"Doc Collection",
@@ -273,7 +268,6 @@ function populateSidebar() {
                 ]
             },
         );
-        hasDocsMenuItems = true;
     }
 }
 
