@@ -147,6 +147,8 @@ let userRolesChecked = false;
 let userRoles = [];
 let gettingRoles = false;
 let hasBaseMenuItems = false;
+let hasSoftwareMenuItems = false;
+let hasDocsMenuItems = false;
 
 function WelcomeUser() {
     const { accounts } = useMsal();
@@ -198,7 +200,7 @@ function populateSidebar() {
         );
     }
     
-    if (userRoles.includes("admin") || userRoles.includes("devops")) {
+    if ((userRoles.includes("admin") || userRoles.includes("devops")) && !hasSoftwareMenuItems) {
         MenuItems.push({
             id: "softwareDeploy",
             name:"Software Distribution",
@@ -228,7 +230,8 @@ function populateSidebar() {
                     icon: <ImportantDevicesIcon />
                 }
             ]
-        },)
+        },);
+        hasSoftwareMenuItems = true;
     }
 
     if (!hasBaseMenuItems) {
@@ -241,7 +244,7 @@ function populateSidebar() {
         hasBaseMenuItems = true;
     }
 
-    if (userRoles.includes("admin") || userRoles.includes("support")){
+    if ((userRoles.includes("admin") || userRoles.includes("support")) && !hasDocsMenuItems){
         MenuItems.push(
             {
                 id:"Doc Collection",
@@ -269,7 +272,8 @@ function populateSidebar() {
                     }
                 ]
             },
-        )
+        );
+        hasDocsMenuItems = true;
     }
 }
 
