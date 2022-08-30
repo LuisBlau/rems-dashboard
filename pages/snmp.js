@@ -260,8 +260,8 @@ export default function snmp(props) {
                             return (<SnmpCommand key={"cmd-" + idx} id={idx} st={snmpRequests[idx]} setst={setst} onRemove={removeCommand} />)
                         })}
 
-                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Request</Button>
-                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push Requests</Button>
+                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
+                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
                     
                 </form>
 
