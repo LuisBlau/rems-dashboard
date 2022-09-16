@@ -40,8 +40,9 @@ export default function SnmpCommand(props) {
                 label="Type"
                 onChange={setval("DeviceType")}
               >
-                <MenuItem value={"Printer"}>Printer</MenuItem>
-                <MenuItem value={"Scale"}>Scale</MenuItem>
+                <MenuItem value={"Printer"}>Toshiba POS Printer</MenuItem>
+                <MenuItem value={"Scale"}>Hobert Scale</MenuItem>
+                <MenuItem value={"UPS"}>Spectra UPS</MenuItem>
               </Select>
 			  <TextField value={getval("ipaddress")} onChange={setval("ipaddress")} label="IpAddress" variant="outlined" />
 				  {/*<Select
