@@ -396,7 +396,6 @@ export default function agentSelect() {
             <Divider />
             <List
                 sx={{
-                    width: 200,
                     height: 400,
                     overflow: "auto"
                 }}
@@ -490,8 +489,8 @@ export default function agentSelect() {
                 </Grid>
 
                 <Grid container align="center" spacing={2} justifyContent="center" alignItems="center">
-                    <Grid item>{customList("Existing Systems", left)}</Grid>
-                    <Grid item>
+                    <Grid item xs={2.5}>{customList("Existing Systems", left)}</Grid>
+                    <Grid item xs={1}>
                         <Grid container direction="column" alignItems="center">
                             <Button
                                 sx={{ my: 10 }}
@@ -537,7 +536,7 @@ export default function agentSelect() {
                             </Button>
                         </Grid>
                     </Grid>
-                    <Grid item>{customList("In Distribution List", right)}</Grid>
+                    <Grid item xs={2.5}>{customList("In Distribution List", right)}</Grid>
                 </Grid>
                 <Grid container align="center" spacing={10} justifyContent="center" alignItems="center">
                     <Grid item sx={{ margin: 2 }}>
