@@ -463,11 +463,11 @@ export default function MyApp(props) {
                         </IconButton>
                     <CssBaseline />
                     <Select 
-                        
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
+                        labelId="retailer-select-label"
+                        id="retailer-select"
                         value={selectedId}
-                        onChange={handleSelectedIdChange}>
+                        onChange={handleSelectedIdChange}
+                        sx={{color: "#e4e4e4", height: 40, margin: 1}}>
                         {ids.map((x) => <MenuItem key={x} sx={{mt: 1}} value={x}>{x}</MenuItem>)}
                     </Select>
                         <AuthenticatedTemplate >

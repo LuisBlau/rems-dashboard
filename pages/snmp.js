@@ -1,11 +1,9 @@
-import React, { Component, useState,useEffect,useReducer } from 'react';
+import React, { useState,useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from "@mui/material/Container";
-import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import Select from '@mui/material/Select';
 import Autocomplete from '@mui/material/Autocomplete';
 import SaveIcon from '@mui/icons-material/Save';
 import AddTaskIcon from '@mui/icons-material/AddTask';
@@ -77,23 +75,19 @@ const Root = styled('main')((
 
 
 export default function snmp(props) {
-
-    const [cInit, setcInit] = useState(false)
-    const [name, setName] = useState("")
-    const [snmpRequests, setSnmpRequests] = useState({})
-
+    const [cInit, setcInit] = useState(false);
+    const [name, setName] = useState("");
+    const [snmpRequests, setSnmpRequests] = useState({});
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState("")
     const [openFailure, setOpenFailure] = useState(false);
-    const [stores, setStores] = useState(null)
-	const [agents, setAgents] = useState(null)
-	const [selectedStore,setSelectedStore] = useState(null)
-	const [selectedAgent,setSelectedAgent] = useState(null)
-	const [toastFailure, setToastFailure] = useState("")
-	const [deploySelected, setDeploySelected] = useState("")
+    const [stores, setStores] = useState([]);
+	const [agents, setAgents] = useState([]);
+	const [selectedStore,setSelectedStore] = useState(null);
+	const [selectedAgent,setSelectedAgent] = useState(null);
+	const [toastFailure, setToastFailure] = useState("");
     useEffect(() => {
         axios.get("/api/REMS/stores").then(function (res) {
-            console.log("axios response", res)
             var packages = []
             res.data.forEach(v => {
                 packages.push(v["storeName"])
@@ -146,7 +140,7 @@ export default function snmp(props) {
 
           ]
 
-}
+        }
 
         axios.post('/api/sendSNMPRequest', commandObj)
             .then(function (response) {
@@ -215,9 +209,10 @@ export default function snmp(props) {
 		return "loading . . ."
 	}
 	const handleSelectedStore = (e,selectedValue) => {
-		setSelectedStore(selectedValue)
+		setSelectedStore(selectedValue);
+        // clears agent when a different store is selected
+        setSelectedAgent(null);
 		axios.get("/api/REMS/agents?store=" + selectedValue).then(function (res) {
-            console.log("axios response", res)
             var packages = []
             res.data.forEach(v => {
                 packages.push(v["agentName"])
@@ -227,41 +222,69 @@ export default function snmp(props) {
 	}
 	
 	const handleSelectedAgent = (e,selectedValue) => {
-		setSelectedAgent(selectedValue)
+		setSelectedAgent(selectedValue);
+        handleGatherConfig(selectedValue);
 	}
+
+    const handleGatherConfig = (agent) => {
+        // Get config values for agent and stores selected
+        axios.get("/api/getSNMPConfig", {params: {sName: selectedStore, aName: agent}})
+            .then(function (res) {
+                if (res.data) {
+                    var snmpDeviceCount = Object.entries(res.data.find(o => o["com.tgcs.retail.snmpDevices.count"]))[0][1];
+                    if (snmpDeviceCount > 0) {
+                        var devices = {};
+                        for(let i = 1; i <= snmpDeviceCount; i++) {
+                            var type = Object.entries(res.data.find(o => o[`com.tgcs.retail.snmpDevice.type${i}`]))[0][1];
+                            var ip = Object.entries(res.data.find(o => o[`com.tgcs.retail.snmpDevice.networkName${i}`]))[0][1];
+                            var device = {
+                                "arguments": {
+                                    "DeviceType": type,
+                                    "ipaddress": ip
+                                }
+                            }
+                            console.log(device);
+                            devices[i] = device;
+                        }
+                        setSnmpRequests(devices);
+                    }     
+                }
+            });
+    }
     return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="xl" className={classes.container} >
                 < form onSubmit={handleSubmit} >
-                        <Typography align="center" variant="h3">Set SNMP Devices</Typography>
+                        <Typography align="center" variant="h3" sx={{ marginBottom: 3 }}>Set SNMP Devices</Typography>
                         <Grid container spacing={2}>
-                            <Grid item xs={4}/>
-                            <Grid item xs={4}>
-                            <Autocomplete
-                            disablePortal
-                            options={stores}
-                            onInputChange={handleSelectedStore}
-                            sx={{ width: 300 }}
-                            renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore}/>}
-                            />
-							<Autocomplete
-							disabled={agents == null}
-                            disablePortal
-                            options={agents}
-                            onInputChange={handleSelectedAgent}
-                            sx={{ width: 300 }}
-                            renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent}/>}
-                            />
+                            <Grid item xs={4.5}/>
+                            <Grid item>
+                                <Autocomplete
+                                disablePortal
+                                options={stores}
+                                onInputChange={handleSelectedStore}
+                                value={selectedStore}
+                                sx={{ width: 300, marginBottom: 3 }}
+                                renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore}/>}
+                                />
+                                <Autocomplete
+                                disabled={agents == null}
+                                disablePortal
+                                options={agents}
+                                value={selectedAgent}
+                                onInputChange={handleSelectedAgent}
+                                sx={{ width: 300, marginBottom: 3 }}
+                                renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent}/>}
+                                />
                             </Grid>
                         </Grid>
                         {Object.keys(snmpRequests).map(function (idx) {
-
-                            return (<SnmpCommand key={"cmd-" + idx} id={idx} st={snmpRequests[idx]} setst={setst} onRemove={removeCommand} />)
+                            return (<SnmpCommand key={"cmd-" + idx} id={idx} st={snmpRequests[idx]} setst={setst} onRemove={removeCommand}/>)
                         })}
 
-                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
-                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
+                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "25%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
+                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "25%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
                     
                 </form>
 
