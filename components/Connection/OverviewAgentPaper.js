@@ -264,17 +264,14 @@ export default function OverviewAgentPaper(props) {
           </Grid>
               </Grid>
         <Grid container spacing={1}>
-          <Grid item xs={12}>
+          <Grid item xs={4}>
             <Link href={dump_link}>
               <Button variant="contained" size="medium">
                 Dump
               </Button>
             </Link>
           </Grid>
-        </Grid>
-
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
+          <Grid item xs={4}>
             <Link href={wake_link}>
               <Button variant="contained" size="medium">
                 Reload

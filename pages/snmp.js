@@ -230,7 +230,7 @@ export default function snmp(props) {
         // Get config values for agent and stores selected
         axios.get("/api/getSNMPConfig", {params: {sName: selectedStore, aName: agent}})
             .then(function (res) {
-                if (res.data) {
+                if (res.data && res.data.find(o => o["com.tgcs.retail.snmpDevices.count"])) {
                     var snmpDeviceCount = Object.entries(res.data.find(o => o["com.tgcs.retail.snmpDevices.count"]))[0][1];
                     if (snmpDeviceCount > 0) {
                         var devices = {};
