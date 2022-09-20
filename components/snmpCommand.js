@@ -37,7 +37,7 @@ export default function SnmpCommand(props) {
                     <Select
                     labelId="device-type-label"
                     id="device-type"
-                    value={getval("DeviceType") || ''}
+                    defaultValue={getval("DeviceType") || ''}
                     onChange={setval("DeviceType")}
                     sx={{ marginRight: 2 }}
                     label="Type"
@@ -49,7 +49,7 @@ export default function SnmpCommand(props) {
                     </Select>
                 </FormControl>
 			  
-			  <TextField value={getval("ipaddress")} onBlur={setval("ipaddress")} label="IP Address" variant="outlined" sx={{marginRight: 2}}/>
+			  <TextField defaultValue={getval("ipaddress")} onBlur={setval("ipaddress")} label="IP Address" variant="outlined" sx={{marginRight: 2}}/>
             </Grid>
             <Button variant="contained" sx={{ width: 170, height: 55 }} endIcon={<RemoveDoneIcon />} onClick={() => props.onRemove(props.id)} > Remove Task </Button>
         </Grid>
