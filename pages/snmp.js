@@ -15,7 +15,7 @@ import AlertTitle from "@mui/material/AlertTitle";
 import Typography from '@mui/material/Typography';
 import SnmpCommand from "../components/snmpCommand"
 import Cookies from 'universal-cookie';
-
+import { isIPAddress } from 'ip-address-validator';
 import axios from 'axios';
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
@@ -72,8 +72,6 @@ const Root = styled('main')((
 
 }));
 
-
-
 export default function snmp(props) {
     const [cInit, setcInit] = useState(false);
     const [name, setName] = useState("");
@@ -86,6 +84,7 @@ export default function snmp(props) {
 	const [selectedStore,setSelectedStore] = useState(null);
 	const [selectedAgent,setSelectedAgent] = useState(null);
 	const [toastFailure, setToastFailure] = useState("");
+    const [ips, setIps] = useState([]);
     useEffect(() => {
         axios.get("/api/REMS/stores").then(function (res) {
             var packages = []
@@ -226,6 +225,15 @@ export default function snmp(props) {
         handleGatherConfig(selectedValue);
 	}
 
+    const ipChangesAreValid = (ips) => {
+        for (let i = 0; i < ips.length; i++) {
+            if (!isIPAddress(ips[i].value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     const handleGatherConfig = (agent) => {
         // Get config values for agent and stores selected
         axios.get("/api/getSNMPConfig", {params: {sName: selectedStore, aName: agent}})
@@ -280,11 +288,11 @@ export default function snmp(props) {
                             </Grid>
                         </Grid>
                         {Object.keys(snmpRequests).map(function (idx) {
-                            return (<SnmpCommand key={"cmd-" + idx} id={idx} st={snmpRequests[idx]} setst={setst} onRemove={removeCommand}/>)
+                            return (<SnmpCommand key={"cmd-" + idx} id={idx} st={snmpRequests[idx]} ips={ips} setIps={setIps} setst={setst} onRemove={removeCommand}/>)
                         })}
 
                         <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "25%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
-                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "25%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
+                        <Button variant="contained" disabled={!ipChangesAreValid(ips)} color='primary' sx={{ marginTop: 1, marginLeft: "25%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
                     
                 </form>
 
