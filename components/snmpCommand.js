@@ -9,7 +9,9 @@ import { FormControl, InputLabel } from '@mui/material';
 
 export default function SnmpCommand(props) {
     const [state, setArgs] = useState({"downloads": [], "arguments":{}});
-    const setval = () => async function (x) {
+    const setProp = props.setst;
+
+    const setval = (name) => async function (x) {
         if (x.target.id != undefined) {
             if (!props.ips.some(y => y.name === x.target.id)){
                 await props.setIps([...props.ips, {key: props.ips.length+1, name: x.target.id, value: x.target.value}]);
@@ -20,6 +22,9 @@ export default function SnmpCommand(props) {
                 await props.setIps(ipList);
             }
         }
+        state["arguments"][name] = x.target.value
+        setArgs(state)
+        setProp(props.id, state)
     }
     
     if (Object.keys(props.st).length > 0) {
@@ -41,7 +46,7 @@ export default function SnmpCommand(props) {
                     <Select
                     labelId="device-type-label"
                     id="device-type"
-                    defaultValue={getval("DeviceType") || ''}
+                    value={getval("DeviceType")}
                     onChange={setval("DeviceType")}
                     sx={{ marginRight: 2 }}
                     label="Type"
@@ -49,7 +54,7 @@ export default function SnmpCommand(props) {
                     >
                 <MenuItem value={"Printer"}>Toshiba POS Printer</MenuItem>
                 <MenuItem value={"Scale"}>Hobert Scale</MenuItem>
-                <MenuItem value={"UPS"}>Spectra UPS</MenuItem>
+                <MenuItem value={"Ups"}>Spectra UPS</MenuItem>
                     </Select>
                 </FormControl>
 			  

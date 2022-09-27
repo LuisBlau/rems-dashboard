@@ -251,7 +251,6 @@ export default function snmp(props) {
                                     "ipaddress": ip
                                 }
                             }
-                            console.log(device);
                             devices[i] = device;
                         }
                         setSnmpRequests(devices);
