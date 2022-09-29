@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import { ListItemSecondaryAction } from '@mui/material';
-import Link from "next/link";
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+/* eslint-disable react/prop-types */
+import React, { } from 'react'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import Link from 'next/link'
 /*
 const sidebarTheme = createTheme({
   palette: {
@@ -34,9 +33,8 @@ const sidebarTheme = createTheme({
 })
 */
 
-
-function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
-    return (
+function SidebarItem ({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
+  return (
       <>
         <Link key={name} href={route}>
         <ListItem button dense {...rest} >
@@ -46,40 +44,39 @@ function SidebarItem({ name, icon, route, items, depthStep = 12, depth = 0, ...r
           </ListItemText>
         </ListItem>
         </Link>
-        {Array.isArray(items) ? (
+        {Array.isArray(items)
+          ? (
           <List disablePadding dense>
             {items.map((subItem) => (
               <SidebarItem
                 key={subItem.name}
-                
+
                 {...subItem}
               />
             ))}
           </List>
-        ) : null}
+            )
+          : null}
       </>
-    )
-  }
-  
-  function Sidebar({ items, depthStep, depth }) {
+  )
+}
 
-    
-
-    return (
-      //<ThemeProvider theme={sidebarTheme}>
+function Sidebar ({ items, depthStep, depth }) {
+  return (
+  // <ThemeProvider theme={sidebarTheme}>
         <div className="sidebar" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <List disablePadding dense>
           {items.map((sidebarItem, index) => (
             <SidebarItem
               key={`${sidebarItem.id}${index}`}
-              
+
               {...sidebarItem}
             />
           ))}
         </List>
       </div>
-      //</ThemeProvider>
-    )
-  }
+      // </ThemeProvider>
+  )
+}
 
 export default Sidebar

@@ -1,20 +1,21 @@
-import { Grid, Typography } from "@mui/material";
-import React from "react";
-import Title from "../Title";
-import Table from "@mui/material/Table";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableBody from "@mui/material/TableBody";
+/* eslint-disable react/jsx-key */
+/* eslint-disable react/prop-types */
+import { Grid, Typography } from '@mui/material'
+import React from 'react'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import TableBody from '@mui/material/TableBody'
 
-export default function OverviewReleasePaper(props) {
+export default function OverviewReleasePaper (props) {
   return (
     <Grid container spacing={1}>
       <Grid item xs={3}>
         <Typography variant="h5">{props.data.store_number}</Typography>
       </Grid>
       <Grid item xs={9}>
-        <Typography variant="subtitle1" align={"right"}>
+        <Typography variant="subtitle1" align={'right'}>
           {props.data.os_version}
         </Typography>
       </Grid>
@@ -22,12 +23,13 @@ export default function OverviewReleasePaper(props) {
         <ReleaseTable data={props.data.packages} />
       </Grid>
     </Grid>
-  );
+  )
 }
 
-function ReleaseTable(props) {
+function ReleaseTable (props) {
   if (props.data == null) return <div>loading</div>
-  else return (
+  else {
+    return (
     <React.Fragment>
       <Table size="small">
         <TableHead>
@@ -52,5 +54,6 @@ function ReleaseTable(props) {
         </TableBody>
       </Table>
     </React.Fragment>
-  );
+    )
+  }
 }

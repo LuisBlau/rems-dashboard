@@ -1,248 +1,228 @@
-import React, { Component, useState,useEffect,useReducer } from 'react';
-import { styled } from '@mui/material/styles';
-import Container from "@mui/material/Container";
-import Command from "../components/createCommands"
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
-import Select from '@mui/material/Select';
-import Autocomplete from '@mui/material/Autocomplete';
-import SaveIcon from '@mui/icons-material/Save';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddTaskIcon from '@mui/icons-material/AddTask';
-import Box from "@mui/material/Box";
-import Copyright from "../src/Copyright";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from '@mui/material/Alert';
-import AlertTitle from "@mui/material/AlertTitle";
-import Typography from '@mui/material/Typography';
+/* eslint-disable camelcase */
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from 'react'
+import { styled } from '@mui/material/styles'
+import Container from '@mui/material/Container'
+import Command from '../components/createCommands'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid'
+import Autocomplete from '@mui/material/Autocomplete'
+import SaveIcon from '@mui/icons-material/Save'
+import DeleteIcon from '@mui/icons-material/Delete'
+import AddTaskIcon from '@mui/icons-material/AddTask'
+import Box from '@mui/material/Box'
+import Copyright from '../src/Copyright'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+import Typography from '@mui/material/Typography'
 
-import axios from 'axios';
+import axios from 'axios'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
-const Success_Toast = 4000;
+const Success_Toast = 4000
 /// Number of millisec to show Failure toast. Page does not reload after.
-const Fail_Toast = 10000;
+const Fail_Toast = 10000
 
-const PREFIX = 'deployCreate';
+const PREFIX = 'deployCreate'
 
 const classes = {
-    content: `${PREFIX}-content`,
-    container: `${PREFIX}-container`,
-    appBarSpacer: `${PREFIX}-appBarSpacer`,
-    paper: `${PREFIX}-paper`,
-    fixedHeight: `${PREFIX}-fixedHeight`,
-    rowItemSX: `${PREFIX}-rowItemSX`
-};
+  content: `${PREFIX}-content`,
+  container: `${PREFIX}-container`,
+  appBarSpacer: `${PREFIX}-appBarSpacer`,
+  paper: `${PREFIX}-paper`,
+  fixedHeight: `${PREFIX}-fixedHeight`,
+  rowItemSX: `${PREFIX}-rowItemSX`
+}
 
 const Root = styled('main')((
-    {
-        theme
-    }
+  {
+    theme
+  }
 ) => ({
-    [`&.${classes.content}`]: {
-        flexGrow: 1,
-        height: "100vh",
-        overflow: "auto",
-    },
+  [`&.${classes.content}`]: {
+    flexGrow: 1,
+    height: '100vh',
+    overflow: 'auto'
+  },
 
-    [`& .${classes.container}`]: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-    },
+  [`& .${classes.container}`]: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4)
+  },
 
-    [`& .${classes.appBarSpacer}`]: {
-        paddingTop: 50
-    },
+  [`& .${classes.appBarSpacer}`]: {
+    paddingTop: 50
+  },
 
-    [`& .${classes.paper}`]: {
-        padding: theme.spacing(2),
-        display: "flex",
-        overflow: "auto",
-        flexDirection: "column",
-    },
+  [`& .${classes.paper}`]: {
+    padding: theme.spacing(2),
+    display: 'flex',
+    overflow: 'auto',
+    flexDirection: 'column'
+  },
 
-    [`& .${classes.fixedHeight}`]: {
-        height: 240,
-    },
+  [`& .${classes.fixedHeight}`]: {
+    height: 240
+  },
 
-    [`& .${classes.rowItem}`]: {
-        m: 1,
-        minWidth: 120
+  [`& .${classes.rowItem}`]: {
+    m: 1,
+    minWidth: 120
+  }
+
+}))
+
+export default function DeployCreateComponent (props) {
+  const [cInit, setcInit] = useState(false)
+  const [name, setName] = useState('')
+  const [commands, setCommands] = useState({})
+  const [configId, setConfigId] = useState(null)
+
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [toastSuccess, setToastSuccess] = useState('')
+  const [openFailure, setOpenFailure] = useState(false)
+  const [deploys, setDeploys] = useState(null)
+  const [selectedDeploy, setSelectedDeploy] = useState(null)
+  const [toastFailure, setToastFailure] = useState('')
+  const [deploySelected, setDeploySelected] = useState(false)
+  useEffect(() => {
+    axios.get('/api/REMS/deploy-configs').then(function (res) {
+      const packages = []
+      res.data.forEach(v => {
+        packages.push(v)
+      })
+      setDeploys(packages)
+    })
+  }, [])
+  const addCommand = () => {
+    const id = Date.now()
+    setCommands(commands => {
+      const jasper = Object()
+      Object.assign(jasper, commands) // creating copy of state variable jasper
+      jasper[id] = {} // update the name property, assign a new value
+      return jasper
+    })
+  }
+
+  const deleteDeploymentConfig = () => {
+    if (configId) {
+      axios.get('/api/REMS/delete-deploy-config?id=' + configId).then(function (resp) {
+        if (resp.status === 200) {
+          setToastSuccess(resp.data.message)
+          setOpenSuccess(true)
+        } else {
+          setToastFailure(resp.data.message)
+          setOpenFailure(true)
+        }
+      })
+
+      setTimeout(function () {
+        window.location.reload(true)
+      }, Success_Toast + 500)
+    } else {
+      setToastFailure('Please select existing deployment config')
+      setOpenFailure(true)
+    }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+
+    const commandList = []
+    for (const x in commands) {
+      const y = commands[x]
+      commandList.push(y)
     }
 
-}));
-
-export default function Upload(props) {
-
-    const [cInit, setcInit] = useState(false)
-    const [name, setName] = useState("")
-    const [commands, setCommands] = useState({})
-    const [configId, setConfigId] = useState(null);
-
-    const [openSuccess, setOpenSuccess] = useState(false);
-    const [toastSuccess, setToastSuccess] = useState("")
-    const [openFailure, setOpenFailure] = useState(false);
-    const [deploys, setDeploys] = useState(null)
-	const [selectedDeploy,setSelectedDeploy] = useState(null)
-	const [toastFailure, setToastFailure] = useState("")
-	const [deploySelected, setDeploySelected] = useState("")
-    useEffect(() => {
-        axios.get("/api/REMS/deploy-configs").then(function (res) {
-            console.log("axios response", res)
-            var packages = []
-            res.data.forEach(v => {
-                packages.push(v)
-            })
-            setDeploys(packages);
-        })
-    }, []);
-    const addCommand = () => {
-        let id = Date.now();
-        setCommands(commands => {
-            var jasper = Object();
-            Object.assign(jasper, commands);   // creating copy of state variable jasper
-            jasper[id] = {};                   // update the name property, assign a new value
-            return jasper;
-        })
+    const commandObj = {
+      name,
+      steps: commandList
     }
 
-    const deleteDeploymentConfig = () => {
-        console.log("In Delete Config method");
-        console.log(configId);
-        if(configId ) {
-            axios.get("/api/REMS/delete-deploy-config?id="+configId).then(function (resp) {
-                console.log("axios response", resp)
-                if(resp.status == 200) {
-                    setToastSuccess(resp.data.message);
-                    setOpenSuccess(true)
-                }else {
-                    setToastFailure(resp.data.message);
-                    setOpenFailure(true)
-                }
-            })
-    
-            setTimeout(function () {
-                 window.location.reload(true);
-            }, Success_Toast + 500)
-        }else {
-            console.log("In else block")
-            setToastFailure("Please select existing deployment config");
-            setOpenFailure(true)
-            return;
-
-        }        
-    }
-
-    const handleSubmit = (event) => {
-        event.preventDefault();
-
-        let commandList = []
-        for (let x in commands) {
-            let y = commands[x]
-            commandList.push(y)
+    axios.post('/api/sendCommand', commandObj)
+      .then(function (response) {
+        if (response.status !== 200) {
+          setToastFailure('Error Saving Deployment!!')
+          setOpenFailure(true)
+          return
         }
 
-        let commandObj = {
-            "name": name,
-            "steps": commandList
+        if (response.data.message === 'Duplicate') {
+          setToastFailure('Error - Duplicate Deployment')
+          setOpenFailure(true)
+          return
         }
 
-        axios.post('/api/sendCommand', commandObj)
-            .then(function (response) {
-                
-                if (response.status != 200) {
-                    setToastFailure("Error Saving Deployment!!")
-                    setOpenFailure(true)
-                    return
-                }
+        setToastSuccess('Configuration Successfully Saved.')
+        setOpenSuccess(true)
 
-                if (response.data.message == "Duplicate") {
-                    setToastFailure("Error - Duplicate Deployment")
-                    setOpenFailure(true)
-                    return 
+        setTimeout(function () {
+          window.location.reload(true)
+        }, Success_Toast + 500)
+      })
+      .catch(function (error) {
+        console.log(error)
+        setToastFailure('Error connecting to server!!')
+        setOpenFailure(true)
+      })
+  }
 
-                }
-                
+  const removeCommand = (id) => {
+    setCommands(commands => {
+      const jasper = Object()
 
-                setToastSuccess("Configuration Successfully Saved.")
-                setOpenSuccess(true)
+      Object.assign(jasper, commands) // creating copy of state variable jasper
+      delete jasper[id]
+      return jasper
+    })
+  }
 
-                setTimeout(function () {
-                    window.location.reload(true);
-                }, Success_Toast + 500)
+  const setst = (id, state) => {
+    setCommands(commands => {
+      const jasper = Object.assign({}, commands) // creating copy of state variable jasper
+      jasper[id] = state // update the name property, assign a new value
+      return jasper
+    })
+  }
 
-            })
-            .catch(function (error) {
-                console.log(error);
-                setToastFailure("Error connecting to server!!")
-                setOpenFailure(true)
-                return
-            });
+  const handleNameChange = (e) => {
+    setName(e.target.value)
+  }
 
+  if (!cInit) {
+    setcInit(true)
+    addCommand()
+  }
+  if (deploys == null) {
+    return 'loading . . .'
+  }
+  const handleSelectedDeploy = (e, selectedValue) => {
+    setCommands({})
+    setSelectedDeploy(selectedValue)
+    const dep = deploys.filter(d => { return d.name === selectedValue })[0]
+    setConfigId(dep.id)
+    const steps = dep.steps.map(function (s, idx) {
+      const obj = {}
+      obj.id = idx
+      obj.type = s.type
+      delete s.type
+      obj.arguments = s
+      return obj
+    })
+    const stepsobj = {}
+    for (const v of steps) {
+      stepsobj[v.id] = v
     }
-
-    const removeCommand = (id) => {
-
-        setCommands(commands => {
-
-            var jasper = Object();
-
-            Object.assign(jasper, commands);  // creating copy of state variable jasper
-            delete jasper[id];
-            return jasper;
-        })
-
-    }
-
-    const setst = (id, state) => {
-        setCommands(commands => {
-            let jasper = Object.assign({}, commands);  // creating copy of state variable jasper
-            jasper[id] = state;                     // update the name property, assign a new value
-            return jasper;
-        })
-    }
-
-    const handleNameChange = (e) => {
-        setName(e.target.value)
-    }
-
-    if (!cInit) {
-        setcInit(true)
-        addCommand()
-    }
-	if(deploys == null) {
-		return "loading . . ."
-	}
-	const handleSelectedDeploy = (e,selectedValue) => {
-		setCommands({})
-		console.log(selectedValue)
-		setSelectedDeploy(selectedValue)
-		let dep = deploys.filter(d => {return d.name == selectedValue})[0]
-        setConfigId(dep.id);
-		console.log(dep)
-		let steps = dep.steps.map(function(s,idx) {
-			let obj = {}
-			obj["id"] = idx
-			obj["type"] = s["type"]
-			delete s["type"]
-			obj["arguments"] = s
-			return obj
-		})
-		let stepsobj = {}
-		for(let v of steps) {
-			stepsobj[v["id"]] = v
-		}
-		console.log(stepsobj)
-		setName(selectedValue)
-		setCommands(stepsobj)
-		setDeploySelected(true)
-	}
-    const listItems = deploys.map(function(c, index) {
-		return { "label": c.name, "id":c.name}
-		});
-    return (
+    setName(selectedValue)
+    setCommands(stepsobj)
+    setDeploySelected(true)
+  }
+  const listItems = deploys.map(function (c, index) {
+    return { label: c.name, id: c.name }
+  })
+  return (
         <Root className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Container maxWidth="xl" className={classes.container} >
@@ -264,16 +244,15 @@ export default function Upload(props) {
                             />
                             </Grid>
                         </Grid>
-                        
-                        {Object.keys(commands).map(function (idx) {
 
-                            return (<Command key={"cmd-" + idx} id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand} />)
+                        {Object.keys(commands).map(function (idx) {
+                          return (<Command key={'cmd-' + idx} id={idx} st={commands[idx]} setst={setst} onRemove={removeCommand} />)
                         })}
 
-                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: "16%", width: "50%" }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Task to Deployment Config</Button>
-                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<DeleteIcon />} onClick={deleteDeploymentConfig}>Delete Deployment Configuration</Button>
-                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: "16%", width: "50%" }} endIcon={<SaveIcon />} type="submit" >Save Deployment Configuration</Button>
-                    
+                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: '16%', width: '50%' }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Task to Deployment Config</Button>
+                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }} endIcon={<DeleteIcon />} onClick={deleteDeploymentConfig}>Delete Deployment Configuration</Button>
+                        <Button variant="contained" color='primary' sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }} endIcon={<SaveIcon />} type="submit" >Save Deployment Configuration</Button>
+
                 </form>
 
                 <Box pt={4}>
@@ -281,7 +260,7 @@ export default function Upload(props) {
                 </Box>
 
                 <Snackbar
-                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openSuccess}
                     autoHideDuration={Success_Toast}
                     onClose={(event) => { setOpenSuccess(false) }}>
@@ -292,7 +271,7 @@ export default function Upload(props) {
                 </Snackbar>
 
                 <Snackbar
-                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openFailure}
                     autoHideDuration={Fail_Toast}
                     onClose={(event) => { setOpenFailure(false) }}>
@@ -304,5 +283,5 @@ export default function Upload(props) {
 
             </Container>
         </Root>
-    );
+  )
 }

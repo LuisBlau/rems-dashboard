@@ -1,18 +1,23 @@
-import useSWR from "swr";
-import fetcher from "../../lib/lib";
-import { Button, Grid, Container, LinearProgress, Typography } from "@mui/material";
-import { styled } from '@mui/material/styles';
-import { StarIcon, StarHalfIcon } from '@mui/icons-material';
-import Modal from '@mui/material/Modal';
-import Box from '@mui/material/Box';
-import React from "react";
-import Link from "@mui/material/Link";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
-const PREFIX = 'OverviewAgentPaper';
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable no-self-assign */
+/* eslint-disable no-useless-escape */
+/* eslint-disable camelcase */
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+import useSWR from 'swr'
+import fetcher from '../../lib/lib'
+import { Button, Grid, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import Modal from '@mui/material/Modal'
+import Box from '@mui/material/Box'
+import React from 'react'
+import Link from '@mui/material/Link'
+const PREFIX = 'OverviewAgentPaper'
 
 const classes = {
   barHeight: `${PREFIX}-barHeight`
-};
+}
 
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')((
@@ -23,12 +28,12 @@ const Root = styled('div')((
   [`& .${classes.barHeight}`]: {
     height: 50
   }
-}));
+}))
 
-function DisplayScreenShot(props) {
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+function DisplayScreenShot (props) {
+  const [open, setOpen] = React.useState(false)
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
   const style = {
     position: 'absolute',
     top: '50%',
@@ -39,8 +44,8 @@ function DisplayScreenShot(props) {
     border: '2px solid #000',
     outline: '#7c70b3',
     boxShadow: 24,
-    p: 4,
-  };
+    p: 4
+  }
   return (
     <Grid item xs={12}>
       <Button variant="contained" size="medium" onClick={handleOpen} >Screenshot</Button>
@@ -48,7 +53,6 @@ function DisplayScreenShot(props) {
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
           <ScreenCapture data={props.data} />
@@ -56,16 +60,14 @@ function DisplayScreenShot(props) {
       </Modal>
     </Grid>
   )
-
 }
-function ScreenCapture(props) {
-  
-  const {data, error} = useSWR(
-    "/REMS/agentScreenShot?storeName="+props.data.storeName+"&agentName="+props.data.agentName
-    ,fetcher);
+function ScreenCapture (props) {
+  const { data, error } = useSWR(
+    '/REMS/agentScreenShot?storeName=' + props.data.storeName + '&agentName=' + props.data.agentName
+    , fetcher)
 
-  if (error) return <div>No screenshot </div>;
-  if (!data) return <div>loading...</div>;
+  if (error) return <div>No screenshot </div>
+  if (!data) return <div>loading...</div>
   return (
     <Root>
           <Typography>
@@ -74,39 +76,38 @@ function ScreenCapture(props) {
           <Typography>
             {data.last_updated}
           </Typography>
-          <img class="card-img-top" src={"data:image/png;base64," + data.image} width={300} height={300} alt="Card image cap" />
+          <img className="card-img-top" src={'data:image/png;base64,' + data.image} width={300} height={300} alt="Card image cap" />
     </Root>
-  );
+  )
 }
-function timeSince(date) {
-  var seconds = ((new Date() - new Date(date)) / 1000)
+function timeSince (date) {
+  const seconds = ((new Date() - new Date(date)) / 1000)
 
-  var interval = seconds / 31536000;
-  console.log(String(interval))
+  let interval = seconds / 31536000
 
   if (interval > 1) {
-    return Math.floor(interval) + " years ago";
+    return Math.floor(interval) + ' years ago'
   }
-  interval = seconds / 2592000;
+  interval = seconds / 2592000
   if (interval > 1) {
-    return Math.floor(interval) + " months ago";
+    return Math.floor(interval) + ' months ago'
   }
-  interval = seconds / 86400;
+  interval = seconds / 86400
   if (interval > 1) {
-    return Math.floor(interval) + " days ago";
+    return Math.floor(interval) + ' days ago'
   }
-  interval = seconds / 3600;
+  interval = seconds / 3600
   if (interval > 1) {
-    return Math.floor(interval) + " hours ago";
+    return Math.floor(interval) + ' hours ago'
   }
-  interval = seconds / 60;
+  interval = seconds / 60
   if (interval > 1) {
-    return Math.floor(interval) + " minutes ago";
+    return Math.floor(interval) + ' minutes ago'
   }
-  return Math.floor(seconds) + " seconds ago";
+  return Math.floor(seconds) + ' seconds ago'
 }
 
-function DisplayMasterStar(props) {
+function DisplayMasterStar (props) {
   if (props.data.is_master) {
     return (
       <Grid item xs={12}>
@@ -120,7 +121,7 @@ function DisplayMasterStar(props) {
     </Grid>
   )
 }
-function DisplayOnOffStatus(props) {
+function DisplayOnOffStatus (props) {
   if (props.data.online) {
     return (
       <Grid item xs={4}>
@@ -135,72 +136,65 @@ function DisplayOnOffStatus(props) {
   )
 }
 
-function DisplaySalesApplication(props) {
-  const {data, error} = useSWR(
-    "/REMS/agents?store="+props.data.storeName+"&agentName="+props.data.agentName,
+function DisplaySalesApplication (props) {
+  const { data, error } = useSWR(
+    '/REMS/agents?store=' + props.data.storeName + '&agentName=' + props.data.agentName,
     fetcher
-  );
+  )
 
-  if (error) return <div>failed to load </div>;
-  if (!data) return <div>loading...</div>;
+  if (error) return <div>failed to load </div>
+  if (!data) return <div>loading...</div>
 
-  var displayData = data[0]?.status
-  var date = displayData?.snapshot
+  const displayData = data[0]?.status
+  let date = displayData?.snapshot
+  const isElmo = displayData?.ELMO
+  const isDB = displayData?.DeviceBroker
 
-  var displayData = data[0]?.status
-        const isElmo = displayData?.ELMO
-        const isDB = displayData?.DeviceBroker
-        
-        var date = displayData?.snapshot
-
-        if (isElmo) {
-          return (
-            <grid item xs={12}>
-              <Typography>Costl online: {String(timeSince(date=date))}</Typography>
-            </grid>
-          );
-          
-        }
-        else if(isDB){
-          return(
-            <grid item xs={12}>
+  if (isElmo) {
+    return (
+            <Grid item xs={12}>
+              <Typography>Costl online: {String(timeSince(date = date))}</Typography>
+            </Grid>
+    )
+  } else if (isDB) {
+    return (
+            <Grid item xs={12}>
               <Typography>WebPos</Typography>
               <Typography>{props.data.isUIstate}</Typography>
-            </grid>
-          );
-        }
-        return (
-          <grid item xs={12}>
+            </Grid>
+    )
+  }
+  return (
+          <Grid item xs={12}>
               <Typography>Unknown application</Typography>
-          </grid>
-  );
-        }
+          </Grid>
+  )
+}
 
-export default function OverviewAgentPaper(props) {
+export default function OverviewAgentPaper (props) {
+  const jsonCommand = { Retailer: props.data.retailer_id, Store: props.data.storeName, Agent: props.data.agentName, Command: 'Reload' }
+  const reload_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
+  jsonCommand.Command = 'Dump'
+  const dump_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
+  jsonCommand.Command = 'ScreenCapture'
+  const screencapture_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
+  jsonCommand.Command = 'Wake'
+  const wake_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
+  jsonCommand.Command = 'Sleep'
+  const sleep_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
 
-  var jsonCommand = { Retailer:props.data.retailer_id, Store:props.data.storeName, Agent:props.data.agentName, Command:"Reload"};
-  const reload_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-  jsonCommand.Command = "Dump";
-  const dump_link=         'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-  jsonCommand.Command = "ScreenCapture";
-  const screencapture_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-  jsonCommand.Command = "Wake";
-  const wake_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-  jsonCommand.Command = "Sleep";
-  const sleep_link='javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace("/\s\g","")))) + '")'
-
-
-  var hasStatus= false
-        var statusType=""
-        if(props.data.hasOwnProperty("status")){
-          if(props.data.status.hasOwnProperty("ELMO")){
-            hasStatus=true
-            statusType="ELMO"
-        }
-        if(props.data.status.hasOwnProperty("DeviceBroker")){
-          hasStatus=true
-          statusType="DeviceBroker"
-      }}
+  let hasStatus = false
+  let statusType = ''
+  if (props.data.hasOwnProperty('status')) {
+    if (props.data.status.hasOwnProperty('ELMO')) {
+      hasStatus = true
+      statusType = 'ELMO'
+    }
+    if (props.data.status.hasOwnProperty('DeviceBroker')) {
+      hasStatus = true
+      statusType = 'DeviceBroker'
+    }
+  }
 
   return (
     <Grid container>
@@ -235,43 +229,43 @@ export default function OverviewAgentPaper(props) {
 
         <Grid container spacing={1}>
                 <Grid className={classes.barHeight} item xs={12}>
-                <Typography>Status:</Typography>   
+                <Typography>Status:</Typography>
                 </Grid>
               </Grid>
               <Grid container spacing={1}>
                 <Grid className={classes.barHeight} item xs={12}>
                 {
-                    (hasStatus&& statusType=="ELMO") &&<Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
+                    (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
                   }
                   {
-                    (hasStatus&& statusType=="DeviceBroker") &&<Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
+                    (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
                   }
                   {
-                    (hasStatus&& statusType=="ELMO") &&<Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
+                    (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
                   }
                   {
-                    (hasStatus&& statusType=="DeviceBroker") &&<Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
+                    (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
                   }
                   {
-                    (hasStatus&& statusType=="ELMO") &&<Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
+                    (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
                   }
                   {
-                    (hasStatus&& statusType=="DeviceBroker") &&<Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
+                    (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
                   }
                   {
-                    (!hasStatus) &&<Typography>No Status Found</Typography>
+                    (!hasStatus) && <Typography>No Status Found</Typography>
                   }
           </Grid>
               </Grid>
         <Grid container spacing={1}>
-          <Grid item xs={4}>
+          <Grid item xs={4} sx={{ margin: 1 }}>
             <Link href={dump_link}>
               <Button variant="contained" size="medium">
                 Dump
               </Button>
             </Link>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={4} sx={{ margin: 1 }}>
             <Link href={wake_link}>
               <Button variant="contained" size="medium">
                 Reload
@@ -280,11 +274,10 @@ export default function OverviewAgentPaper(props) {
             </Grid>
         </Grid>
         <Grid container spacing={1}>
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ margin: 1 }}>
             <DisplayScreenShot data={props.data} />
           </Grid>
         </Grid>
     </Grid>
-  );
+  )
 }
-

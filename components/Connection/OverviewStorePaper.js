@@ -1,16 +1,18 @@
-import { Button, Grid, LinearProgress, Typography } from "@mui/material";
-import { styled } from '@mui/material/styles';
-import React from "react";
-import Link from "@mui/material/Link";
-import StoreIcon from '@mui/icons-material/Store';
-import PieChart, {Connector, Label, Legend, Series, Size} from 'devextreme-react/pie-chart';
-import Chart  from 'devextreme-react/chart';
+/* eslint-disable no-unused-vars */
+/* eslint-disable camelcase */
+/* eslint-disable react/prop-types */
+import { Button, Grid, LinearProgress, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
+import React from 'react'
+import Link from '@mui/material/Link'
+import StoreIcon from '@mui/icons-material/Store'
+import PieChart, { Connector, Label, Legend, Series, Size } from 'devextreme-react/pie-chart'
 
-const PREFIX = 'OverviewStorePaper';
+const PREFIX = 'OverviewStorePaper'
 
 const classes = {
   barHeight: `${PREFIX}-barHeight`
-};
+}
 
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')((
@@ -21,44 +23,42 @@ const Root = styled('div')((
   [`& .${classes.barHeight}`]: {
     height: 50
   }
-}));
+}))
 
+function timeSince (date) {
+  const seconds = Math.floor((new Date() - date) / 1000)
 
-function timeSince(date) {
-
-  var seconds = Math.floor((new Date() - date) / 1000);
-
-  var interval = seconds / 31536000;
+  let interval = seconds / 31536000
   if (interval > 1) {
-    return Math.floor(interval) + " year" + ((Math.floor(interval)!=1)?"s":"")+" ago";
+    return Math.floor(interval) + ' year' + ((Math.floor(interval) !== 1) ? 's' : '') + ' ago'
   }
-  interval = seconds / 2592000;
+  interval = seconds / 2592000
   if (interval > 1) {
-    return Math.floor(interval) + " month" + ((Math.floor(interval)!=1)?"s":"")+" ago";
+    return Math.floor(interval) + ' month' + ((Math.floor(interval) !== 1) ? 's' : '') + ' ago'
   }
-  interval = seconds / 86400;
+  interval = seconds / 86400
   if (interval > 1) {
-    return Math.floor(interval) + " day" + ((Math.floor(interval)!=1)?"s":"")+" ago";
+    return Math.floor(interval) + ' day' + ((Math.floor(interval) !== 1) ? 's' : '') + ' ago'
   }
-  interval = seconds / 3600;
+  interval = seconds / 3600
   if (interval > 1) {
-    return Math.floor(interval) + " hour" + ((Math.floor(interval)!=1)?"s":"")+" ago";
+    return Math.floor(interval) + ' hour' + ((Math.floor(interval) !== 1) ? 's' : '') + ' ago'
   }
-  interval = seconds / 60;
+  interval = seconds / 60
   if (interval > 1) {
-    return Math.floor(interval) + " minute" + ((Math.floor(interval)!=1)?"s":"")+" ago";
+    return Math.floor(interval) + ' minute' + ((Math.floor(interval) !== 1) ? 's' : '') + ' ago'
   }
-  return Math.floor(seconds) + " second" + ((Math.floor(seconds)!=1)?"s":"")+" ago";
+  return Math.floor(seconds) + ' second' + ((Math.floor(seconds) !== 1) ? 's' : '') + ' ago'
 }
 
-export default function OverviewStorePaper(props) {
-  const store_link = "/storeStatus"
+export default function OverviewStorePaper (props) {
+  const store_link = '/storeStatus'
 
-  var onlineAgents = [{ Type:"Online",Count:props.data.onlineAgents},{Type:"Offline", Count:props.data.totalAgents-props.data.onlineAgents}]
-  var paletteCollection = ['Green', 'Red']
+  const onlineAgents = [{ Type: 'Online', Count: props.data.onlineAgents }, { Type: 'Offline', Count: props.data.totalAgents - props.data.onlineAgents }]
+  const paletteCollection = ['Green', 'Red']
 
-  function customizeText({argument, value}) {
-    return `${argument}: ${value}`;
+  function customizeText ({ argument, value }) {
+    return `${argument}: ${value}`
   }
 
   return (
@@ -69,15 +69,15 @@ export default function OverviewStorePaper(props) {
       <Grid item xs={5}>
         <Grid container spacing={1}>
           <Grid item xs={12}>
-            <Link href={"/store/agentOverview?store="+props.data.storeName}>
+            <Link href={'/store/agentOverview?store=' + props.data.storeName}>
             <Typography variant="h5">{props.data.storeName}</Typography></Link>
-            <Typography>Updated: {timeSince(props.data.last_updated_sec*1000)}</Typography>
+            <Typography>Updated: {timeSince(props.data.last_updated_sec * 1000)}</Typography>
             <Typography>Online: {props.data.onlineAgents} of {props.data.totalAgents}</Typography>
           </Grid>
         </Grid>
       </Grid>
       <Grid item container xs={3}>
-        <PieChart id={"pie" + props.title} dataSource={onlineAgents}
+        <PieChart id={'pie' + props.title} dataSource={onlineAgents}
                     palette={paletteCollection} title={props.title} >
             <Legend visible={false}/>
             <Series
@@ -92,35 +92,35 @@ export default function OverviewStorePaper(props) {
         </PieChart>
       </Grid>
     </Grid>
-    
-  );
+
+  )
 }
 
-function ColoredProgressBar(props) {
-  const color = props.percent > 50 ? "primary" : "secondary";
+function ColoredProgressBar (props) {
+  const color = props.percent > 50 ? 'primary' : 'secondary'
   return (
     <LinearProgress
-      style={{height: "7px" }}
+      style={{ height: '7px' }}
       height={100}
-      variant={"determinate"}
+      variant={'determinate'}
       value={props.percent}
       color={color}
     />
-  );
+  )
 }
 
-function Buttons(props) {
+function Buttons (props) {
   return (
     <Root>
-      
+
       <Grid item xs={16}>
-        <Link target={"_blank"} href={props.store}>
+        <Link target={'_blank'} href={props.store}>
           <Button variant="contained" size="large">
             Store Status
           </Button>
         </Link>
       </Grid>
-      
+
     </Root>
-  );
+  )
 }

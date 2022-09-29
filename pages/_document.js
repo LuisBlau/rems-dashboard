@@ -1,9 +1,8 @@
-import React from "react";
-import Document, { Html, Head, Main, NextScript } from "next/document";
-import theme from "../src/theme";
-import { resetServerContext } from 'react-beautiful-dnd'
+import React from 'react'
+import Document, { Html, Head, Main, NextScript } from 'next/document'
+import theme from '../src/theme'
 export default class MyDocument extends Document {
-  render() {
+  render () {
     return (
       <Html lang="en">
         <Head>
@@ -19,8 +18,6 @@ export default class MyDocument extends Document {
           <NextScript />
         </body>
       </Html>
-    );
+    )
   }
 }
-
-

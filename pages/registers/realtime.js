@@ -1,30 +1,33 @@
-import React, {useEffect, useState} from "react";
-import { styled } from '@mui/material/styles';
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import Copyright from "../../src/Copyright";
-import Box from "@mui/material/Box";
-import {RealtimeCharts} from "../../components/RealtimeCharts";
-import InputLabel from "@mui/material/InputLabel";
-import Input from "@mui/material/Input";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
-import useSWR from "swr";
-import fetcher from "../../lib/fetcherWithHeader";
-import Table from "@mui/material/Table";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableBody from "@mui/material/TableBody";
-const PREFIX = 'realtime';
+/* eslint-disable camelcase */
+/* eslint-disable react/jsx-key */
+/* eslint-disable react/prop-types */
+import React, { useState } from 'react'
+import { styled } from '@mui/material/styles'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Copyright from '../../src/Copyright'
+import Box from '@mui/material/Box'
+import { RealtimeCharts } from '../../components/RealtimeCharts'
+import InputLabel from '@mui/material/InputLabel'
+import Input from '@mui/material/Input'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
+import useSWR from 'swr'
+import fetcher from '../../lib/fetcherWithHeader'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import TableBody from '@mui/material/TableBody'
+const PREFIX = 'realtime'
 
 const classes = {
   content: `${PREFIX}-content`,
   container: `${PREFIX}-container`,
   paper: `${PREFIX}-paper`,
   fixedHeight: `${PREFIX}-fixedHeight`
-};
+}
 
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')((
@@ -34,50 +37,49 @@ const Root = styled('div')((
 ) => ({
   [`& .${classes.content}`]: {
     flexGrow: 1,
-    height: "100vh",
-    overflow: "auto",
+    height: '100vh',
+    overflow: 'auto'
   },
 
   [`& .${classes.container}`]: {
     paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    paddingBottom: theme.spacing(4)
   },
 
   [`& .${classes.paper}`]: {
     padding: theme.spacing(2),
-    display: "flex",
-    overflow: "auto",
-    flexDirection: "column",
+    display: 'flex',
+    overflow: 'auto',
+    flexDirection: 'column'
   },
 
   [`& .${classes.fixedHeight}`]: {
-    height: 240,
+    height: 240
   }
-}));
+}))
 
-export default function Realtime() {
+export default function Realtime () {
   const [state, setState] = useState({
-    "store": 0,
-    "hours": 0,
-    "regOrSnap": "registers"
+    store: 0,
+    hours: 0,
+    regOrSnap: 'registers'
   })
 
-  function setStore(store) {
-    setState(prevState => ({...prevState, store}))
-    console.log("new state: " + JSON.stringify(state))
+  function setStore (store) {
+    setState(prevState => ({ ...prevState, store }))
+    console.log('new state: ' + JSON.stringify(state))
   }
 
-  function setHours(hours) {
-    setState(prevState => ({...prevState, hours}))
-    console.log("new state: " + JSON.stringify(state))
+  function setHours (hours) {
+    setState(prevState => ({ ...prevState, hours }))
+    console.log('new state: ' + JSON.stringify(state))
   }
 
-  function setRegOrSnap() {
-    let result = state["regOrSnap"] === 'snapshots' ? 'registers' : 'snapshots'
-    setState(prevState => ({...prevState, "regOrSnap": result}))
-    console.log("new state: " + JSON.stringify(state))
+  function setRegOrSnap () {
+    const result = state.regOrSnap === 'snapshots' ? 'registers' : 'snapshots'
+    setState(prevState => ({ ...prevState, regOrSnap: result }))
+    console.log('new state: ' + JSON.stringify(state))
   }
-
 
   return (
     <main className={classes.content}>
@@ -117,32 +119,29 @@ export default function Realtime() {
         </Box>
       </Container>
     </main>
-  );
+  )
 }
 
-function ReloadCount(props) {
-
-  const {data, error} = useSWR(
+function ReloadCount (props) {
+  const { data, error } = useSWR(
     [`/${props.state.regOrSnap}/reloads/`, props.state],
     fetcher
-  );
+  )
 
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
+  if (error) return <div>failed to load</div>
+  if (!data) return <div>loading...</div>
   return (
     <Root>
       {data.count}
     </Root>
-  );
+  )
 }
 
-function ReloadTable(props) {
+function ReloadTable (props) {
+  const { data, error } = useSWR('/snapshots/properties', fetcher)
 
-  const {data, error} = useSWR('/snapshots/properties', fetcher);
-
-  if (error) return <div>failed to load property data</div>;
-  if (!data) return <div>loading property data...</div>;
-
+  if (error) return <div>failed to load property data</div>
+  if (!data) return <div>loading property data...</div>
 
   return (
     <React.Fragment>
@@ -161,11 +160,10 @@ function ReloadTable(props) {
         </TableBody>
       </Table>
     </React.Fragment>
-  );
+  )
 }
 
-function ReloadTableHeader(props) {
-
+function ReloadTableHeader (props) {
   return ((
     props.properties.map((property) => (
       <TableCell>{property.property_id}:{property.property_name}</TableCell>
@@ -173,11 +171,11 @@ function ReloadTableHeader(props) {
   ))
 }
 
-function ReloadTableBody(props) {
-  const {data, error} = useSWR('/snapshots/snaptime', fetcher);
+function ReloadTableBody (props) {
+  const { data, error } = useSWR('/snapshots/snaptime', fetcher)
 
-  if (error) return <div>failed to load property data</div>;
-  if (!data) return <div>loading property data...</div>;
+  if (error) return <div>failed to load property data</div>
+  if (!data) return <div>loading property data...</div>
 
   console.log(data)
   // useEffect(
@@ -205,11 +203,11 @@ function ReloadTableBody(props) {
       {Object.keys(data).map((reload_key) => (
         <TableRow>
           <TableCell>{reload_key}</TableCell>
-          <TableCell>{data[reload_key]["country"]}</TableCell>
-          <TableCell>{data[reload_key]["register"]}</TableCell>
-          <TableCell>{data[reload_key]["store"]}</TableCell>
-          {Object.keys(data[reload_key]["props"]).map((prop_key) => (
-            <TableCell>{data[reload_key]["props"][prop_key]}</TableCell>
+          <TableCell>{data[reload_key].country}</TableCell>
+          <TableCell>{data[reload_key].register}</TableCell>
+          <TableCell>{data[reload_key].store}</TableCell>
+          {Object.keys(data[reload_key].props).map((prop_key) => (
+            <TableCell>{data[reload_key].props[prop_key]}</TableCell>
           ))}
         </TableRow>
       ))}

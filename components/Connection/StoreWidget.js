@@ -1,23 +1,22 @@
-import React from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Title from "../Title";
-import useSWR from "swr";
-import fetcher from "../../lib/lib";
-import {store} from "next/dist/build/output/store";
+import React from 'react'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Title from '../Title'
+import useSWR from 'swr'
+import fetcher from '../../lib/lib'
 
-export default function StoreWidget() {
+export default function StoreWidget () {
   const { data, error } = useSWR(
-    "/store-connection",
+    '/store-connection',
     fetcher
-  );
+  )
 
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
-  else
+  if (error) return <div>failed to load</div>
+  if (!data) return <div>loading...</div>
+  else {
     return (
       <React.Fragment>
         <Title>Store-Connection</Title>
@@ -35,29 +34,30 @@ export default function StoreWidget() {
           <TableBody>
             {data
               .sort((store1, store2) => {
-                let store1Total = store1["connected"] + store1["disconnected"]
-                let store2Total = store2["connected"] + store2["disconnected"];
-                return (store1["connected"] /store1Total) - (store2["connected"]/store2Total)
+                const store1Total = store1.connected + store1.disconnected
+                const store2Total = store2.connected + store2.disconnected
+                return (store1.connected / store1Total) - (store2.connected / store2Total)
               })
-              .slice(0,20)
+              .slice(0, 20)
               .map((store) => (
-              <TableRow key={store.store_num}>
-                <TableCell>{store.store_num}</TableCell>
-                <TableCell>{store.country}</TableCell>
-                <TableCell>
-                  {(
-                    (100 * store.connected) /
-                    (store.connected + store.disconnected)
-                  ).toFixed(2)}
-                  %
-                </TableCell>
-                <TableCell>{store.connected}</TableCell>
-                <TableCell>{store.disconnected}</TableCell>
-                <TableCell align="right">{store.last_updated}</TableCell>
-              </TableRow>
-            ))}
+                <TableRow key={store.store_num}>
+                  <TableCell>{store.store_num}</TableCell>
+                  <TableCell>{store.country}</TableCell>
+                  <TableCell>
+                    {(
+                      (100 * store.connected) /
+                      (store.connected + store.disconnected)
+                    ).toFixed(2)}
+                    %
+                  </TableCell>
+                  <TableCell>{store.connected}</TableCell>
+                  <TableCell>{store.disconnected}</TableCell>
+                  <TableCell align="right">{store.last_updated}</TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </React.Fragment>
-    );
+    )
+  }
 }
