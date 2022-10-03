@@ -3,46 +3,23 @@
 import { EventType, InteractionType } from '@azure/msal-browser'
 import { AuthenticatedTemplate, MsalProvider, UnauthenticatedTemplate, useMsal } from '@azure/msal-react'
 import { ThemeProvider } from '@emotion/react'
-import AddCircleOutline from '@mui/icons-material/AddCircleOutline'
-import BugReportIcon from '@mui/icons-material/BugReport'
-import CarCrashIcon from '@mui/icons-material/CarCrash'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
-import HighlightIcon from '@mui/icons-material/Highlight'
-import ImportantDevicesIcon from '@mui/icons-material/ImportantDevices'
-import MenuIcon from '@mui/icons-material/Menu'
-import NotificationsIcon from '@mui/icons-material/Notifications'
-import PendingActionsIcon from '@mui/icons-material/PendingActions'
-import PublishIcon from '@mui/icons-material/Publish'
-import ScheduleIcon from '@mui/icons-material/Schedule'
-import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt'
-import { Button } from '@mui/material'
-import MuiAppBar from '@mui/material/AppBar'
-import Badge from '@mui/material/Badge'
 import Container from '@mui/material/Container'
-import Divider from '@mui/material/Divider'
-import MuiDrawer from '@mui/material/Drawer'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import { styled } from '@mui/material/styles'
-import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import axios from 'axios'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import useSWR from 'swr'
-import Cookies from 'universal-cookie'
-import Sidebar from '../components/Sidebar'
+import HeaderToolbar from '../components/HeaderToolbar'
+import SidebarDrawer from '../components/SidebarDrawer'
 import fetcher from '../lib/lib.js'
 import theme from '../src/theme'
 import { msalInstance } from './authConfig'
 import { Guard } from '../components/AuthGuard'
-import { RoleContextProvider } from './RoleContext'
+import { UserContextProvider } from './UserContext'
+
 const PREFIX = '_app'
 
 const classes = {
@@ -76,173 +53,31 @@ const Root = styled('main')((
     paddingTop: 80
   }
 }))
-
-const drawerWidth = 240
-
-const openedMixin = (theme) => ({
-  width: drawerWidth,
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen
-  }),
-  overflowX: 'hidden'
-})
-
-const closedMixin = (theme) => ({
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
-  }),
-  overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`
-  }
-})
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar
-}))
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open'
-})(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  })
-}))
-
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    ...(open && {
-      ...openedMixin(theme),
-      '& .MuiDrawer-paper': openedMixin(theme)
-    }),
-    ...(!open && {
-      ...closedMixin(theme),
-      '& .MuiDrawer-paper': closedMixin(theme)
-    })
-  })
-)
-
-function RedirectBlock () {
-  // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
-  const { instance } = useMsal()
-
-  console.log('Login redirect with scope')
-  instance.loginRedirect({ scopes: ['openid', 'user.read', 'email', 'user'] })
-
-  return null
-}
-
-function signInClickHandler (instance) {
-  console.log('signIn redirect with scope')
-  instance.loginRedirect({ scopes: ['openid', 'email', 'profile'] })
-}
-
-function SignInButton () {
-  // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
-  const { instance } = useMsal()
-  return <Button variant="contained" onClick={() => signInClickHandler(instance)}>Sign In</Button>
-}
-
-function SignOutButton () {
-  // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
-  const { instance } = useMsal()
-
-  return <Button variant="contained" onClick={() => instance.logoutRedirect({ postLogoutRedirectUri: '/' })}>Sign Out</Button>
-}
-
-let userRoles = []
-let userRetailers = []
-
-function WelcomeUser () {
-  const { accounts } = useMsal()
-  const username = accounts[0].username
-  const [userDetails, setUserDetails] = useState({})
-
-  if (Object.keys(userDetails).length === 0) {
-    getUserDetails(username)
-  }
-  if (userRoles.length < 1) {
-    getRoles()
-    console.log(userRoles)
-  } else if (userRetailers.length < 1) {
-    getRetailers()
-    console.log(userRetailers)
-  }
-
-  function getRoles () {
-    if (userDetails.role) {
-      userRoles = userDetails.role
-    }
-    if (userRoles.length === 0) {
-      console.log('USER NEEDS AT LEAST ONE ROLE')
-    }
-  }
-
-  function getRetailers () {
-    if (userDetails.retailer) {
-      userRetailers = userDetails.retailer
-      for (let i = 0; i < userRetailers.length; i++) {
-        const seibab = userRetailers[i]
-        userRetailers[i] = seibab.toUpperCase()
-      }
-    }
-
-    if (userRetailers.length === 0) {
-      console.log('USER NEEDS AT LEAST ONE RETAILER')
-    }
-  }
-
-  async function getUserDetails (username) {
-    await axios.get('/api/REMS/getUserDetails?email=' + username).then((resp) => {
-      if (resp.data) {
-        setUserDetails(resp.data)
-      }
-    })
-  }
-
-  return null
-}
-
 export default function MyApp (props) {
+  const { accounts } = useMsal()
+  const username = accounts.length > 0 ? accounts[0].username : ''
   const { instance } = useMsal()
   const [ids, setIds] = useState([])
   const [dataSet, setDataSet] = useState(false)
-  const [selectedId, setSelectedId] = useState('')
-  const MenuItems = []
+  const [userDetails, setUserDetails] = useState({})
 
-  const cookies = new Cookies()
-  if (cookies.get('retailerId') === '' && userRetailers.length !== 0) {
-    let retailer = userRetailers[0]
-    retailer = String(retailer)
-    retailer = retailer.toUpperCase()
-    cookies.set('retailerId', retailer, { path: '/' })
-    console.log(cookies.get('retailerId'))
-  }
-  if (selectedId === '' && cookies.get('retailerId') !== undefined) {
-    setSelectedId(cookies.get('retailerId'))
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      async function getUserDetails (username) {
+        await axios.get('/api/REMS/getUserDetails?email=' + username).then((resp) => {
+          if (resp.data) {
+            setUserDetails(resp.data)
+          }
+        })
+      }
+      if (userDetails.length === 0) {
+        console.log('USER NEEDS DETAILS')
+        setUserDetails(await getUserDetails(username))
+      }
+    }
+    fetchData()
+  }, [userDetails, setUserDetails])
+
   const { data, error } = useSWR(
     '/REMS/retailerids',
     fetcher
@@ -252,7 +87,7 @@ export default function MyApp (props) {
     setIds(data)
     setDataSet(true)
   }
-  const router = useRouter()
+
   const { Component, pageProps } = props
   const [open, setOpen] = React.useState(false)
   const handleDrawerOpen = () => {
@@ -269,125 +104,6 @@ export default function MyApp (props) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
   }, [])
-
-  const handleSelectedRetailerChanged = (e) => {
-    cookies.set('retailerId', e.target.value, { path: '/' })
-    setSelectedId(e.target.value)
-    location.reload()
-  }
-
-  function getSidebarItems () {
-    if (!MenuItems.some(x => x.name === 'Enterprise Overview')) {
-      MenuItems.push(
-        /*  {
-                  name: "Dashboard",
-                  route: "/",
-                  icon: <DashboardIcon/>
-              }, {
-                  name: "Store Release Levels",
-                  route: "/store/releaseOverview",
-                  icon: <SystemUpdateAltIcon/>,
-              }, {
-                  name: "Store Connection",
-                  route: "/store/connectionOverview",
-                  icon: <SettingsInputComponentIcon/>,
-              }, {
-                  name: "All Seeing Eye",
-                  route: "/registers/allSeeingEye",
-                  icon: <Visibility/>,
-              }, {
-                  name: "SCO Drive Use",
-                  route: "/controller/lowMemoryOverview",
-                  icon: <Storage/>,
-              }, {
-                  name: "VPD Info",
-                  route: "/controller/vpdOverview",
-                  icon: <NetworkCheckIcon/>,
-              } */
-        {
-          id: 'overview',
-          name: 'Enterprise Overview',
-          route: '/store/connectionOverview',
-          icon: <HighlightIcon />,
-          roles: ['admin', 'user']
-        }
-      )
-    }
-
-    if ((userRoles.includes('admin') || userRoles.includes('devops')) && !MenuItems.some(x => x.id === 'softwareDeploy')) {
-      MenuItems.push({
-        id: 'softwareDeploy',
-        name: 'Software Distribution',
-        icon: <PendingActionsIcon />,
-        route: '/deployStatus',
-        roles: ['admin'],
-        items: [
-          {
-            id: 'uploadFile',
-            name: 'Upload a File',
-            route: '/fileUpload',
-            icon: <PublishIcon />
-          }, {
-            id: 'deployConfig',
-            name: 'Create Deploy Config',
-            route: '/deployCreate',
-            icon: <AddCircleOutline />
-          }, {
-            id: 'scheduleDeploy',
-            name: 'Schedule a Deployment',
-            route: '/deploySchedule',
-            icon: <ScheduleIcon />
-          }, {
-            id: 'selectAgents',
-            name: 'Select Agents',
-            route: '/agentSelect',
-            icon: <ImportantDevicesIcon />
-          }
-        ]
-      })
-    }
-
-    if (!MenuItems.some(x => x.name === 'SNMP')) {
-      MenuItems.push({
-        name: 'SNMP',
-        route: '/snmp',
-        icon: <SystemUpdateAltIcon/>
-      }
-      )
-    }
-
-    if ((userRoles.includes('admin') || userRoles.includes('support')) && !MenuItems.some(x => x.id === 'Doc Collection')) {
-      MenuItems.push(
-        {
-          id: 'Doc Collection',
-          name: 'Doc Collection',
-          route: '/store/captureTable',
-          icon: <BugReportIcon />,
-          roles: ['admin'],
-          items: [
-
-            {
-              id: 'dumps',
-              name: 'Dumps',
-              route: '/store/dumpTable',
-              icon: <CarCrashIcon />
-            }, {
-              id: 'extracts',
-              name: 'Chec Extracts',
-              route: '/store/extractTable',
-              icon: <CarCrashIcon />
-            }, {
-              id: 'dataCapture',
-              name: 'DataCapture',
-              route: '/registers/ExtractRequest',
-              icon: <CloudDownloadIcon />
-            }
-          ]
-        }
-      )
-    }
-    return MenuItems
-  }
 
   /**
    * Using the event API, you can register an event callback that will do something when an event is emitted.
@@ -437,105 +153,54 @@ export default function MyApp (props) {
   }, [])
 
   return (
-        <MsalProvider instance={msalInstance}>
-        <ThemeProvider theme={theme}>
+    <MsalProvider instance={msalInstance}>
+      <ThemeProvider theme={theme}>
         <Root>
-            <Head>
-                <title>TGCS | PAS Portal</title>
-                <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-                <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-                <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-                <link rel="manifest" href="/site.webmanifest" />
-                <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-                <meta
-                    name="viewport"
-                    content="minimum-scale=1, initial-scale=1, width=device-width"
-                />
-            </Head>
-            <div className={classes.root}>
-                <AppBar position="absolute" open={open} >
-                    <Toolbar>
-                        <IconButton
-                            edge="start"
-
-                            color="inherit"
-                            aria-label="open drawer"
-                            onClick={handleDrawerOpen}
-                            sx={{
-                              marginRight: 5,
-                              ...(open && { display: 'none' })
-                            }} >
-                            <MenuIcon />
-                        </IconButton>
-                        <IconButton >
-                            <Badge badgeContent={0} >
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                        <Typography
-                            component="div"
-                            variant="h6"
-                            paddingLeft={1}
-                            noWrap style={{ flex: 1 }} >
-                            Dashboard
-                        </Typography>
-                        <IconButton >
-                            <Badge badgeContent={0} >
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                    <Select
-                        labelId="retailer-select-label"
-                        id="retailer-select"
-                        value={selectedId}
-                        onChange={handleSelectedRetailerChanged}
-                        sx={{ color: '#e4e4e4', height: 40, margin: 1 }}>
-                        {ids.map((x) => <MenuItem key={x} sx={{ mt: 1 }} value={x}>{x}</MenuItem>)}
-                    </Select>
-                        <AuthenticatedTemplate >
-                            <SignOutButton />
-                            <WelcomeUser/>
-                        </AuthenticatedTemplate>
-                        <UnauthenticatedTemplate>
-                            <SignInButton />
-                        </UnauthenticatedTemplate>
-                    </Toolbar>
-                </AppBar>
-                <AuthenticatedTemplate>
-                  <RoleContextProvider pageName={props.Component.name}>
-                    <Drawer
-                        variant="permanent"
-                        open={open} >
-                        <DrawerHeader>
-                            <IconButton onClick={handleDrawerClose}>
-                                {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                            </IconButton>
-                        </DrawerHeader>
-                        <Divider />
-                        <Sidebar items={getSidebarItems()}></Sidebar>
-                    </Drawer>
-                    <div className={classes.appBarSpacer} />
-                      <WelcomeUser/>
-                        <Guard>
-                          <Component {...pageProps} />
-                        </Guard>
-                  </RoleContextProvider>
-                </AuthenticatedTemplate>
-                <UnauthenticatedTemplate>
-                    <Container maxWidth="lg" className={classes.container}>
-                      <Grid item xs={12}>
-                      </Grid>
-                      <Grid item xs={12}>
-                      </Grid>
-                      <Grid item xs={12}>
-                          <Typography align="center" variant="h4">Sign in to access the portal</Typography>
-                      </Grid>
-                    </Container>
-                </UnauthenticatedTemplate>
-            </div>
+          <Head>
+            <title>TGCS | PAS Portal</title>
+            <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+            <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+            <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+            <link rel="manifest" href="/site.webmanifest" />
+            <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+            <meta
+              name="viewport"
+              content="minimum-scale=1, initial-scale=1, width=device-width"
+            />
+          </Head>
+          <div className={classes.root}>
+            <AuthenticatedTemplate>
+              <UserContextProvider pageName={props.Component.name}>
+                <HeaderToolbar
+                  ids={ids}
+                  open={open}
+                  handleDrawerOpen={handleDrawerOpen} />
+                <SidebarDrawer open={open} theme={theme} handleDrawerClose={handleDrawerClose}/>
+                <div className={classes.appBarSpacer} />
+                <Guard>
+                  <Component {...pageProps} />
+                </Guard>
+              </UserContextProvider>
+            </AuthenticatedTemplate>
+            <UnauthenticatedTemplate>
+              <HeaderToolbar
+                ids={ids}
+                open={open}
+                handleDrawerOpen={handleDrawerOpen} />
+              <Container maxWidth="lg" className={classes.container}>
+                <Grid item xs={12}>
+                </Grid>
+                <Grid item xs={12}>
+                </Grid>
+                <Grid item xs={12} marginTop={10}>
+                  <Typography align="center" variant="h4">Sign in to access the portal</Typography>
+                </Grid>
+              </Container>
+            </UnauthenticatedTemplate>
+          </div>
         </Root>
-        </ThemeProvider>
-        </MsalProvider>
+      </ThemeProvider>
+    </MsalProvider>
   )
 }
 

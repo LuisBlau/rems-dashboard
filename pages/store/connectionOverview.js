@@ -165,7 +165,7 @@ function FilterStores (props) {
   }
 
   return data.filter((store) =>
-    (store.storeName).includes(props.filterText.toLowerCase())
+    (store.storeName.toLowerCase()).includes(props.filterText.toLowerCase())
   )
     .map((store, index) => (
   <Grid key={index} item xs={6}>

@@ -50,12 +50,6 @@ const Root = styled('main')((
 }))
 
 export default function ExtractTableComponent () {
-  const [filterText, setFilterText] = useState('')
-
-  const { data, error } = useSWR('/REMS/release', fetcher)
-
-  if (error) return <div>failed to load</div>
-  if (!data) return <div>loading...</div>
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer}/>

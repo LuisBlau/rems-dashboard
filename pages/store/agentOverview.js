@@ -66,34 +66,34 @@ export default function AgentOverview (props) {
   if (!data) return <Root> <div className={classes.appBarSpacer} /><div>loading...</div></Root>
 
   return (
-      <Root className={classes.content}>
-        <div className={classes.appBarSpacer} />
+    <Root className={classes.content}>
+      <div className={classes.appBarSpacer} />
+      <Container maxWidth="lg" className={classes.container}>
         <Container maxWidth="lg" className={classes.container}>
-          <Container maxWidth="lg" className={classes.container}>
-            <Grid item xs={8.5}>
-              <Typography align="center" variant="h4">Store Overview</Typography>
-              <Typography align="center" variant="h6">Store: {params.get('store')}</Typography>
-            </Grid>
-          </Container>
-          <Container maxWidth="lg" className={classes.container}>
-            <Grid container spacing={3}>
-              {data
-                .filter((agent) =>
-                  (agent.agentName).includes(filterText.toLowerCase())
-                )
-                .map((agent, index) => (
-                  <Grid key={index} item xs={3}>
-                    <Paper className={classes.paper}>
-                      <OverviewAgentPaper data={agent} />
-                    </Paper>
-                  </Grid>
-                ))}
-            </Grid>
-            <Box pt={4}>
-              <Copyright />
-            </Box>
-          </Container>
+          <Grid item xs={8.5}>
+            <Typography align="center" variant="h4">Store Overview</Typography>
+            <Typography align="center" variant="h6">Store: {params.get('store')}</Typography>
+          </Grid>
         </Container>
-      </Root>
+        <Container maxWidth="lg" className={classes.container}>
+          <Grid container spacing={3}>
+            {data
+              .filter((agent) =>
+                (agent.agentName).includes(filterText.toLowerCase())
+              )
+              .map((agent, index) => (
+                <Grid key={index} item xs={3}>
+                  <Paper className={classes.paper}>
+                    <OverviewAgentPaper data={agent} />
+                  </Paper>
+                </Grid>
+              ))}
+          </Grid>
+          <Box pt={4}>
+            <Copyright />
+          </Box>
+        </Container>
+      </Container>
+    </Root>
   )
 }

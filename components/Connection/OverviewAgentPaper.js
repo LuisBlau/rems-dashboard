@@ -11,8 +11,10 @@ import { Button, Grid, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
-import React from 'react'
+import React, { useContext } from 'react'
 import Link from '@mui/material/Link'
+import UserContext from '../../pages/UserContext'
+
 const PREFIX = 'OverviewAgentPaper'
 
 const classes = {
@@ -70,13 +72,13 @@ function ScreenCapture (props) {
   if (!data) return <div>loading...</div>
   return (
     <Root>
-          <Typography>
-            Screenshot
-          </Typography>
-          <Typography>
-            {data.last_updated}
-          </Typography>
-          <img className="card-img-top" src={'data:image/png;base64,' + data.image} width={300} height={300} alt="Card image cap" />
+      <Typography>
+        Screenshot
+      </Typography>
+      <Typography>
+        {data.last_updated}
+      </Typography>
+      <img className="card-img-top" src={'data:image/png;base64,' + data.image} width={300} height={300} alt="Card image cap" />
     </Root>
   )
 }
@@ -117,7 +119,7 @@ function DisplayMasterStar (props) {
   }
   return (
     <Grid item xs={12}>
-        &nbsp;
+      &nbsp;
     </Grid>
   )
 }
@@ -152,26 +154,32 @@ function DisplaySalesApplication (props) {
 
   if (isElmo) {
     return (
-            <Grid item xs={12}>
-              <Typography>Costl online: {String(timeSince(date = date))}</Typography>
-            </Grid>
+      <Grid item xs={12}>
+        <Typography>Costl online: {String(timeSince(date = date))}</Typography>
+      </Grid>
     )
   } else if (isDB) {
     return (
-            <Grid item xs={12}>
-              <Typography>WebPos</Typography>
-              <Typography>{props.data.isUIstate}</Typography>
-            </Grid>
+      <Grid item xs={12}>
+        <Typography>WebPos</Typography>
+        <Typography>{props.data.isUIstate}</Typography>
+      </Grid>
     )
   }
   return (
-          <Grid item xs={12}>
-              <Typography>Unknown application</Typography>
-          </Grid>
+    <Grid item xs={12}>
+      <Typography>Unknown application</Typography>
+    </Grid>
   )
 }
 
 export default function OverviewAgentPaper (props) {
+  const context = useContext(UserContext)
+  let disableReload = true
+  if (context.userRoles.includes('admin')) {
+    disableReload = false
+  }
+
   const jsonCommand = { Retailer: props.data.retailer_id, Store: props.data.storeName, Agent: props.data.agentName, Command: 'Reload' }
   const reload_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
   jsonCommand.Command = 'Dump'
@@ -198,86 +206,88 @@ export default function OverviewAgentPaper (props) {
 
   return (
     <Grid container>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <Typography variant="h5">{props.data.agentName}</Typography>
-          </Grid>
+      <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <Typography variant="h5">{props.data.agentName}</Typography>
         </Grid>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <DisplayMasterStar data={props.data} />
-          </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <DisplayMasterStar data={props.data} />
         </Grid>
-        <Grid className={classes.barHeight} container spacing={1}>
-          <Grid item xs={4}>
-            <DisplayOnOffStatus data={props.data} />
-          </Grid>
-          <Grid item xs={4}>
-            <Typography>OS: {props.data.os}</Typography>
-          </Grid>
+      </Grid>
+      <Grid className={classes.barHeight} container spacing={1}>
+        <Grid item xs={4}>
+          <DisplayOnOffStatus data={props.data} />
         </Grid>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <DisplaySalesApplication data={props.data} />
-          </Grid>
+        <Grid item xs={4}>
+          <Typography>OS: {props.data.os}</Typography>
         </Grid>
-        <Grid container spacing={1}>
-          <Grid className={classes.barHeight} item xs={12}>
-            <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
-          </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid item xs={12}>
+          <DisplaySalesApplication data={props.data} />
         </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid className={classes.barHeight} item xs={12}>
+          <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
+        </Grid>
+      </Grid>
 
-        <Grid container spacing={1}>
-                <Grid className={classes.barHeight} item xs={12}>
-                <Typography>Status:</Typography>
-                </Grid>
-              </Grid>
-              <Grid container spacing={1}>
-                <Grid className={classes.barHeight} item xs={12}>
-                {
-                    (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
-                  }
-                  {
-                    (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
-                  }
-                  {
-                    (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
-                  }
-                  {
-                    (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
-                  }
-                  {
-                    (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
-                  }
-                  {
-                    (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
-                  }
-                  {
-                    (!hasStatus) && <Typography>No Status Found</Typography>
-                  }
-          </Grid>
-              </Grid>
-        <Grid container spacing={1}>
-          <Grid item xs={4} sx={{ margin: 1 }}>
-            <Link href={dump_link}>
-              <Button variant="contained" size="medium">
-                Dump
-              </Button>
-            </Link>
-          </Grid>
-          <Grid item xs={4} sx={{ margin: 1 }}>
-            <Link href={wake_link}>
-              <Button variant="contained" size="medium">
+      <Grid container spacing={1}>
+        <Grid className={classes.barHeight} item xs={12}>
+          <Typography>Status:</Typography>
+        </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid className={classes.barHeight} item xs={12}>
+          {
+            (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
+          }
+          {
+            (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
+          }
+          {
+            (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
+          }
+          {
+            (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
+          }
+          {
+            (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
+          }
+          {
+            (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
+          }
+          {
+            (!hasStatus) && <Typography>No Status Found</Typography>
+          }
+        </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid item xs={4} sx={{ margin: 1 }}>
+          <Link href={dump_link}>
+            <Button variant="contained" size="medium">
+              Dump
+            </Button>
+          </Link>
+        </Grid>
+        <Grid item xs={4} sx={{ margin: 1 }}>
+          {disableReload
+            ? null
+            : <Link disabled={disableReload} href={wake_link}>
+              <Button disabled={disableReload} variant="contained" size="medium">
                 Reload
               </Button>
-            </Link>
-            </Grid>
+            </Link>}
         </Grid>
-        <Grid container spacing={1}>
-          <Grid item xs={12} sx={{ margin: 1 }}>
-            <DisplayScreenShot data={props.data} />
-          </Grid>
+      </Grid>
+      <Grid container spacing={1}>
+        <Grid item xs={12} sx={{ margin: 1 }}>
+          <DisplayScreenShot data={props.data} />
         </Grid>
+      </Grid>
     </Grid>
   )
 }

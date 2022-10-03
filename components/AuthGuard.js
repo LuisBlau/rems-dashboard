@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 import React, { useContext } from 'react'
-import RoleContext from '../pages/RoleContext'
+import UserContext from '../pages/UserContext'
 import { AccessDenied } from './AccessDenied'
 
 export const Guard = ({ children }) => {
-  const context = useContext(RoleContext)
+  const context = useContext(UserContext)
   const softwareDistributionPages = [
     // Software Distribution Pages
     'DeployStatus', // Software Distribution
