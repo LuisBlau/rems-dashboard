@@ -14,6 +14,8 @@ import Box from '@mui/material/Box'
 import React, { useContext, useState, useEffect } from 'react'
 import Link from '@mui/material/Link'
 import UserContext from '../../pages/UserContext'
+import { BrokenImage } from '@mui/icons-material'
+import { Container } from '@mui/system'
 
 const PREFIX = 'OverviewAgentPaper'
 
@@ -149,21 +151,30 @@ function ScreenshotModal ({ data, open, handleOpen, handleClose }) {
         aria-labelledby="modal-modal-title"
       >
         <Box sx={style}>
-          <ScreenCaptureDisplay agentData={data} />
+          <ScreenCaptureDisplay agentData={data} width={600} height={600} refreshInterval={5000} />
         </Box>
       </Modal>
     </Grid>
   )
 }
 
-function ScreenCaptureDisplay ({ agentData }) {
+function ScreenCaptureDisplay ({ agentData, refreshInterval, width, height }) {
+  const style = {
+    marginTop: 3,
+    position: 'relative',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
   const screenCaptureCommand = { Retailer: agentData.retailer_id, Store: agentData.storeName, Agent: agentData.agentName, Command: 'ScreenCapture' }
   const [screenshotData, setScreenshotData] = useState({})
   fetch('/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(screenCaptureCommand).replace('/\s\g', '')))))
 
   const { data, error } = useSWR(
     '/REMS/agentScreenShot?storeName=' + agentData.storeName + '&agentName=' + agentData.agentName
-    , fetcher, { refreshInterval: 30000 })
+    , fetcher, { refreshInterval })
 
   useEffect(() => {
     if (error) return <div>No screenshot </div>
@@ -181,22 +192,37 @@ function ScreenCaptureDisplay ({ agentData }) {
           setScreenshotData({ lastUpdated: data.last_updated, image: data.image })
         }
       }
-    }, 25000)
+    }, refreshInterval - 2500)
 
     return () => clearInterval(interval)
   })
-
-  return (
-    <Root>
-      <img className="card-img-top" src={'data:image/png;base64,' + screenshotData.image} width={600} height={600} alt="Gathering image data..." />
-      <Typography>
-        Last Updated: {screenshotData.lastUpdated}
-      </Typography>
-    </Root>
-  )
+  if (Object.keys(screenshotData).length !== 0) {
+    return (
+      <Root>
+        <img className="card-img-top" src={'data:image/png;base64,' + screenshotData.image} width={width} height={height} alt="Fetching image data..." />
+        <Typography>
+          Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
+        </Typography>
+      </Root>
+    )
+  } else {
+    return (
+      <Root>
+        <Container sx={style}>
+          <BrokenImage fontSize='large'/>
+        </Container>
+        <Typography>
+          Cannot retrieve image for: {agentData.agentName}
+        </Typography>
+        <Typography marginTop={3}>
+          Check system configuration or try again later.
+        </Typography>
+      </Root>
+    )
+  }
 }
 
-export default function OverviewAgentPaper (props) {
+export default function OverviewAgentPaper ({ data, useScreenshotView }) {
   const context = useContext(UserContext)
   let disableReload = true
   if (context.userRoles.includes('admin')) {
@@ -207,7 +233,7 @@ export default function OverviewAgentPaper (props) {
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
-  const jsonCommand = { Retailer: props.data.retailer_id, Store: props.data.storeName, Agent: props.data.agentName, Command: 'Reload' }
+  const jsonCommand = { Retailer: data.retailer_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' }
   const reload_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
   jsonCommand.Command = 'Dump'
   const dump_link = 'javascript:fetch("/api/registers/commands/' + btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/\s\g', '')))) + '")'
@@ -218,101 +244,106 @@ export default function OverviewAgentPaper (props) {
 
   let hasStatus = false
   let statusType = ''
-  if (props.data.hasOwnProperty('status')) {
-    if (props.data.status.hasOwnProperty('ELMO')) {
+  if (data.hasOwnProperty('status')) {
+    if (data.status.hasOwnProperty('ELMO')) {
       hasStatus = true
       statusType = 'ELMO'
     }
-    if (props.data.status.hasOwnProperty('DeviceBroker')) {
+    if (data.status.hasOwnProperty('DeviceBroker')) {
       hasStatus = true
       statusType = 'DeviceBroker'
     }
   }
 
-  return (
-    <Grid container>
-      <Grid container spacing={1}>
-        <Grid item xs={12}>
-          <Typography variant="h5">{props.data.agentName}</Typography>
+  if (useScreenshotView === false) {
+    return (
+      <Grid container>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <Typography variant="h5">{data.agentName}</Typography>
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container spacing={1}>
-        <Grid item xs={12}>
-          <DisplayMasterStar data={props.data} />
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <DisplayMasterStar data={data} />
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid className={classes.barHeight} container spacing={1}>
-        <Grid item xs={4}>
-          <DisplayOnOffStatus data={props.data} />
+        <Grid className={classes.barHeight} container spacing={1}>
+          <Grid item xs={4}>
+            <DisplayOnOffStatus data={data} />
+          </Grid>
+          <Grid item xs={4}>
+            <Typography>OS: {data.os}</Typography>
+          </Grid>
         </Grid>
-        <Grid item xs={4}>
-          <Typography>OS: {props.data.os}</Typography>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <DisplaySalesApplication data={data} />
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container spacing={1}>
-        <Grid item xs={12}>
-          <DisplaySalesApplication data={props.data} />
+        <Grid container spacing={1}>
+          <Grid className={classes.barHeight} item xs={12}>
+            <Typography>Last Update: {timeSince(data.last_updated)}</Typography>
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container spacing={1}>
-        <Grid className={classes.barHeight} item xs={12}>
-          <Typography>Last Update: {timeSince(props.data.last_updated)}</Typography>
+        <Grid container spacing={1}>
+          <Grid className={classes.barHeight} item xs={12}>
+            <Typography>Status:</Typography>
+          </Grid>
         </Grid>
-      </Grid>
-
-      <Grid container spacing={1}>
-        <Grid className={classes.barHeight} item xs={12}>
-          <Typography>Status:</Typography>
+        <Grid container spacing={1}>
+          <Grid className={classes.barHeight} item xs={12}>
+            {
+              (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{data.status.ELMO.ui_state}"</Typography>
+            }
+            {
+              (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{data.status.DeviceBroker.ui_state}"</Typography>
+            }
+            {
+              (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{data.status.ELMO.ui_substate}"</Typography>
+            }
+            {
+              (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{data.status.DeviceBroker.ui_substate}"</Typography>
+            }
+            {
+              (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{data.status.ELMO.pinpad_stage}"</Typography>
+            }
+            {
+              (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{data.status.DeviceBroker.pinpad_stage}"</Typography>
+            }
+            {
+              (!hasStatus) && <Typography>No Status Found</Typography>
+            }
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container spacing={1}>
-        <Grid className={classes.barHeight} item xs={12}>
-          {
-            (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{props.data.status.ELMO.ui_state}"</Typography>
-          }
-          {
-            (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{props.data.status.DeviceBroker.ui_state}"</Typography>
-          }
-          {
-            (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{props.data.status.ELMO.ui_substate}"</Typography>
-          }
-          {
-            (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{props.data.status.DeviceBroker.ui_substate}"</Typography>
-          }
-          {
-            (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{props.data.status.ELMO.pinpad_stage}"</Typography>
-          }
-          {
-            (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{props.data.status.DeviceBroker.pinpad_stage}"</Typography>
-          }
-          {
-            (!hasStatus) && <Typography>No Status Found</Typography>
-          }
-        </Grid>
-      </Grid>
-      <Grid container spacing={1}>
-        <Grid item xs={4} sx={{ margin: 1 }}>
-          <Link href={dump_link}>
-            <Button variant="contained" size="medium">
-              Dump
-            </Button>
-          </Link>
-        </Grid>
-        <Grid item xs={4} sx={{ margin: 1 }}>
-          {disableReload
-            ? null
-            : <Link disabled={disableReload} href={wake_link}>
-              <Button disabled={disableReload} variant="contained" size="medium">
-                Reload
+        <Grid container spacing={1}>
+          <Grid item xs={4} sx={{ margin: 1 }}>
+            <Link href={dump_link}>
+              <Button variant="contained" size="medium">
+                Dump
               </Button>
-            </Link>}
+            </Link>
+          </Grid>
+          <Grid item xs={4} sx={{ margin: 1 }}>
+            {disableReload
+              ? null
+              : <Link disabled={disableReload} href={reload_link}>
+                <Button disabled={disableReload} variant="contained" size="medium">
+                  Reload
+                </Button>
+              </Link>}
+          </Grid>
+        </Grid>
+        <Grid container spacing={1}>
+          <Grid item xs={12} sx={{ margin: 1 }}>
+            <ScreenshotModal data={data} open={open} handleOpen={handleOpen} handleClose={handleClose} />
+          </Grid>
         </Grid>
       </Grid>
-      <Grid container spacing={1}>
-        <Grid item xs={12} sx={{ margin: 1 }}>
-          <ScreenshotModal data={props.data} open={open} handleOpen={handleOpen} handleClose={handleClose} />
-        </Grid>
-      </Grid>
-    </Grid>
-  )
+    )
+  } else {
+    return (
+      <ScreenCaptureDisplay agentData={data} height={200} width={200} refreshInterval={30000}></ScreenCaptureDisplay>
+    )
+  }
 }

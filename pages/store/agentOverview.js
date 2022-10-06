@@ -10,6 +10,7 @@ import Box from '@mui/material/Box'
 import Copyright from '../../src/Copyright'
 import OverviewAgentPaper from '../../components/Connection/OverviewAgentPaper'
 import Typography from '@mui/material/Typography'
+import { FormControlLabel, Switch } from '@mui/material'
 const PREFIX = 'agentOverview'
 
 const classes = {
@@ -54,6 +55,7 @@ const Root = styled('main')((
 const drawerWidth = 240
 
 export default function AgentOverview (props) {
+  const [screenshotView, setScreenshotView] = useState(false)
   let par = ''
   if (typeof window !== 'undefined') {
     par = window.location.search
@@ -61,6 +63,10 @@ export default function AgentOverview (props) {
   const params = new URLSearchParams(par)
   const [filterText, setFilterText] = useState('')
   const { data, error } = useSWR('/REMS/agents?store=' + params.get('store'), fetcher)
+
+  function handleScreenshotViewChange () {
+    setScreenshotView(!screenshotView)
+  }
 
   if (error) return <Root> <div className={classes.appBarSpacer} /><div>failed to load</div></Root>
   if (!data) return <Root> <div className={classes.appBarSpacer} /><div>loading...</div></Root>
@@ -75,6 +81,9 @@ export default function AgentOverview (props) {
             <Typography align="center" variant="h6">Store: {params.get('store')}</Typography>
           </Grid>
         </Container>
+        <FormControlLabel label="Screenshot View" control={
+          <Switch onChange={handleScreenshotViewChange} />
+        } />
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={3}>
             {data
@@ -84,7 +93,7 @@ export default function AgentOverview (props) {
               .map((agent, index) => (
                 <Grid key={index} item xs={3}>
                   <Paper className={classes.paper}>
-                    <OverviewAgentPaper data={agent} />
+                    <OverviewAgentPaper data={agent} useScreenshotView={screenshotView} />
                   </Paper>
                 </Grid>
               ))}
