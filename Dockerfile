@@ -7,6 +7,7 @@ WORKDIR '/app'
 #RUN npm install
 # COPY . .
 COPY .env.production /app
+COPY .env.test /app
 COPY default* /app
 COPY domains.ext /app
 COPY next.config.js /app
