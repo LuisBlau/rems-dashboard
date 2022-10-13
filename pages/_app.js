@@ -19,6 +19,7 @@ import theme from '../src/theme'
 import { msalInstance } from './authConfig'
 import { Guard } from '../components/AuthGuard'
 import { UserContextProvider } from './UserContext'
+import 'semantic-ui-css/semantic.min.css'
 
 const PREFIX = '_app'
 

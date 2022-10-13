@@ -48,7 +48,7 @@ function StatusBadge (props) {
     case 'Staged':
       return <Tooltip title="Staged"><WatchLaterIcon /></Tooltip>
     case 'Success':
-      // TODO: remove this after REMS CHANGE.
+    // TODO: remove this after REMS CHANGE.
     case 'Succeeded':
       return <Tooltip title="Success"><CheckCircleIcon /></Tooltip>
     case 'initial':
@@ -75,7 +75,7 @@ function StatusColor (status) {
     case 'Staged':
       return '#D6EEFD'
     case 'Success':
-      // TODO: remove this after REMS CHANGE.
+    // TODO: remove this after REMS CHANGE.
     case 'Succeeded':
       return '#CDFEB6'
     case 'initial':
@@ -105,9 +105,9 @@ export function DeployTable (props) {
   const [submitInformation, setSubmitInformation] = React.useState(null)
 
   const { data, error } = useSWR('/REMS/deploys?store=' + props.storeFilter +
-      '&package=' + props.packageFilter +
-      '&records=' + props.maxRecords +
-      '&status=' + props.statusFilter, fetcher)
+    '&package=' + props.packageFilter +
+    '&records=' + props.maxRecords +
+    '&status=' + props.statusFilter, fetcher)
 
   if (error) return <div>failed to load</div>
   if (!data) return <div>loading...</div>
@@ -122,7 +122,7 @@ export function DeployTable (props) {
     setSubmitInformation(null)
   }
 
-  const handelCancel = () => {
+  const handleCancel = () => {
     setOpen(false)
     // If we use these much we can install 'http-status-codes'
     const INTERNAL_SERVER_ERROR = 500
@@ -162,103 +162,106 @@ export function DeployTable (props) {
   }
 
   return (
-    data.map((deploy, index) => (
-        <Grid key={'gc1-' + index} container alignItems={'center'} spacing={1} >
-          <Dialog
-            open={open}
-            onClose={handleClose}
-            BackdropProps={{ style: { backgroundColor: 'transparent' } }}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogTitle id="alert-dialog-title">
-              {'Are you sure, you want to cancel this deployment?'}
-            </DialogTitle>
-            <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
-              <Button onClick={handelCancel} autoFocus>Confirm</Button>
-            </DialogActions>
-          </Dialog>
-          <Grid item xs={10}>
-            <Accordion key={'a-deploy-' + index} sx={{ margin: 1 }}>
-              <AccordionSummary
-                key={'as-deploy-' + index}
-                style={{ backgroundColor: StatusColor(deploy.status) }}
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls={'panel' + deploy.id + 'bh-content'}
-                id={'panel' + deploy.id + 'bh-header'}
-              >
-                <Grid container spacing={1}>
-                  <Grid item xs={1} >
-                    <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
+    <div>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {'Are you sure, you want to cancel this deployment?'}
+        </DialogTitle>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleCancel} autoFocus>Confirm</Button>
+        </DialogActions>
+      </Dialog>
+      {
+        data.map((deploy, index) => (
+          <Grid key={'gc1-' + index} container alignItems={'center'} spacing={1} >
+            <Grid item xs={10}>
+              <Accordion key={'a-deploy-' + index} sx={{ margin: 1 }}>
+                <AccordionSummary
+                  key={'as-deploy-' + index}
+                  style={{ backgroundColor: StatusColor(deploy.status) }}
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls={'panel' + deploy.id + 'bh-content'}
+                  id={'panel' + deploy.id + 'bh-header'}
+                >
+                  <Grid container spacing={1}>
+                    <Grid item xs={1} >
+                      <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
+                    </Grid>
+                    <Grid item xs={2} >
+                      <Typography sx={{ flexShrink: 0 }}>
+                        Store: {deploy.storeName}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={3} >
+                      <Typography sx={{ flexShrink: 0 }}>
+                        Package: {deploy.package}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2} >
+                      <Typography sx={{ flexShrink: 0 }}>
+                        Status: {deploy.status}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4} >
+                      <Typography sx={{ flexShrink: 0 }}>
+                        Apply Time: {deploy.apply_time}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={2} >
-                    <Typography sx={{ flexShrink: 0 }}>
-                      Store: {deploy.storeName}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={3} >
-                    <Typography sx={{ flexShrink: 0 }}>
-                      Package: {deploy.package}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={2} >
-                    <Typography sx={{ flexShrink: 0 }}>
-                      Status: {deploy.status}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={4} >
-                    <Typography sx={{ flexShrink: 0 }}>
-                      Apply Time: {deploy.apply_time}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </AccordionSummary>
-              <AccordionDetails>
-                {
-                  deploy.steps.map((step, index) => (
-                    < Accordion key={index} style={{ margin: '15px', backgroundColor: StatusColor(step.status) }}>
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls={'panel' + deploy.id + ':' + index + 'bh-content'}
-                        id={'panel' + deploy.id + ':' + index + 'bh-header'} >
-                        <Grid container spacing={3}>
-                          <Grid item xs={1} >
-                            <StatusBadge itemStatus={step.status} />
+                </AccordionSummary>
+                <AccordionDetails>
+                  {
+                    deploy.steps.map((step, index) => (
+                      < Accordion key={index} style={{ margin: '15px', backgroundColor: StatusColor(step.status) }}>
+                        <AccordionSummary
+                          expandIcon={<ExpandMoreIcon />}
+                          aria-controls={'panel' + deploy.id + ':' + index + 'bh-content'}
+                          id={'panel' + deploy.id + ':' + index + 'bh-header'} >
+                          <Grid container spacing={3}>
+                            <Grid item xs={1} >
+                              <StatusBadge itemStatus={step.status} />
+                            </Grid>
+                            <Grid item xs={4} >
+                              <Typography sx={{ flexShrink: 0 }}>
+                                {step.type === 'apply' ? step.command : step.type} -- {StepCommands(step)}
+                              </Typography>
+                            </Grid>
                           </Grid>
-                          <Grid item xs={4} >
-                            <Typography sx={{ flexShrink: 0 }}>
-                              {step.type === 'apply' ? step.command : step.type} -- {StepCommands(step)}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ bgcolor: '#FFEBE0' }}>
-                        {step.output.map((line, idx) => (<p key={'l-' + index + '-' + idx} >{line}</p>))}
-                      </AccordionDetails>
-                    </Accordion>
-                  ))
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ bgcolor: '#FFEBE0' }}>
+                          {step.output.map((line, idx) => (<p key={'l-' + index + '-' + idx} >{line}</p>))}
+                        </AccordionDetails>
+                      </Accordion>
+                    ))
+                  }
+                </AccordionDetails>
+              </Accordion>
+            </Grid>
+            <Grid item xs={2}>
+              <Button
+                // Do not change this. We use it to know which deployment to cancel
+                id={deploy.storeName + '_' + deploy.id}
+                variant="contained"
+                sx={{ height: '55px', width: '155px' }}
+                disabled={
+                  deploy.status.toUpperCase() !== 'INITIAL' &&
+                  deploy.status.toUpperCase() !== 'PENDING'
                 }
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-          <Grid item xs={2}>
-            <Button
-              // Do not change this. We use it to know which deployment to cancel
-              id={deploy.storeName + '_' + deploy.id}
-              variant="contained"
-              sx={{ height: '55px', width: '155px' }}
-              disabled={
-                deploy.status.toUpperCase() !== 'INITIAL' &&
-                deploy.status.toUpperCase() !== 'PENDING'
-              }
-              onClick={handleClickOpen}
-            >
-              Cancel
-            </Button>
-          </Grid>
-        </Grid >
+                onClick={handleClickOpen}
+              >
+                Cancel
+              </Button>
+            </Grid>
+          </Grid >
 
-    ))
+        ))
+      }
+    </div>
   )
 }
