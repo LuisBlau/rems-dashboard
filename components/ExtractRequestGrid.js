@@ -1,15 +1,21 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
-import React from 'react'
+import React, { useState } from 'react'
 import { AgGridColumn, AgGridReact } from 'ag-grid-react'
 import useSWR from 'swr'
 import fetcher from '../lib/fetcherWithHeader'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import axios from 'axios'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+
 const PREFIX = 'DumpGrid'
+
+const successHideDuration = 1500
+const failHideDuration = 8000
 
 const classes = {
   content: `${PREFIX}-content`,
@@ -33,37 +39,6 @@ const Root = styled('div')((
   }
 }))
 
-const skyButtonRenderer = function (params) {
-  return (<Button onClick={() => {
-    params.data.dataCapture = 'SkyLogs'
-    axios.post('/api/registers/requestDump', params.data).catch()
-  }}>Request</Button>)
-}
-const rmaButtonRenderer = function (params) {
-  return (<Button onClick={() => {
-    params.data.dataCapture = 'RMA'
-    axios.post('/api/registers/requestDump', params.data).catch()
-  }}>Request</Button>)
-}
-const eleraButtonRenderer = function (params) {
-  return (<Button onClick={() => {
-    params.data.dataCapture = 'EleraClient'
-    axios.post('/api/registers/requestDump', params.data).catch()
-  }}>Request</Button>)
-}
-const eleraServicesButtonRenderer = function (params) {
-  return (<Button onClick={() => {
-    params.data.dataCapture = 'EleraServices'
-    axios.post('/api/registers/requestDump', params.data).catch()
-  }}>Request</Button>)
-}
-const checButtonRenderer = function (params) {
-  return (<Button onClick={() => {
-    params.data.dataCapture = 'Chec'
-    axios.post('/api/registers/requestDump', params.data).catch()
-  }}>Request</Button>)
-}
-
 const sortGrid = function (event) {
   const columnState = {
     state: [
@@ -75,35 +50,175 @@ const sortGrid = function (event) {
   }
   event.columnApi.applyColumnState(columnState)
 }
-const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
-  const DateA = Date.parse(valueA)
-  const DateB = Date.parse(valueB)
-  if (DateA === DateB) return 0
-  return (DateA > DateB) ? 1 : -1
-}
 
 export default function ExtractRequestGrid (props) {
+  const [openSuccess, setOpenSuccess] = useState(false)
+  const [toastSuccess, setToastSuccess] = useState('')
+  const [openFailure, setOpenFailure] = useState(false)
+  const [toastFailure, setToastFailure] = useState('')
+
   const { data, error } = useSWR(['/REMS/agents', props.state], fetcher)
   if (error) return <Root>failed to load</Root>
   if (!data) return <div>loading...</div>
   const registerlist = []
   for (const x of data) {
-    registerlist.push({
-      retailer_id: x.retailer_id,
-      store_name: x.storeName,
-      agent: x.agentName
-    })
+    const obj = {
+      retailerId: x.retailer_id,
+      storeName: x.storeName,
+      agent: x.agentName,
+      os: x.os,
+      isRMA: x.deviceType !== 3,
+      hasEleraServices: (x.status !== undefined && x.status.EleraServices !== undefined),
+      hasEleraClient: (x.status !== undefined && x.status.EleraClient !== undefined),
+      hasChec: false
+    }
+
+    // Checking to see if 'CHEC' is mentioned in the versions list.
+    // If it is, I assume that we can request a chec capture
+    // Probably not right so should check with Brent
+    if (x.versions !== undefined) {
+      for (let i = 0; i < x.versions.length; i++) {
+        const objKeys = Object.keys(x.versions[i])
+        if (objKeys[0] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
+          obj.hasChec = true
+          break
+        }
+      }
+    }
+
+    registerlist.push(obj)
   }
-  return <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
-        <AgGridReact style="width: 100%; height: 100%;"
-              rowData={registerlist} onGridReady={sortGrid}>
-              <AgGridColumn sortable={ true } filter={ true } field="store_name"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } field="agent"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } cellRenderer={skyButtonRenderer} field="SKY Logs Capture"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } cellRenderer={rmaButtonRenderer} field="RMA Capture"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraButtonRenderer} field="EleraClient Capture"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } cellRenderer={eleraServicesButtonRenderer} field="EleraServices Capture"></AgGridColumn>
-              <AgGridColumn sortable={ true } filter={ true } cellRenderer={checButtonRenderer} field="Chec Capture"></AgGridColumn>
-          </AgGridReact>
-      </div>
+
+  const processSuccessfulResponse = function (res, type) {
+    if (res.status !== 200) {
+      setToastFailure(`Logs capture failed with a status code ${res.status}`)
+      setOpenFailure(true)
+    } else {
+      setToastSuccess(`Successfully requested ${type} capture`)
+      setOpenSuccess(true)
+    }
+  }
+
+  const processFailedResponse = function (res, type) {
+    setToastFailure(`Failed ${type} capture with message: ${res.message}`)
+    setOpenFailure(true)
+  }
+
+  const skyButtonRenderer = function (params) {
+    if (params.data.os === 'Sky') {
+      return (<Button variant="contained" onClick={() => {
+        params.data.dataCapture = 'SkyLogs'
+        axios.post('/api/registers/requestDump', params.data)
+          .then((res) => {
+            processSuccessfulResponse(res, params.data.dataCapture)
+          })
+          .catch((res) => {
+            processFailedResponse(res, params.data.dataCapture)
+          })
+      }}>Request</Button>)
+    } else {
+      return null
+    }
+  }
+
+  const rmaButtonRenderer = function (params) {
+    if (params.data.isRMA) {
+      return (<Button variant="contained" onClick={() => {
+        params.data.dataCapture = 'RMA'
+        axios.post('/api/registers/requestDump', params.data)
+          .then((res) => {
+            processSuccessfulResponse(res, params.data.dataCapture)
+          })
+          .catch((res) => {
+            processFailedResponse(res, params.data.dataCapture)
+          })
+      }}>Request</Button>)
+    } else {
+      return null
+    }
+  }
+  const eleraButtonRenderer = function (params) {
+    if (params.data.hasEleraClient) {
+      return (<Button variant="contained" onClick={() => {
+        params.data.dataCapture = 'EleraClient'
+        axios.post('/api/registers/requestDump', params.data)
+          .then((res) => {
+            processSuccessfulResponse(res, params.data.dataCapture)
+          })
+          .catch((res) => {
+            processFailedResponse(res, params.data.dataCapture)
+          })
+      }}>Request</Button>)
+    } else {
+      return null
+    }
+  }
+  const eleraServicesButtonRenderer = function (params) {
+    if (params.data.hasEleraServices) {
+      return (<Button variant="contained" onClick={() => {
+        params.data.dataCapture = 'EleraServices'
+        axios.post('/api/registers/requestDump', params.data)
+          .then((res) => {
+            processSuccessfulResponse(res, params.data.dataCapture)
+          })
+          .catch((res) => {
+            processFailedResponse(res, params.data.dataCapture)
+          })
+      }}>Request</Button>)
+    } else {
+      return null
+    }
+  }
+  const checButtonRenderer = function (params) {
+    if (params.data.hasChec) {
+      return (<Button variant="contained" onClick={() => {
+        params.data.dataCapture = 'Chec'
+        axios.post('/api/registers/requestDump', params.data)
+          .then((res) => {
+            processSuccessfulResponse(res, params.data.dataCapture)
+          })
+          .catch((res) => {
+            processFailedResponse(res, params.data.dataCapture)
+          })
+      }}>Request</Button>)
+    } else {
+      return null
+    }
+  }
+
+  return (<div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
+    <AgGridReact
+      rowData={registerlist} onGridReady={sortGrid}>
+      <AgGridColumn sortable={true} filter={true} floatingFilter={true} suppressMenu= {true} resizable={true} field="storeName"></AgGridColumn>
+      <AgGridColumn sortable={true} filter={true} floatingFilter={true} suppressMenu= {true} resizable={true} field="agent"></AgGridColumn>
+      <AgGridColumn cellRenderer={skyButtonRenderer} resizable={true} field="SKY Logs Capture" headerName={'SKY Logs'}></AgGridColumn>
+      <AgGridColumn cellRenderer={rmaButtonRenderer} resizable={true} field="RMA Capture" headerName={'RMA'}></AgGridColumn>
+      <AgGridColumn cellRenderer={eleraButtonRenderer} resizable={true} field="EleraClient Capture" headerName={'Elera Client'}></AgGridColumn>
+      <AgGridColumn cellRenderer={eleraServicesButtonRenderer} resizable={true} field="EleraServices Capture" headerName={'Elera Services'}></AgGridColumn>
+      <AgGridColumn cellRenderer={checButtonRenderer} resizable={true} field="Chec Capture" headerName={'CHEC'}></AgGridColumn>
+    </AgGridReact>
+
+    <Snackbar
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      open={openSuccess}
+      autoHideDuration={successHideDuration}
+      onClose={(event) => { setOpenSuccess(false) }}>
+      <Alert variant="filled" severity="success">
+        <AlertTitle>Success!</AlertTitle>
+        {toastSuccess}
+      </Alert>
+    </Snackbar>
+
+    <Snackbar
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      open={openFailure}
+      autoHideDuration={failHideDuration}
+      onClose={(event) => { setOpenFailure(false) }}>
+      <Alert variant="filled" severity="error">
+        <AlertTitle>Error!!!</AlertTitle>
+        {toastFailure}
+      </Alert>
+    </Snackbar>
+  </div>
+  )
 }

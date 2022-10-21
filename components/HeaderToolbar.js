@@ -63,7 +63,7 @@ export default function HeaderToolbar ({ open, ids, handleDrawerOpen }) {
       cookies.set('retailerId', e, { path: '/' })
       setSelectedRetailer(e)
     }
-    location.replace('/')
+    location.replace('/store/connectionOverview')
   }
 
   const context = useContext(UserContext)
