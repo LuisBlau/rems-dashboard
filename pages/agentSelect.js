@@ -193,8 +193,8 @@ export default function AgentSelect () {
       } else {
         const filteredAgentData = []
         for (let i = 0; i < preFilteredData.length; i++) {
-          if (preFilteredData[i].versions) {
-            for (let j = 0; j < preFilteredData[i].agent.versions.length; j++) {
+          if (preFilteredData[i].agent.versions) {
+            for (let j = 0; j < _.size(preFilteredData[i].agent.versions); j++) {
               if (Object.keys(preFilteredData[i].agent.versions[j])[0] === selectedVersion) {
                 filteredAgentData.push(preFilteredData[i])
               }
