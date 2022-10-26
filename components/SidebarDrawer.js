@@ -6,10 +6,13 @@ import { Divider, IconButton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import Sidebar from './Sidebar'
+import PushPinIcon from '@mui/icons-material/PushPin'
+import Cookies from 'universal-cookie'
 
 const drawerWidth = 240
 
-export default function SidebarDrawer ({ handleDrawerClose, theme, open }) {
+export default function SidebarDrawer ({ handleDrawerClose, theme, open, sidebarDrawerIsPinned, setSidebarDrawerIsPinned, pinBackgroundColorStyle }) {
+  const cookies = new Cookies()
   const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -27,6 +30,11 @@ export default function SidebarDrawer ({ handleDrawerClose, theme, open }) {
     }),
     overflowX: 'hidden'
   })
+
+  function handlePinSidebar () {
+    cookies.set('isPinned', !sidebarDrawerIsPinned)
+    setSidebarDrawerIsPinned(!sidebarDrawerIsPinned)
+  }
 
   const closedMixin = (theme) => ({
     transition: theme.transitions.create('width', {
@@ -58,15 +66,18 @@ export default function SidebarDrawer ({ handleDrawerClose, theme, open }) {
   )
   return (
     <Drawer
-        variant="permanent"
-        open={open} >
-        <DrawerHeader>
-            <IconButton onClick={handleDrawerClose}>
-                {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-            </IconButton>
-        </DrawerHeader>
-        <Divider />
-        <Sidebar/>
+      variant="permanent"
+      open={open} >
+      <DrawerHeader>
+        <IconButton onClick={handlePinSidebar} container style={{ backgroundColor: pinBackgroundColorStyle, padding: 12 }}>
+          <PushPinIcon />
+        </IconButton>
+        <IconButton onClick={handleDrawerClose}>
+          {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </IconButton>
+      </DrawerHeader>
+      <Divider />
+      <Sidebar />
     </Drawer>
   )
 }

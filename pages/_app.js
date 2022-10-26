@@ -1,5 +1,4 @@
 /* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
 import { EventType, InteractionType } from '@azure/msal-browser'
 import { AuthenticatedTemplate, MsalProvider, UnauthenticatedTemplate, useMsal } from '@azure/msal-react'
 import { ThemeProvider } from '@emotion/react'
@@ -20,6 +19,7 @@ import { msalInstance } from './authConfig'
 import { Guard } from '../components/AuthGuard'
 import { UserContextProvider } from './UserContext'
 import 'semantic-ui-css/semantic.min.css'
+import Cookies from 'universal-cookie'
 
 const PREFIX = '_app'
 
@@ -79,7 +79,7 @@ export default function MyApp (props) {
     fetchData()
   }, [userDetails, setUserDetails])
 
-  const { data, error } = useSWR(
+  const { data } = useSWR(
     '/REMS/retailerids',
     fetcher
   )
@@ -91,15 +91,33 @@ export default function MyApp (props) {
 
   const { Component, pageProps } = props
   const [open, setOpen] = React.useState(false)
+  const [sidebarDrawerIsPinned, setSidebarDrawerIsPinned] = useState(false)
+  const [pinBackgroundColorStyle, setPinBackgroundColorStyle] = useState('#ffffff')
+  const cookies = new Cookies()
+
   const handleDrawerOpen = () => {
     setOpen(true)
   }
   const handleDrawerClose = () => {
-    setOpen(false)
+    if (!sidebarDrawerIsPinned) {
+      setOpen(false)
+    }
   }
 
+  useEffect(() => {
+    if (sidebarDrawerIsPinned === true) {
+      setPinBackgroundColorStyle('#d4d4d4')
+    }
+    if (sidebarDrawerIsPinned === false) {
+      setPinBackgroundColorStyle('#ffffff')
+    }
+  }, [sidebarDrawerIsPinned])
+
   React.useEffect(() => {
-    // Remove the server-side injected CSS.
+    if (cookies.get('isPinned') === 'true') {
+      setSidebarDrawerIsPinned(true)
+      setOpen(true)
+    }
     const jssStyles = document.querySelector('#jss-server-side')
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
@@ -176,7 +194,7 @@ export default function MyApp (props) {
                   ids={ids}
                   open={open}
                   handleDrawerOpen={handleDrawerOpen} />
-                <SidebarDrawer open={open} theme={theme} handleDrawerClose={handleDrawerClose}/>
+                <SidebarDrawer open={open} sidebarDrawerIsPinned={sidebarDrawerIsPinned} setSidebarDrawerIsPinned={setSidebarDrawerIsPinned} pinBackgroundColorStyle={pinBackgroundColorStyle} theme={theme} handleDrawerClose={handleDrawerClose} />
                 <div className={classes.appBarSpacer} />
                 <Guard>
                   <Component {...pageProps} />
