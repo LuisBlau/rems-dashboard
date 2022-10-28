@@ -69,7 +69,7 @@ export default function SidebarDrawer ({ handleDrawerClose, theme, open, sidebar
       variant="permanent"
       open={open} >
       <DrawerHeader>
-        <IconButton onClick={handlePinSidebar} container style={{ backgroundColor: pinBackgroundColorStyle, padding: 12 }}>
+        <IconButton onClick={handlePinSidebar} style={{ backgroundColor: pinBackgroundColorStyle, padding: 12 }}>
           <PushPinIcon />
         </IconButton>
         <IconButton onClick={handleDrawerClose}>
