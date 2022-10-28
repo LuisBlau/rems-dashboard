@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react'
 import { styled } from '@mui/material/styles'
 import Container from '@mui/material/Container'
@@ -66,17 +65,17 @@ const Root = styled('main')((
     height: 240
   },
 
-  [`& .${classes.rowItem}`]: {
+  [`& .${classes.rowItemSX}`]: {
     m: 1,
     minWidth: 120
   }
 
 }))
 
-export default function snmp (props) {
+export default function snmp () {
   const [cInit, setcInit] = useState(false)
-  const [name, setName] = useState('')
   const [snmpRequests, setSnmpRequests] = useState({})
+  const [snmpTrapPort, setSnmpTrapPort] = useState('')
   const [openSuccess, setOpenSuccess] = useState(false)
   const [toastSuccess, setToastSuccess] = useState('')
   const [openFailure, setOpenFailure] = useState(false)
@@ -87,6 +86,7 @@ export default function snmp (props) {
   const [selectedAgent, setSelectedAgent] = useState(null)
   const [toastFailure, setToastFailure] = useState('')
   const [ips, setIps] = useState([])
+
   useEffect(() => {
     axios.get('/api/REMS/stores').then(function (res) {
       const packages = []
@@ -96,6 +96,7 @@ export default function snmp (props) {
       setStores(packages)
     })
   }, [])
+
   const addCommand = () => {
     const id = Date.now()
     setSnmpRequests(snmpRequests => {
@@ -130,10 +131,6 @@ export default function snmp (props) {
     })
   }
 
-  const handleNameChange = (e) => {
-    setName(e.target.value)
-  }
-
   if (!cInit) {
     setcInit(true)
     addCommand()
@@ -165,6 +162,7 @@ export default function snmp (props) {
     const deviceTypes = {}
     const deviceAddresses = {}
     const commandList = []
+
     for (const x in snmpRequests) {
       const y = snmpRequests[x]
       commandList.push(y)
@@ -175,6 +173,7 @@ export default function snmp (props) {
       deviceTypes['com.tgcs.retail.snmpDevice.type' + realidx.toString()] = commandList[c].arguments.DeviceType
       deviceAddresses['com.tgcs.retail.snmpDevice.networkName' + realidx.toString()] = commandList[c].arguments.ipaddress
     }
+
     const cookies = new Cookies()
     const commandObj = {
       retailer: cookies.get('retailerId'),
@@ -189,6 +188,9 @@ export default function snmp (props) {
         },
         {
           'com.tgcs.retail.snmpDevices.count': commandList.length
+        },
+        {
+          'com.tgcs.retailer.snmpDevices.trapPort': snmpTrapPort
         },
         deviceTypes,
         deviceAddresses
@@ -232,6 +234,10 @@ export default function snmp (props) {
       .then(function (res) {
         if (res.data && res.data.find(o => o['com.tgcs.retail.snmpDevices.count'])) {
           const snmpDeviceCount = Object.entries(res.data.find(o => o['com.tgcs.retail.snmpDevices.count']))[0][1]
+          let trapPort = ''
+          if (res.data.find(o => o['com.tgcs.retailer.snmpDevices.trapPort']) !== undefined) {
+            trapPort = Object.entries(res.data.find(o => o['com.tgcs.retailer.snmpDevices.trapPort']))[0][1]
+          }
           if (snmpDeviceCount > 0) {
             const devices = {}
             for (let i = 1; i <= snmpDeviceCount; i++) {
@@ -246,6 +252,7 @@ export default function snmp (props) {
               devices[i] = device
             }
             setSnmpRequests(devices)
+            setSnmpTrapPort(trapPort)
           }
         }
       })
@@ -263,80 +270,85 @@ export default function snmp (props) {
     return true
   }
 
+  const changeTrapPort = (e) => {
+    setSnmpTrapPort(e.target.value)
+  }
+
   return (
-        <Root className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <Container maxWidth="xl" className={classes.container} >
-                < form onSubmit={handleSubmit} >
-                        <Typography align="center" variant="h3" sx={{ marginBottom: 3 }}>Set SNMP Devices</Typography>
-                        <Grid container spacing={2}>
-                            <Grid item xs={4.5}/>
-                            <Grid item>
-                                <Autocomplete
-                                disablePortal
-                                options={stores}
-                                onInputChange={handleSelectedStore}
-                                value={selectedStore}
-                                sx={{ width: 300, marginBottom: 3 }}
-                                renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore}/>}
-                                />
-                                <Autocomplete
-                                disabled={agents == null}
-                                disablePortal
-                                options={agents}
-                                value={selectedAgent}
-                                onInputChange={handleSelectedAgent}
-                                sx={{ width: 300, marginBottom: 3 }}
-                                renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent}/>}
-                                />
-                            </Grid>
-                        </Grid>
-                        {Object.keys(snmpRequests).map(function (idx) {
-                          return (<SnmpCommand key={'cmd-' + idx} id={idx} st={snmpRequests[idx]} ips={ips} setIps={setIps} setst={setst} onRemove={removeCommand}/>)
-                        })}
+    <Root className={classes.content}>
+      <div className={classes.appBarSpacer} />
+      <Container maxWidth="xl" className={classes.container} >
+        < form onSubmit={handleSubmit} >
+          <Typography align="center" variant="h3" sx={{ marginBottom: 3 }}>Set SNMP Devices</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={4.5} />
+            <Grid item>
+              <Autocomplete
+                disablePortal
+                options={stores}
+                onInputChange={handleSelectedStore}
+                value={selectedStore}
+                sx={{ width: 300, marginBottom: 3 }}
+                renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore} />}
+              />
+              <Autocomplete
+                disabled={agents == null}
+                disablePortal
+                options={agents}
+                value={selectedAgent}
+                onInputChange={handleSelectedAgent}
+                sx={{ width: 300, marginBottom: 3 }}
+                renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent} />}
+              />
+              <TextField value={snmpTrapPort} onChange={changeTrapPort} sx={{ width: 300, marginBottom: 3 }} label="Trap Port" variant="outlined"/>
+            </Grid>
+          </Grid>
+          {Object.keys(snmpRequests).map(function (idx) {
+            return (<SnmpCommand key={'cmd-' + idx} id={idx} st={snmpRequests[idx]} ips={ips} setIps={setIps} setst={setst} onRemove={removeCommand} />)
+          })}
 
-                        <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: '25%', width: '50%' }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
-                        <Button variant="contained" disabled={!ipChangesAreValid(ips)} color='primary' sx={{ marginTop: 1, marginLeft: '25%', width: '50%' }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
+          <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: '25%', width: '50%' }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
+          <Button variant="contained" disabled={!ipChangesAreValid(ips)} color='primary' sx={{ marginTop: 1, marginLeft: '25%', width: '50%' }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
 
-                </form>
+        </form>
 
-                <Box pt={4}>
-                    <Copyright />
-                </Box>
+        <Box pt={4}>
+          <Copyright />
+        </Box>
 
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={openSuccess}
-                    autoHideDuration={SuccessToastDuration}
-                    onClose={(event) => { setOpenSuccess(false) }}>
-                    <Alert variant="filled" severity="success">
-                        <AlertTitle>Success!</AlertTitle>
-                        {toastSuccess}
-                    </Alert>
-                </Snackbar>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={openSuccess}
+          autoHideDuration={SuccessToastDuration}
+          onClose={(event) => { setOpenSuccess(false) }}>
+          <Alert variant="filled" severity="success">
+            <AlertTitle>Success!</AlertTitle>
+            {toastSuccess}
+          </Alert>
+        </Snackbar>
 
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={openIpFailure}
-                    autoHideDuration={FailToastDuration}
-                    onClose={(event) => { setOpenIpFailure(false) }}>
-                    <Alert variant="filled" severity="error">
-                        <AlertTitle>IP Invalid!</AlertTitle>
-                        Enter a valid IP Address
-                    </Alert>
-                </Snackbar>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={openIpFailure}
+          autoHideDuration={FailToastDuration}
+          onClose={(event) => { setOpenIpFailure(false) }}>
+          <Alert variant="filled" severity="error">
+            <AlertTitle>IP Invalid!</AlertTitle>
+            Enter a valid IP Address
+          </Alert>
+        </Snackbar>
 
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={openFailure}
-                    autoHideDuration={FailToastDuration}
-                    onClose={(event) => { setOpenFailure(false) }}>
-                    <Alert variant="filled" severity="error">
-                        <AlertTitle>Error!!!</AlertTitle>
-                        {toastFailure}
-                    </Alert>
-                </Snackbar>
-            </Container>
-        </Root>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={openFailure}
+          autoHideDuration={FailToastDuration}
+          onClose={(event) => { setOpenFailure(false) }}>
+          <Alert variant="filled" severity="error">
+            <AlertTitle>Error!!!</AlertTitle>
+            {toastFailure}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </Root>
   )
 }

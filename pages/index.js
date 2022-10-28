@@ -53,23 +53,13 @@ const Root = styled('main')((
   }
 }))
 
-const drawerWidth = 240
-
 export default function Index () {
-  const [open, setOpen] = React.useState(true)
-  const handleDrawerOpen = () => {
-    setOpen(true)
-  }
-  const handleDrawerClose = () => {
-    setOpen(false)
-  }
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
 
   return (
     <Root >
       <div className={classes.appBarSpacer} />
       <AuthenticatedTemplate>
-        {/* <WelcomeUser /> */}
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Typography align="center" variant="h4">Sign in to access the portal</Typography>
