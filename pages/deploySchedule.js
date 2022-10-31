@@ -1,5 +1,4 @@
 /* eslint-disable no-sequences */
-/* eslint-disable camelcase */
 /* eslint-disable no-unused-expressions */
 import React, { useEffect, useState } from 'react'
 import { styled } from '@mui/material/styles'
@@ -27,9 +26,9 @@ import axios from 'axios'
 import { FormControl } from '@mui/material'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
-const Success_Toast = 1500
+const successToastDuration = 1500
 /// Number of millisec to show Failure toast. Page does not reload after.
-const Fail_Toast = 8000
+const failToastDuration = 8000
 
 const PREFIX = 'deploySchedule'
 
@@ -267,7 +266,7 @@ export default function deployScheule () {
         <Snackbar
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           open={openSuccess}
-          autoHideDuration={Success_Toast}
+          autoHideDuration={successToastDuration}
           onClose={(event) => { setOpenSuccess(false) }}>
           <Alert variant="filled" severity="success">
             <AlertTitle>Success!</AlertTitle>
@@ -278,7 +277,7 @@ export default function deployScheule () {
         <Snackbar
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           open={openFailure}
-          autoHideDuration={Fail_Toast}
+          autoHideDuration={failToastDuration}
           onClose={(event) => { setOpenFailure(false) }}>
           <Alert variant="filled" severity="error">
             <AlertTitle>Error!!!</AlertTitle>
