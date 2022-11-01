@@ -1,10 +1,10 @@
-/* eslint-disable no-unused-vars */
 import { styled } from '@mui/material/styles'
-import React, { useState } from 'react'
+import React from 'react'
 import Container from '@mui/material/Container'
 import ExtractRequestGrid from '../../components/ExtractRequestGrid'
 import Typography from '@mui/material/Typography'
-
+import Button from '@mui/material/Button'
+import axios from 'axios'
 const PREFIX = 'dumpTable'
 
 const classes = {
@@ -27,8 +27,7 @@ const Root = styled('main')((
   },
 
   [`& .${classes.container}`]: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4)
+    paddingBottom: 4
   },
 
   [`& .${classes.appBarSpacer}`]: {
@@ -44,21 +43,27 @@ const Root = styled('main')((
 
   [`& .${classes.fixedHeight}`]: {
     height: 240
+  },
+  [`& .${classes.triggerButton}`]: {
+    float: 'right',
+    padding: '10px'
   }
 }))
 
 export default function DataCaptureComponent () {
-  const [filterText, setFilterText] = useState('')
-  /* const {data, error} = useSWR("/REMS/release", fetcher);
-
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>; */
   return (
     <Root className={classes.content}>
-      <div className={classes.appBarSpacer}/>
+      <div className={classes.appBarSpacer} />
       <Typography align="center" variant="h3">Trigger Data Capture</Typography>
-      <Container maxWidth="lg" className={classes.container}>
-     <ExtractRequestGrid/>
+      <Button
+        style={{ float: 'right', marginRight: 60, padding: 10 }}
+        variant="contained"
+        onClick={() => { axios.post('/api/registers/requestRemsDump', { dataCapture: 'REMS' }) }}
+      >Create Rems Data Capture
+      </Button>
+      <div className={classes.appBarSpacer} />
+      <Container className={classes.container}>
+        <ExtractRequestGrid />
       </Container>
     </Root>
   )

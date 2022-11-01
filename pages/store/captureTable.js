@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import Container from '@mui/material/Container'
 import CaptureGrid from '../../components/CaptureGrid'
 import Typography from '@mui/material/Typography'
+import axios from 'axios'
+import Button from '@mui/material/Button'
 
 const PREFIX = 'captureTable'
 
@@ -54,6 +56,9 @@ export default function DocCollectionComponent () {
       <div className={classes.appBarSpacer}/>
       <Typography align="center" variant="h3">Data Captures</Typography>
       <Container maxWidth="xl" className={classes.container}>
+	  <Button onClick={() => {
+		axios.get("/api/registers/remscapture")
+	  }}>Create Rems Data Capture</Button>
       <CaptureGrid/>
       </Container>
     </Root>
