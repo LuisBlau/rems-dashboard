@@ -18,7 +18,6 @@ import theme from '../src/theme'
 import { msalInstance } from './authConfig'
 import { Guard } from '../components/AuthGuard'
 import { UserContextProvider } from './UserContext'
-import 'semantic-ui-css/semantic.min.css'
 import Cookies from 'universal-cookie'
 
 const PREFIX = '_app'

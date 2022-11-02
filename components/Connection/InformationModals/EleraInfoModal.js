@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
-import { Grid, Paper, styled, Typography } from '@mui/material'
+import { Grid, IconButton, Paper, styled, Tooltip, Typography } from '@mui/material'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import React from 'react'
 import { Container } from '@mui/system'
 import { PointOfSale } from '@mui/icons-material'
-import { Popup } from 'semantic-ui-react'
 
 const PREFIX = 'OverviewAgentPaper'
 const classes = {
@@ -61,9 +60,11 @@ export default function EleraInfoModal ({ modalData, eleraModalOpen, handleElera
   if (modalData.EleraServices) {
     return (
       <Grid item xs={12}>
-        <Popup content="Elera Service Information" trigger={
-          <PointOfSale style={{ color: '#484848' }} cursor='pointer' onClick={handleEleraModalOpen}/>
-        }/>
+        <Tooltip arrow title="Elera Service Information">
+          <IconButton>
+            <PointOfSale style={{ color: '#484848' }} cursor={'pointer'} onClick={handleEleraModalOpen} />
+          </IconButton>
+        </Tooltip>
         <Modal
           open={eleraModalOpen}
           onClose={handleEleraModalClose}

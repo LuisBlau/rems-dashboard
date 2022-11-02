@@ -7,7 +7,7 @@
 /* eslint-disable react/prop-types */
 import useSWR from 'swr'
 import fetcher from '../../lib/lib'
-import { Button, Dialog, DialogActions, DialogTitle, Grid, Paper, Typography } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogTitle, Grid, IconButton, Paper, Tooltip, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
@@ -19,7 +19,6 @@ import { Container } from '@mui/system'
 import EleraInfoModal from './InformationModals/EleraInfoModal'
 import RmqInfoModal from './InformationModals/RmqInfoModal'
 import DockerInfoModal from './InformationModals/DockerInfoModal'
-import { Popup } from 'semantic-ui-react'
 
 // TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper'
@@ -222,9 +221,11 @@ function ScreenshotModal ({ data, screenshotOpen, handleScreenshotOpen, handleSc
   }
   return (
     <Grid item xs={12}>
-      <Popup content="Agent Screenshot" trigger={
-        <PhotoCamera style={{ color: '#484848' }} cursor={'pointer'} onClick={handleScreenshotOpen} />
-      } />
+      <Tooltip arrow title="Agent Screenshot">
+        <IconButton>
+          <PhotoCamera style={{ color: '#484848' }} cursor={'pointer'} onClick={handleScreenshotOpen} />
+        </IconButton>
+      </Tooltip>
       <Modal
         open={screenshotOpen}
         onClose={handleScreenshotClose}
@@ -307,9 +308,11 @@ function DumpWithConfirmationModal ({ data, link, dumpConfirmationOpen, handleDu
 
   return (
     <Grid item xs={12}>
-      <Popup content="Dump" trigger={
-        <SyncProblem style={{ color: '#484848' }} cursor={'pointer'} onClick={handleDumpConfirmationOpen} />
-      } />
+      <Tooltip arrow title="Dump">
+        <IconButton>
+          <SyncProblem style={{ color: '#484848' }} cursor={'pointer'} onClick={handleDumpConfirmationOpen} />
+        </IconButton>
+      </Tooltip>
       <Dialog
         open={dumpConfirmationOpen}
         onClose={handleDumpConfirmationClose}
@@ -337,9 +340,11 @@ function ReloadWithConfirmationModal ({ disableReload, data, link, reloadConfirm
     <Grid item xs={12}>
       {disableReload
         ? null
-        : <Popup content="Reload" trigger={
-          <PowerSettingsNew disabled={disableReload} style={{ color: '#484848' }} cursor={'pointer'} onClick={handleReloadConfirmationOpen} />
-        } />
+        : <Tooltip arrow title="Reload">
+            <IconButton>
+              <PowerSettingsNew style={{ color: '#484848' }} cursor={'pointer'} onClick={handleReloadConfirmationOpen} />
+            </IconButton>
+          </Tooltip>
       }
 
       <Dialog

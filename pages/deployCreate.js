@@ -21,9 +21,9 @@ import Typography from '@mui/material/Typography'
 import axios from 'axios'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
-const Success_Toast = 4000
+const successToastDuration = 4000
 /// Number of millisec to show Failure toast. Page does not reload after.
-const Fail_Toast = 10000
+const failToastDuration = 10000
 
 const PREFIX = 'deployCreate'
 
@@ -120,7 +120,7 @@ export default function DeployCreateComponent (props) {
 
       setTimeout(function () {
         window.location.reload(true)
-      }, Success_Toast + 500)
+      }, successToastDuration + 500)
     } else {
       setToastFailure('Please select existing deployment config')
       setOpenFailure(true)
@@ -160,7 +160,7 @@ export default function DeployCreateComponent (props) {
 
         setTimeout(function () {
           window.location.reload(true)
-        }, Success_Toast + 500)
+        }, successToastDuration + 500)
       })
       .catch(function (error) {
         console.log(error)
@@ -262,7 +262,7 @@ export default function DeployCreateComponent (props) {
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openSuccess}
-                    autoHideDuration={Success_Toast}
+                    autoHideDuration={successToastDuration}
                     onClose={(event) => { setOpenSuccess(false) }}>
                     <Alert variant="filled" severity="success">
                         <AlertTitle>Success!</AlertTitle>
@@ -273,7 +273,7 @@ export default function DeployCreateComponent (props) {
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openFailure}
-                    autoHideDuration={Fail_Toast}
+                    autoHideDuration={failToastDuration}
                     onClose={(event) => { setOpenFailure(false) }}>
                     <Alert variant="filled" severity="error">
                         <AlertTitle>Error!!!</AlertTitle>

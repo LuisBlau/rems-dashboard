@@ -23,7 +23,7 @@ import Checkbox from '@mui/material/Checkbox'
 import ListItemText from '@mui/material/ListItemText'
 import InputLabel from '@mui/material/InputLabel'
 import axios from 'axios'
-import { FormControl } from '@mui/material'
+import { Dialog, DialogActions, DialogTitle, FormControl, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
 const successToastDuration = 1500
@@ -83,11 +83,18 @@ const formValues = {
 
 export default function deployScheule () {
   const [_formValues, setFormValues] = useState(formValues)
-  const [_package, setPackage] = useState(null)
-  const [_storeList, setStoreList] = useState(null)
-  const [_listNames, setListNames] = useState('')
+  const [deployConfigs, setDeployConfigs] = useState([])
+  const [selectedDeployConfig, setSelectedDeployConfig] = useState(null)
+  const [allStoresDetails, setAllStoresDetails] = useState([])
+  const [_storeList, setStoreList] = useState('')
   const [_dateTime, setDateTime] = useState(new Date())
   const [_options, setOptions] = useState([])
+  const [allUploads, setAllUploads] = useState([])
+  const [agentVersions, setAgentVersions] = useState([])
+  const [selectedUploadedFiles, setSelectedUploadedFiles] = useState([])
+  const [versionCollisionDialogOpen, setVersionCollisionDialogOpen] = useState(false)
+  const collisionDialogTitleString = 'Existing Version Collision'
+  const [collisionDialogData, setCollisionDialogData] = useState([])
 
   const [openSuccess, setOpenSuccess] = useState(false)
   const [toastSuccess, setToastSuccess] = useState('')
@@ -98,7 +105,6 @@ export default function deployScheule () {
   const [storeFilterNames, setStoreFilterNames] = React.useState([])
   const [storeNames, setStoreNames] = React.useState([])
 
-  const [storeSelected, setStoreSelected] = useState(false)
   const ITEM_HEIGHT = 48
   const ITEM_PADDING_TOP = 8
   const MenuProps = {
@@ -114,25 +120,95 @@ export default function deployScheule () {
     setStoreNames([])
 
     axios.get('/api/REMS/deploy-configs').then(function (res) {
-      console.log('axios response', res)
       const packages = []
+      const deployConfigs = []
       res.data.forEach(v => {
+        // TODO:
+        // this won't be performant when we have a large number of deployConfigs
+        // we should gather the specific deployConfig info
+        // in a separate API call when we need the info
+        // later in the process (when one is selected)
+        deployConfigs.push(v)
         packages.push({ label: v.name, id: v.id })
       })
+      setDeployConfigs(deployConfigs)
       setOptions(packages)
     })
 
+    // TODO:
+    // this won't be performant when we have a large number of uploads
+    // we should do this later in the workflow, once a deploy-config is
+    // selected, and filter the request
+    axios.get('/api/REMS/uploads').then(function (res) {
+      const uploads = []
+      res.data.forEach(upload => {
+        uploads.push({ fileId: upload.id, fileName: upload.filename, description: upload.description, packages: upload.packages })
+      })
+      setAllUploads(uploads)
+    })
+
     axios.get('/api/REMS/store-list').then((resp) => {
-      console.log('Store-list response', resp)
       const sNames = []
+      const stores = []
       resp.data.forEach(v => {
+        stores.push(v)
         sNames.push(v.list_name)
       })
+      setAllStoresDetails(stores)
       setStoreNames(sNames)
     })
-  }, []) // Second opption [] means only run effect on the first render
+  }, [])
 
-  const changeStoreFilter = (event) => {
+  function getUsefulInformation (agents, useful) {
+    const arr = []
+    agents.forEach(agent => {
+      if (agent.includes(':')) {
+        arr.push(useful.find(x => x.storeAgentCombo === agent))
+      } else {
+        try {
+          arr.push(useful.find(x => x.store === agent && x.isMaster === true))
+        } catch (error) {
+          console.log(agent + ' does not seem to have a master agent.')
+        }
+      }
+    })
+    return arr
+  }
+
+  useEffect(() => {
+    const miffedStoreAgentPackageVersions = []
+    if (selectedUploadedFiles.length > 0 && agentVersions.length > 0) {
+      const packages = []
+      selectedUploadedFiles.forEach(file => {
+        const filePacks = []
+        file.packages.forEach(pack => {
+          filePacks.push(pack)
+        })
+        packages.push(filePacks)
+      })
+      agentVersions.forEach(agent => {
+        if (agent && agent.versions) {
+          agent.versions.forEach(version => {
+            packages.forEach(pckg => {
+              if (pckg.some(x => x.productName === Object.keys(version)[0] && x.version === Object.values(version)[0])) {
+                // Store these matching kittens off into an array for the dialog
+                const packageVersionString = Object.keys(version)[0] + ' : ' + Object.values(version)[0]
+                miffedStoreAgentPackageVersions.push({ agent: agent.storeAgentCombo, package: packageVersionString })
+              }
+            })
+          })
+        }
+      })
+    }
+    // if we have any version collisions between the deploy config
+    // and stores in the list
+    if (miffedStoreAgentPackageVersions.length > 0) {
+      setCollisionDialogData(miffedStoreAgentPackageVersions)
+      setVersionCollisionDialogOpen(true)
+    }
+  }, [agentVersions, selectedUploadedFiles])
+
+  const changeStoreFilter = async (event) => {
     const {
       target: { value }
     } = event
@@ -140,24 +216,82 @@ export default function deployScheule () {
       // On autofill we get a stringified value.
       typeof value === 'string' ? value.split(',') : value
     )
+    const usefulInformation = []
+    // gets useful agent/store info for the selected retailer
+    await axios.get('/api/REMS/agents').then(function (res) {
+      res.data.forEach(element => {
+        usefulInformation.push({ storeAgentCombo: element.storeName + ':' + element.agentName, versions: element.versions, isMaster: element.is_master, store: element.storeName, agent: element.agentName })
+      })
+    })
+    if (value.length === 1) {
+      // I want to store all the stores/agents in the distribution list
+      // in the store list :)
+      // this is the list of agents for the selected distribution list
+      const distributionListAgents = allStoresDetails.find(x => x.list_name === String(value)).agents
 
-    console.log(value)
-    if (value.length) {
-      setStoreSelected(true)
-      setListNames(String(value))
+      // gathers an array of agents that are relevant to the selected
+      // distribution list and their associated package version combos
+      const newAgentVersions = getUsefulInformation(distributionListAgents, usefulInformation)
+      setAgentVersions(newAgentVersions)
+
+      // set store list to storeAgentCombo
+      let newStoreList = ''
+      newAgentVersions.forEach(agent => {
+        if (agent) {
+          if (!newStoreList.includes(agent.storeAgentCombo)) {
+            if (newStoreList.length > 0 && newStoreList.charAt(newStoreList.length - 2) !== ',') {
+              newStoreList += (', ')
+            }
+            newStoreList += (agent.storeAgentCombo + ', ')
+          }
+        }
+      })
+      // remove whitespace
+      newStoreList = newStoreList.trim()
+      // remove trailing comma
+      newStoreList = newStoreList.replace(/,*$/, '')
+      setStoreList(newStoreList)
+    } else if (value.length > 1) {
+      // handle when multiple distribution lists are selected
+      let newStoreList = ''
+
+      value.forEach(async val => {
+        const distributionListAgents = allStoresDetails.find(x => x.list_name === String(val)).agents
+
+        // gathers an array of agents that are relevant to the selected
+        // distribution list and their associated package version combos
+        const newAgentVersions = getUsefulInformation(distributionListAgents, usefulInformation)
+        setAgentVersions(newAgentVersions)
+
+        // set store list to storeAgentCombo
+        newAgentVersions.forEach(agent => {
+          if (agent) {
+            if (!newStoreList.includes(agent.storeAgentCombo)) {
+              if (newStoreList.length > 0 && newStoreList.charAt(newStoreList.length - 2) !== ',') {
+                newStoreList += (', ')
+              }
+              newStoreList += (agent.storeAgentCombo + ', ')
+            }
+          }
+        })
+        // remove whitespace
+        newStoreList = newStoreList.trim()
+        // remove trailing comma
+        newStoreList = newStoreList.replace(/,*$/, '')
+        setStoreList(newStoreList)
+      })
     } else {
-      console.log('in else')
-      setStoreSelected(false)
+      setStoreList('')
     }
   }
 
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    formValues.name = _package.label,
-    formValues.id = _package.id,
+    formValues.name = selectedDeployConfig.label,
+    formValues.id = selectedDeployConfig.id,
     formValues.storeList = _storeList,
-    formValues.listNames = _listNames,
+    // formValues.listNames = _listNames,
     // Don't adjust for users time zone i.e we are always in store time.
     // en-ZA puts the date in the design doc format except for an extra comma.
     formValues.dateTime = new Date(_dateTime).toLocaleString('en-ZA', { hourCycle: 'h24' }).replace(',', '').replace(' 24:', ' 00:')
@@ -180,6 +314,35 @@ export default function deployScheule () {
       })
   }
 
+  function handleVersionCollisionDialogClose () {
+    setVersionCollisionDialogOpen(false)
+  }
+
+  function handleSelectDeployConfig (selectedConfig) {
+    if (selectedConfig) {
+      setSelectedDeployConfig(selectedConfig)
+      // retrieve config by name
+      // traverse the 'steps' array
+      // retrieve any that have 'upload'
+      // get file name from there
+      const selectedConfigDetailSteps = deployConfigs.find(x => x.name === selectedConfig.label).steps
+      const newSelectedUploadedFiles = []
+      selectedConfigDetailSteps.forEach(step => {
+        if (step.type === 'upload') {
+          // store the uploaded files in an array, filtered down to the ones that have matches :)
+          newSelectedUploadedFiles.push(allUploads.find(upload => upload.fileId === step.file))
+          // from here, we have access to an array of files and their associated packages (and their versions)
+          // we can access that array from:
+          // selectedUploadedFiles[index].packages
+        }
+      })
+      setSelectedUploadedFiles(newSelectedUploadedFiles)
+    } else {
+      setSelectedDeployConfig(null)
+      setSelectedUploadedFiles([])
+    }
+  }
+
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
@@ -188,10 +351,10 @@ export default function deployScheule () {
         <form onSubmit={handleSubmit}>
           <Stack spacing={2} sx={{ alignItems: 'center' }} >
             <Autocomplete
-              id="select-package"
-              value={_package}
-              onChange={(event, newValue) => {
-                setPackage(newValue)
+              id="select-deploy-config"
+              value={selectedDeployConfig}
+              onChange={(event, selectedConfig) => {
+                handleSelectDeployConfig(selectedConfig)
               }}
               options={_options}
               noOptionsText="Error Loading Package List"
@@ -232,13 +395,14 @@ export default function deployScheule () {
               multiline
               rows={5}
               sx={{ width: uiWidth, height: '100%' }}
+              value={_storeList}
               label="Store List"
               name="storeList"
               onChange={(event) => {
-                setStoreList(event.target.value)
+                setStoreList(String(event.target.value))
               }}
-              required={!storeSelected}
-              disabled={storeSelected}
+              required
+              // disabled={storeSelected}
               helperText='example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC'
             />
             <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -284,6 +448,51 @@ export default function deployScheule () {
             {toastFailure}
           </Alert>
         </Snackbar>
+
+        <Dialog
+          open={versionCollisionDialogOpen}
+          onClose={handleVersionCollisionDialogClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {collisionDialogTitleString}
+          </DialogTitle>
+          <div style={{ margin: 20, flexWrap: true }}>
+            Issues exist for the following:
+          </div>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    Store:Agent Combination
+                  </TableCell>
+                  <TableCell align="right">
+                    Package:Version Combination
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {collisionDialogData.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell component="th" scope="row">{row.agent}</TableCell>
+                      <TableCell align="right">{row.package}</TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <div style={{ margin: 20, flexWrap: true }}>
+            {'If you would like to proceed with this deployment, continue with submission.  Otherwise, remove the store(s)/agent(s) from the list before submission.'}
+          </div>
+          <DialogActions>
+            <Button style={{ marginRight: 12 }} variant='contained' onClick={handleVersionCollisionDialogClose}>Ok</Button>
+          </DialogActions>
+        </Dialog>
 
       </Container>
     </Root>

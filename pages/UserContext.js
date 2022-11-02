@@ -13,20 +13,28 @@ export const UserContextProvider = (props) => {
   const username = accounts.length > 0 ? accounts[0].username : ''
 
   const getRoles = async () => {
-    const u = await axios.get('/api/REMS/getUserDetails?email=' + username).then(resp => resp.data.role || null)
-    if (u) {
+    try {
+      const u = await axios.get('/api/REMS/getUserDetails?email=' + username).then(resp => resp.data.role || null)
+      if (u) {
+        setUserRoles(u)
+      }
       setUserRoles(u)
+      setCurrentPage(props.pageName)
+    } catch (e) {
+      console.log(e)
     }
-    setUserRoles(u)
-    setCurrentPage(props.pageName)
   }
 
   const getRetailers = async () => {
-    const u = await axios.get('/api/REMS/getUserDetails?email=' + username).then(resp => resp.data.retailer || null)
-    if (u) {
-      setUserRetailers(u)
+    try {
+      const u = await axios.get('/api/REMS/getUserDetails?email=' + username).then(resp => resp.data.retailer || null)
+      if (u) {
+        setUserRetailers(u)
+      }
+      setCurrentPage(props.pageName)
+    } catch (e) {
+      console.log(e)
     }
-    setCurrentPage(props.pageName)
   }
 
   useEffect(() => {

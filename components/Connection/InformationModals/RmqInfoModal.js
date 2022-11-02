@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
-import { Grid, Paper, Typography } from '@mui/material'
+import { Grid, IconButton, Paper, Tooltip, Typography } from '@mui/material'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import React from 'react'
 import { Container } from '@mui/system'
 import { Popup, Icon } from 'semantic-ui-react'
+import { Computer } from '@mui/icons-material'
 
 const bytesPerMegabyte = 1048576
 const PREFIX = 'OverviewAgentPaper'
@@ -66,9 +67,11 @@ export default function RmqInfoModal ({ modalData, rmqModalOpen, handleRmqModalO
   if (rows.length > 0) {
     return (
         <Grid item xs={12}>
-          <Popup content="Rabbit MQ Information" trigger={
-            <Icon style={{ color: '#484848', cursor: 'pointer' }} size='large' name='computer' onClick={handleRmqModalOpen}/>
-          }/>
+          <Tooltip arrow title="Rabbit MQ Information">
+            <IconButton>
+              <Computer style={{ color: '#484848' }} cursor={'pointer'} onClick={handleRmqModalOpen} />
+            </IconButton>
+          </Tooltip>
           <Modal
             open={rmqModalOpen}
             onClose={handleRmqModalClose}

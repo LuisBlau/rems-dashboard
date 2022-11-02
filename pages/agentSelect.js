@@ -156,6 +156,8 @@ export default function AgentSelect () {
     }
   }
   function handleStoreOnlyViewSwitch () {
+    setSelectedAgents([])
+    setSelectedExistingList([])
     setStoreOnlyView(!storeOnlyView)
   }
 
@@ -377,9 +379,17 @@ export default function AgentSelect () {
     }
 
     storeInformation.agents = []
-    selectedAgents.forEach(agent => {
-      storeInformation.agents.push(agent.storeName + ':' + agent.agent.agentName)
-    })
+    if (!storeOnlyView) {
+      selectedAgents.forEach(agent => {
+        storeInformation.agents.push(agent.storeName + ':' + agent.agent.agentName)
+      })
+    } else {
+      selectedAgents.forEach(agent => {
+        if (!storeInformation.agents.includes(agent.storeName)) {
+          storeInformation.agents.push(agent.storeName)
+        }
+      })
+    }
 
     axios.post('/api/REMS/save-store-data', storeInformation)
       .then(function (response) {

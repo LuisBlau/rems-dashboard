@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
-import { Grid, Typography } from '@mui/material'
+import { Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import React from 'react'
 import DockerModalTable from './Tables/DockerModalTable'
-import { Icon, Popup } from 'semantic-ui-react'
+import { DirectionsBoat } from '@mui/icons-material'
 
 const bytesPerMegabyte = 1048576
 
@@ -47,9 +47,11 @@ export default function DockerInfoModal ({ modalData, dockerModalOpen, handleDoc
   if (modalData.docker) {
     return (
         <Grid item xs={12}>
-          <Popup content='Docker Information' trigger={
-            <Icon style={{ color: '#484848', cursor: 'pointer' }} size='large' name='docker' onClick={handleDockerModalOpen}/>
-          }/>
+          <Tooltip arrow title="Docker Information">
+            <IconButton>
+              <DirectionsBoat style={{ color: '#484848' }} cursor={'pointer'} onClick={handleDockerModalOpen} />
+            </IconButton>
+          </Tooltip>
           <Modal
             open={dockerModalOpen}
             onClose={handleDockerModalClose}
