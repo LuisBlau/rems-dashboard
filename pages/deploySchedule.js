@@ -29,6 +29,8 @@ import { Dialog, DialogActions, DialogTitle, FormControl, Table, TableBody, Tabl
 const successToastDuration = 1500
 /// Number of millisec to show Failure toast. Page does not reload after.
 const failToastDuration = 8000
+// Number of millisec to show master missing toast.  Page does not reload after.
+const missingMasterToastDuration = 8000
 
 const PREFIX = 'deploySchedule'
 
@@ -99,6 +101,9 @@ export default function deployScheule () {
   const [openSuccess, setOpenSuccess] = useState(false)
   const [toastSuccess, setToastSuccess] = useState('')
 
+  const [openMissingMaster, setOpenMissingMaster] = useState(false)
+  const [toastMissingMaster, setToastMissingMaster] = useState('')
+
   const [openFailure, setOpenFailure] = useState(false)
   const [toastFailure, setToastFailure] = useState('')
 
@@ -165,10 +170,11 @@ export default function deployScheule () {
       if (agent.includes(':')) {
         arr.push(useful.find(x => x.storeAgentCombo === agent))
       } else {
-        try {
+        if (useful.find(x => x.store === agent && x.isMaster === true) !== undefined) {
           arr.push(useful.find(x => x.store === agent && x.isMaster === true))
-        } catch (error) {
-          console.log(agent + ' does not seem to have a master agent.')
+        } else {
+          setToastMissingMaster(agent + ' does not have a master agent.')
+          setOpenMissingMaster(true)
         }
       }
     })
@@ -426,6 +432,17 @@ export default function deployScheule () {
         <Box pt={4}>
           <Copyright />
         </Box>
+
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={openMissingMaster}
+          autoHideDuration={missingMasterToastDuration}
+          onClose={(event) => { setOpenMissingMaster(false) }}>
+          <Alert variant="filled" severity="error">
+            <AlertTitle>Missing Master Agent!</AlertTitle>
+            {toastMissingMaster}
+          </Alert>
+        </Snackbar>
 
         <Snackbar
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
