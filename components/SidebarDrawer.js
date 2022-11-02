@@ -32,7 +32,7 @@ export default function SidebarDrawer ({ handleDrawerClose, theme, open, sidebar
   })
 
   function handlePinSidebar () {
-    cookies.set('isPinned', !sidebarDrawerIsPinned)
+    cookies.set('isPinned', !sidebarDrawerIsPinned, { path: '/' })
     setSidebarDrawerIsPinned(!sidebarDrawerIsPinned)
   }
 

@@ -112,7 +112,7 @@ export default function MyApp (props) {
     }
   }, [sidebarDrawerIsPinned])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (cookies.get('isPinned') === 'true') {
       setSidebarDrawerIsPinned(true)
       setOpen(true)
@@ -130,7 +130,7 @@ export default function MyApp (props) {
    * 2) The callback is unregistered before the component unmounts.
    * For more, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md
    */
-  React.useEffect(() => {
+  useEffect(() => {
     const callbackId = instance.addEventCallback((event) => {
       if (event.eventType === EventType.LOGIN_FAILURE) {
         if (event.error && event.error.errorMessage.indexOf('AADB2C90118') > -1) {
