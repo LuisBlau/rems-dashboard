@@ -5,6 +5,7 @@ import ExtractRequestGrid from '../../components/ExtractRequestGrid'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import axios from 'axios'
+import Cookies from 'universal-cookie'
 const PREFIX = 'dumpTable'
 
 const classes = {
@@ -51,6 +52,8 @@ const Root = styled('main')((
 }))
 
 export default function DataCaptureComponent () {
+  const cookies = new Cookies()
+  const retailerId = cookies.get('retailerId')
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
@@ -58,7 +61,7 @@ export default function DataCaptureComponent () {
       <Button
         style={{ float: 'right', marginRight: 60, padding: 10 }}
         variant="contained"
-        onClick={() => { axios.post('/api/registers/requestRemsDump', { dataCapture: 'REMS' }) }}
+        onClick={() => { axios.post('/api/registers/requestRemsDump', { retailer: retailerId, dataCapture: 'REMS' }) }}
       >Create Rems Data Capture
       </Button>
       <div className={classes.appBarSpacer} />
