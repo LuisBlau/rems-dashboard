@@ -19,6 +19,7 @@ import { Container } from '@mui/system'
 import EleraInfoModal from './InformationModals/EleraInfoModal'
 import RmqInfoModal from './InformationModals/RmqInfoModal'
 import DockerInfoModal from './InformationModals/DockerInfoModal'
+import Image from 'next/image'
 
 // TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper'
@@ -280,7 +281,7 @@ function ScreenCaptureDisplay ({ agentData, refreshInterval, width, height }) {
   if (Object.keys(screenshotData).length !== 0) {
     return (
       <Root>
-        <img className="card-img-top" src={'data:image/png;base64,' + screenshotData.image} width={width} height={height} alt="Fetching image data..." />
+        <Image className="card-img-top" src={'data:image/png;base64,' + screenshotData.image} width={width} height={height} alt="Fetching image data..." />
         <Typography>
           Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
         </Typography>

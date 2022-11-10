@@ -49,7 +49,7 @@ const AppBar = styled(MuiAppBar, {
 }))
 
 // TODO: consider passing retailer details from parent component (instead of ids) and eliminate a lot of the looping done here to clean up
-export default function HeaderToolbar ({ open, ids, handleDrawerOpen }) {
+export default function HeaderToolbar ({ open, ids, handleDrawerOpen, appVersion }) {
   const [retailerDetails, setRetailerDetails] = useState([])
   const [selectedRetailer, setSelectedRetailer] = useState('')
 
@@ -153,6 +153,12 @@ export default function HeaderToolbar ({ open, ids, handleDrawerOpen }) {
             paddingLeft={1}
             noWrap style={{ flex: 1 }} >
             Dashboard
+          </Typography>
+          <Typography
+          component="div"
+          paddingLeft={1}
+          noWrap style={{ flex: 1 }}>
+            version: {appVersion}
           </Typography>
           <IconButton >
             <Badge badgeContent={0} >

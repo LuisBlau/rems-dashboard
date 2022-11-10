@@ -19,6 +19,7 @@ import { msalInstance } from './authConfig'
 import { Guard } from '../components/AuthGuard'
 import { UserContextProvider } from './UserContext'
 import Cookies from 'universal-cookie'
+import appInfo from '../package.json'
 
 const PREFIX = '_app'
 
@@ -54,6 +55,7 @@ const Root = styled('main')((
   }
 }))
 export default function MyApp (props) {
+  const [appVersion, setAppVersion] = useState('')
   const { accounts } = useMsal()
   const username = accounts.length > 0 ? accounts[0].username : ''
   const { instance } = useMsal()
@@ -113,6 +115,7 @@ export default function MyApp (props) {
   }, [sidebarDrawerIsPinned])
 
   useEffect(() => {
+    setAppVersion(appInfo.version)
     if (cookies.get('isPinned') === 'true') {
       setSidebarDrawerIsPinned(true)
       setOpen(true)
@@ -192,7 +195,8 @@ export default function MyApp (props) {
                 <HeaderToolbar
                   ids={ids}
                   open={open}
-                  handleDrawerOpen={handleDrawerOpen} />
+                  handleDrawerOpen={handleDrawerOpen}
+                  appVersion = {appVersion} />
                 <SidebarDrawer open={open} sidebarDrawerIsPinned={sidebarDrawerIsPinned} setSidebarDrawerIsPinned={setSidebarDrawerIsPinned} pinBackgroundColorStyle={pinBackgroundColorStyle} theme={theme} handleDrawerClose={handleDrawerClose} />
                 <div className={classes.appBarSpacer} />
                 <Guard>
@@ -204,7 +208,8 @@ export default function MyApp (props) {
               <HeaderToolbar
                 ids={ids}
                 open={open}
-                handleDrawerOpen={handleDrawerOpen} />
+                handleDrawerOpen={handleDrawerOpen}
+                appVersion = {appVersion} />
               <Container maxWidth="lg" className={classes.container}>
                 <Grid item xs={12}>
                 </Grid>

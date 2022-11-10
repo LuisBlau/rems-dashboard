@@ -16,23 +16,48 @@
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
-  - deploy
+  - release
 
-build-job:       # This job runs in the build stage, which runs first.
+image: node
+
+cache:
+  key: $CI_COMMIT_REF_SLUG
+  paths: 
+    - .npm/
+    - node_modules/
+    - .next/cache/
+
+before_script: 
+  - npm install --cache .npm --prefer-offline
+
+build:       # This job runs in the build stage, which runs first.
   stage: build
+  needs: []
   script:
     - echo "Compiling the code..."
+    - npm run build
     - echo "Compile complete."
+  rules: 
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  interruptible: true
 
-lint-test-job:   # This job also runs in the test stage.
+lint-test:   # This job also runs in the test stage.
   stage: test    # It can run at the same time as unit-test-job (in parallel).
+  needs: [build]
   script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
+    - npm install eslint 
+    - node_modules/eslint/bin/eslint.js .
+  rules: 
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  interruptible: true
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+version:
+  stage: release
+  needs: [lint-test]
+  variables:
+    GITLAB_TOKEN: 6STu9MfytahD6zzLkTh5
+  script: 
+    - npx semantic-release
+  rules: 
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  interruptible: true

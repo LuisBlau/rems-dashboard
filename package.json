@@ -1,6 +1,6 @@
 {
   "name": "rems-dashboard",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "private": true,
   "dependencies": {
     "@azure/msal-browser": "^2.24.0",
@@ -39,6 +39,7 @@
     "post-update": "echo \"codesandbox preview only, need an update\" && yarn upgrade --latest"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^13.0.2",
     "eslint": "^8.23.1",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",

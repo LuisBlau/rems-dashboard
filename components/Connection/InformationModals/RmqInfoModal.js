@@ -4,7 +4,6 @@ import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import React from 'react'
 import { Container } from '@mui/system'
-import { Popup, Icon } from 'semantic-ui-react'
 import { Computer } from '@mui/icons-material'
 
 const bytesPerMegabyte = 1048576
