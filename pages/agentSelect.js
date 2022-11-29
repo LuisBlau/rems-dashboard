@@ -100,6 +100,7 @@ export default function AgentSelect () {
   const [selectedFile, setSelectedFile] = useState(null)
   const [fileName, setFileName] = useState('')
   const allowedExtensions = ['csv', 'plain']
+  const [chooseFileDisabler, setChooseFileDisabler] = useState(true)
 
   function getStringBetween (str, start, end) {
     const result = str.match(new RegExp(start + '(.*)' + end))
@@ -213,6 +214,7 @@ export default function AgentSelect () {
   const onFileUpload = () => {
     // If user clicks the parse button without a file we show a error
     if (!selectedFile) return setToast('Enter a valid file')
+    setStoreOnlyView(true)
 
     const fileExtension = selectedFile?.type.split('/')[1]
 
@@ -233,7 +235,10 @@ export default function AgentSelect () {
 
         const importListAgents = []
         storeList.forEach(val => {
-          importListAgents.push(_.find(availableAgents, val))
+          const filteredAgents = _.filter(availableAgents, { storeName: val })
+          filteredAgents.forEach(agent => {
+            importListAgents.push(agent)
+          })
         })
         setSelectedAgents(_.concat(selectedAgents, _.filter(importListAgents, i => !_.includes(selectedAgents, i))))
       }
@@ -270,6 +275,7 @@ export default function AgentSelect () {
       }
     })
     setSelectedAgents(_.concat(selectedAgents, listToSetSelected))
+    setChooseFileDisabler(false)
   }
 
   const handleListName = (e) => {
@@ -412,6 +418,7 @@ export default function AgentSelect () {
 
   const handleNewStoreChange = (event) => {
     setnewStoreList(event.target.checked)
+    setChooseFileDisabler(!event.target.checked)
   }
 
   function DistributionListGridItem () {
@@ -530,7 +537,9 @@ export default function AgentSelect () {
           <Box >
             <label htmlFor="contained-button-file">
               <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
-              <Button variant="contained" color="secondary"
+              <Button
+                disabled={chooseFileDisabler}
+                variant="contained" color="secondary"
                 component="span"
                 endIcon={< FindInPageIcon />}
                 sx={{ width: 175, height: '100%', margin: 1 }}>
