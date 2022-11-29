@@ -92,7 +92,7 @@ export default function AgentSelect () {
   const [versionData, setVersionData] = useState([])
 
   const [existingLists, setExistingLists] = useState([])
-  const [selectedExistingList, setSelectedExistingList] = useState()
+  const [selectedExistingList, setSelectedExistingList] = useState([])
   const [open, setOpen] = useState(false)
   const [toast, setToast] = useState('No Agents Selected!')
   const [newStoreList, setnewStoreList] = useState(false)
@@ -101,6 +101,7 @@ export default function AgentSelect () {
   const [fileName, setFileName] = useState('')
   const allowedExtensions = ['csv', 'plain']
   const [chooseFileDisabler, setChooseFileDisabler] = useState(true)
+  const [selectedAgentsNames, setSelectedAgentsNames] = useState([])
 
   function getStringBetween (str, start, end) {
     const result = str.match(new RegExp(start + '(.*)' + end))
@@ -169,6 +170,14 @@ export default function AgentSelect () {
       return availableAgents
     }
   }
+
+  useEffect(() => {
+    const agentNamesArray = []
+    selectedAgents.forEach(agent => {
+      agentNamesArray.push(agent.agent.agentName)
+    })
+    setSelectedAgentsNames(agentNamesArray)
+  }, [selectedAgents])
 
   function filterBySelectedVersion () {
     const preFilteredData = storeViewFilterArray()
@@ -265,16 +274,18 @@ export default function AgentSelect () {
     agents.forEach(agent => {
       // find the agent in the available agents and shuttle it right
       if (agent.indexOf(':') > -1) {
+        setStoreOnlyView(false)
         const agentName = agent.substr(agent.indexOf(':') + 1, _.size(agent))
         listToSetSelected.push(_.filter(availableAgents, _.matches({ agent: { agentName } }))[0])
       } else {
+        setStoreOnlyView(true)
         const agents = _.filter(availableAgents, _.matches({ storeName: agent }))
         agents.forEach(agent => {
           listToSetSelected.push(agent)
         })
       }
     })
-    setSelectedAgents(_.concat(selectedAgents, listToSetSelected))
+    setSelectedAgents(listToSetSelected)
     setChooseFileDisabler(false)
   }
 
@@ -512,6 +523,7 @@ export default function AgentSelect () {
             <FormControl sx={{ minWidth: 400, marginLeft: 10 }}>
               <InputLabel sx={{ width: 200 }} id="list-label">Update Existing Lists</InputLabel>
               <Select
+                defaultValue=''
                 labelId="list-label"
                 id="existing-list-selector"
                 label="Update Existing Lists"
@@ -555,7 +567,7 @@ export default function AgentSelect () {
           </Box>
         </Grid>
         <Grid container align="center" spacing={2} justifyContent="center" alignItems="center">
-          <Grid item xs={2.5}>{customList('Existing Systems', _.filter(filterBySelectedVersion(), i => !_.includes(selectedAgents, i)))}</Grid>
+          <Grid item xs={2.5}>{customList('Existing Systems', _.filter(filterBySelectedVersion(), i => !_.includes(selectedAgentsNames, i.agent.agentName)))}</Grid>
           <Grid item xs={1}>
             <Grid container direction="column" alignItems="center">
               <Button
