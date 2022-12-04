@@ -307,7 +307,7 @@ export default function snmp () {
             return (<SnmpCommand key={'cmd-' + idx} id={idx} st={snmpRequests[idx]} ips={ips} setIps={setIps} setst={setst} onRemove={removeCommand} />)
           })}
 
-          <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: '25%', width: '50%' }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add Another Device</Button>
+          <Button variant="contained" color='secondary' sx={{ marginTop: 3, marginLeft: '25%', width: '50%' }} endIcon={<AddTaskIcon />} onClick={addCommand}>Add A New Device</Button>
           <Button variant="contained" disabled={!ipChangesAreValid(ips)} color='primary' sx={{ marginTop: 1, marginLeft: '25%', width: '50%' }} endIcon={<SaveIcon />} type="submit" >Push To Store</Button>
 
         </form>

@@ -53,7 +53,7 @@ const Root = styled('main')((
   }
 }))
 
-export default function AgentSelectFilter ({ storeOnlyView, handleStoreOnlyViewSwitch, versionData, selectedVersion, setSelectedVersion, handleSelectedVersionChanged }) {
+export default function AgentSelectFilter ({ storeOnlyView, handleStoreOnlyViewSwitch, versionData, selectedVersion, setSelectedVersion, handleSelectedVersionChanged, existingListIsSelected }) {
   return (
       <Root>
         <Paper elevation={5} className={classes.paper} >
@@ -65,7 +65,7 @@ export default function AgentSelectFilter ({ storeOnlyView, handleStoreOnlyViewS
             </Grid>
             <Grid item xs={2.5}>
               <FormControlLabel label="Store Only View" control={
-                <Switch checked={storeOnlyView} onClick={handleStoreOnlyViewSwitch} />
+                <Switch disabled={existingListIsSelected} checked={storeOnlyView} onClick={handleStoreOnlyViewSwitch} />
               } />
             </Grid>
             <Grid item xs={6}>

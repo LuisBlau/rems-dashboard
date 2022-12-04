@@ -85,6 +85,7 @@ export default function AgentSelect () {
   const [availableAgents, setAvailableAgents] = useState([])
   // list of selected items (in the right side of the screen)
   const [selectedAgents, setSelectedAgents] = useState([])
+  const [existingListIsSelected, setExistingListIsSelected] = useState(false)
 
   // filter state variables
   const [selectedVersion, setSelectedVersion] = useState()
@@ -246,7 +247,9 @@ export default function AgentSelect () {
         storeList.forEach(val => {
           const filteredAgents = _.filter(availableAgents, { storeName: val })
           filteredAgents.forEach(agent => {
-            importListAgents.push(agent)
+            if (agent !== undefined) {
+              importListAgents.push(agent)
+            }
           })
         })
         setSelectedAgents(_.concat(selectedAgents, _.filter(importListAgents, i => !_.includes(selectedAgents, i))))
@@ -258,7 +261,10 @@ export default function AgentSelect () {
 
         const importListAgents = []
         storeList.forEach(val => {
-          importListAgents.push(_.find(availableAgents, val))
+          const foundAgent = _.find(availableAgents, { storeName: val })
+          if (foundAgent !== undefined) {
+            importListAgents.push(foundAgent)
+          }
         })
         setSelectedAgents(_.concat(selectedAgents, _.filter(importListAgents, i => !_.includes(selectedAgents, i))))
       }
@@ -285,6 +291,9 @@ export default function AgentSelect () {
         })
       }
     })
+    if (listToSetSelected.length > 0) {
+      setExistingListIsSelected(true)
+    }
     setSelectedAgents(listToSetSelected)
     setChooseFileDisabler(false)
   }
@@ -541,14 +550,15 @@ export default function AgentSelect () {
               selectedVersion={selectedVersion}
               setSelectedVersion={setSelectedVersion}
               versionData={versionData}
-              handleSelectedVersionChanged={handleSelectedVersionChanged} />
+              handleSelectedVersionChanged={handleSelectedVersionChanged}
+              existingListIsSelected={existingListIsSelected} />
           </Grid>
         </Grid>
 
         <Grid item sx={{ margin: 3 }} >
           <Box >
             <label htmlFor="contained-button-file">
-              <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+              <Input disabled={chooseFileDisabler} accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
               <Button
                 disabled={chooseFileDisabler}
                 variant="contained" color="secondary"
