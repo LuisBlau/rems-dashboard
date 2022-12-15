@@ -16,7 +16,7 @@ import BugReportIcon from '@mui/icons-material/BugReport'
 import CarCrashIcon from '@mui/icons-material/CarCrash'
 import OutputIcon from '@mui/icons-material/Output'
 import UserContext from '../pages/UserContext'
-import { FileUpload } from '@mui/icons-material'
+import { AutoGraph, FileUpload } from '@mui/icons-material'
 
 function SidebarItem ({ name, icon, route, items, depthStep = 12, depth = 0, ...rest }) {
   return (
@@ -159,6 +159,19 @@ function Sidebar () {
                 icon: <CloudDownloadIcon />
               }
             ]
+          }
+        )
+      }
+    }
+
+    if (context.userRoles) {
+      if ((context.userRoles.includes('demo') && !MenuItems.some(x => x.id === 'Elera Stats'))) {
+        MenuItems.push(
+          {
+            id: 'eleraStats',
+            name: 'Elera Stats',
+            route: '/eleraStats',
+            icon: <AutoGraph />
           }
         )
       }

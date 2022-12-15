@@ -1,6 +1,6 @@
 {
   "name": "rems-dashboard",
-  "version": "4.0.14",
+  "version": "4.0.15",
   "private": true,
   "dependencies": {
     "@azure/msal-browser": "^2.24.0",
