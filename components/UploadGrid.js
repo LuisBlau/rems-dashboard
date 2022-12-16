@@ -4,10 +4,11 @@ import React from 'react'
 import { AgGridColumn, AgGridReact } from 'ag-grid-react'
 import useSWR from 'swr'
 import fetcher from '../lib/fetcherWithHeader'
+import Button from '@mui/material/Button'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import 'ag-grid-community/dist/styles/ag-theme-material.css'
-
+import axios from 'axios'
 const PREFIX = 'UploadGrid'
 
 const classes = {
@@ -69,7 +70,26 @@ const dateComparator = (valueA, valueB, nodeA, nodeB, isInverted) => {
 }
 
 export default function UploadGrid (props) {
-  const { data, error } = useSWR(['/REMS/uploads', props.state], fetcher)
+  const { data, error, mutate } = useSWR(['/REMS/uploads?archived=true', props.state], fetcher)
+
+  const archiveRenderer = (rprops) => {
+    const [archived, setArchived] = React.useState(rprops.value)
+    const changeArchiveStatus = (e) => {
+      axios.get('/api/REMS/setArchive?id=' + rprops.data._id.toString() + '&archived=' + (!archived).toString()).then((x) => {
+        setArchived((!archived))
+        mutate()
+      })
+    }
+    if (archived) {
+      return (
+        <Button variant="contained" onClick={changeArchiveStatus}>Unarchive</Button>
+      )
+    } else {
+      return (
+        <Button variant="contained" onClick={changeArchiveStatus}>Archive</Button>
+      )
+    }
+  }
   if (error) return <Root>failed to load</Root>
   if (!data) return <div>loading...</div>
   return (
@@ -83,8 +103,8 @@ export default function UploadGrid (props) {
 
                 <AgGridColumn sortable={true} filter={true} field="description"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} field="filename"></AgGridColumn>
-                <AgGridColumn sortable={true} filter={true} field="archived"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} comparator={dateComparator} field="timestamp"></AgGridColumn>
+                <AgGridColumn sortable={true} filter={true} field="archived" cellRenderer={archiveRenderer}></AgGridColumn>
 
             </AgGridReact>
         </div>
