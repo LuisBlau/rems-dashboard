@@ -25,7 +25,11 @@ import Papa from 'papaparse'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import AgentSelectFilter from '../components/PageFilterComponents/AgentSelectFilter'
 import _ from 'lodash'
-
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 const PREFIX = 'agents'
 
 const classes = {
@@ -103,7 +107,7 @@ export default function AgentSelect () {
   const allowedExtensions = ['csv', 'plain']
   const [chooseFileDisabler, setChooseFileDisabler] = useState(true)
   const [selectedAgentsNames, setSelectedAgentsNames] = useState([])
-
+  const [dcOpen, dcSetOpen] = useState(false)
   function getStringBetween (str, start, end) {
     const result = str.match(new RegExp(start + '(.*)' + end))
     return result[1]
@@ -116,7 +120,10 @@ export default function AgentSelect () {
   // do once on page load
   useEffect(() => {
     // gets list of distributions
-    axios.get('/api/REMS/store-list').then((resp) => setExistingLists(resp.data))
+    axios.get('/api/REMS/store-list').then((resp) => {
+      setExistingLists(resp.data)
+      console.log(resp.data)
+    })
 
     // gets versions of software(s) associated with agents that are assigned to the selected retailer
     axios.get('/api/registers/versions').then(function (res) {
@@ -301,6 +308,11 @@ export default function AgentSelect () {
   const handleListName = (e) => {
     setListName(e.target.value)
   }
+  const deleteExistingList = () => {
+    if ('_id' in selectedExistingList) { axios.get('/api/REMS/deleteExistingList?id=' + selectedExistingList._id) }
+    window.location.reload()
+    closeDC()
+  }
 
   // handles toggling values in list(s) from checked to unchecked and vice versa
   const handleToggle = (item, listName) => () => {
@@ -466,6 +478,22 @@ export default function AgentSelect () {
     )
   }
 
+  function ExistingListDeletionButton () {
+    if (existingListIsSelected) {
+      return (
+        <Button
+                variant="contained" color="secondary"
+                component="span"
+                onClick={openDC}
+                sx={{ width: 175, height: '100%', margin: 1, bgcolor: 'red' }}>
+                Delete
+              </Button>
+      )
+    } else {
+      return null
+    }
+  }
+
   const customList = (title, items) => (
     <Card>
       <Divider />
@@ -512,14 +540,20 @@ export default function AgentSelect () {
     </Card>
   )
 
+  const closeDC = () => {
+    dcSetOpen(false)
+  }
+  const openDC = () => {
+    dcSetOpen(true)
+  }
   return (
     <Root className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Typography marginTop={5} align='center' variant="h3">Distribution Lists</Typography>
       <Grid container direction="column" spacing={3} justifyContent="center" alignItems="center">
         <Grid container direction="row" justifyContent="center" marginTop={6}>
-          <Grid justifyContent="center" flexBasis={'33%'} maxWidth={'33%'} item >
-            <Paper sx={{ width: 400, marginLeft: 12 }} elevation={5} className={classes.paper} >
+          <Grid justifyContent="center" flexBasis={'33%'} maxWidth={'30%'} item >
+            <Paper style={{ width: '100%' }} elevation={5} className={classes.paper} >
               <FormControlLabel
                 checked={newStoreList}
                 onChange={handleNewStoreChange}
@@ -529,7 +563,7 @@ export default function AgentSelect () {
             </Paper>
           </Grid>
           <Grid margin={2} flexBasis={'33%'} maxWidth={'33%'} item >
-            <FormControl sx={{ minWidth: 400, marginLeft: 10 }}>
+            <FormControl sx={{ width: '100%' }}>
               <InputLabel sx={{ width: 200 }} id="list-label">Update Existing Lists</InputLabel>
               <Select
                 defaultValue=''
@@ -541,10 +575,11 @@ export default function AgentSelect () {
               >
                 {existingLists.map((i, index) => <MenuItem key={index} value={i.list_name}>{i.list_name}</MenuItem>)}
               </Select>
+              <ExistingListDeletionButton />
             </FormControl>
           </Grid>
           <Grid flexBasis={'33%'} maxWidth={'33%'} item xs={3.5}>
-            <AgentSelectFilter
+            <AgentSelectFilter style={{ width: '100%' }}
               handleStoreOnlyViewSwitch={handleStoreOnlyViewSwitch}
               storeOnlyView={storeOnlyView}
               selectedVersion={selectedVersion}
@@ -552,6 +587,7 @@ export default function AgentSelect () {
               versionData={versionData}
               handleSelectedVersionChanged={handleSelectedVersionChanged}
               existingListIsSelected={existingListIsSelected} />
+
           </Grid>
         </Grid>
 
@@ -649,6 +685,23 @@ export default function AgentSelect () {
       <Box pt={4}>
         <Copyright />
       </Box>
+      <Dialog
+        open={dcOpen}
+        onClose={closeDC}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {'Confirm Deletion'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">This list will be deleted permanently, are you sure?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDC}>Cancel</Button>
+          <Button onClick={deleteExistingList} autoFocus>Delete</Button>
+        </DialogActions>
+      </Dialog>
     </Root>
 
   )
