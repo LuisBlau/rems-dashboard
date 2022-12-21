@@ -478,7 +478,7 @@ export default function AgentSelect () {
     )
   }
 
-  function ExistingListDeletionButton () {
+  function ExistingListDeletionButton ({ existingListIsSelected }) {
     if (existingListIsSelected) {
       return (
         <Button
@@ -575,7 +575,7 @@ export default function AgentSelect () {
               >
                 {existingLists.map((i, index) => <MenuItem key={index} value={i.list_name}>{i.list_name}</MenuItem>)}
               </Select>
-              <ExistingListDeletionButton />
+              <ExistingListDeletionButton existingListIsSelected={existingListIsSelected} />
             </FormControl>
           </Grid>
           <Grid flexBasis={'33%'} maxWidth={'33%'} item xs={3.5}>
