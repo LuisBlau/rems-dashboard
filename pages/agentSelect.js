@@ -298,7 +298,7 @@ export default function AgentSelect () {
         })
       }
     })
-    if (listToSetSelected.length > 0) {
+    if (listToSetSelected.length >= 0) {
       setExistingListIsSelected(true)
     }
     setSelectedAgents(listToSetSelected)
