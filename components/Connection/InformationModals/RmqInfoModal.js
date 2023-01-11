@@ -13,7 +13,7 @@ const classes = {
   paper: `${PREFIX}-paper`
 }
 
-export default function RmqInfoModal ({ modalData, rmqModalOpen, handleRmqModalOpen, handleRmqModalClose, prettifyTime }) {
+export default function RmqInfoModal ({ modalData, rmqModalOpen, rmqInfoAvailable, setRmqInfoAvailable, handleRmqModalOpen, handleRmqModalClose, prettifyTime }) {
   const rows = []
 
   if (modalData) {
@@ -45,6 +45,10 @@ export default function RmqInfoModal ({ modalData, rmqModalOpen, handleRmqModalO
     }
   }
 
+  if (rows.length > 0) {
+    setRmqInfoAvailable(true)
+  }
+
   const style = {
     position: 'absolute',
     top: '50%',
@@ -63,7 +67,7 @@ export default function RmqInfoModal ({ modalData, rmqModalOpen, handleRmqModalO
     flexDirection: 'column'
   }
 
-  if (rows.length > 0) {
+  if (rmqInfoAvailable) {
     return (
         <Grid item xs={12}>
           <Tooltip arrow title="Rabbit MQ Information">

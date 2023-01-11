@@ -135,9 +135,9 @@ function DisplayOnOffStatus (props) {
   )
 }
 
-function ModalDisplayButtonsComponentTitle ({ data }) {
+function ModalDisplayButtonsComponentTitle ({ data, eleraServicesAvailable, rmqInfoAvailable }) {
   if (data.status) {
-    if (data.status.docker || data.status.EleraServices || data.status.RMQ) {
+    if (data.status.docker || eleraServicesAvailable || rmqInfoAvailable) {
       return (
         <Typography>
           Service Information:
@@ -151,7 +151,7 @@ function ModalDisplayButtonsComponentTitle ({ data }) {
   }
 }
 
-function ModalDisplayButtonsComponent ({ data, dockerModalOpen, handleDockerModalClose, handleDockerModalOpen, eleraModalOpen, handleEleraModalClose, handleEleraModalOpen, rmqModalOpen, handleRmqModalClose, handleRmqModalOpen }) {
+function ModalDisplayButtonsComponent ({ data, dockerModalOpen, handleDockerModalClose, handleDockerModalOpen, rmqInfoAvailable, setRmqInfoAvailable, eleraModalOpen, eleraServicesAvailable, setEleraServicesAvailable, handleEleraModalClose, handleEleraModalOpen, rmqModalOpen, handleRmqModalClose, handleRmqModalOpen }) {
   if (data.status) {
     return (
       <>
@@ -160,10 +160,10 @@ function ModalDisplayButtonsComponent ({ data, dockerModalOpen, handleDockerModa
             <DockerInfoModal modalData={data.status} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} />
           </Grid>
           <Grid item xs={1} sx={{ margin: 1 }}>
-            <EleraInfoModal modalData={data.status} eleraModalOpen={eleraModalOpen} handleEleraModalClose={handleEleraModalClose} handleEleraModalOpen={handleEleraModalOpen} />
+            <EleraInfoModal modalData={data.status} eleraModalOpen={eleraModalOpen} eleraServicesAvailable={eleraServicesAvailable} setEleraServicesAvailable={setEleraServicesAvailable} handleEleraModalClose={handleEleraModalClose} handleEleraModalOpen={handleEleraModalOpen} />
           </Grid>
           <Grid item xs={1} sx={{ margin: 1 }}>
-            <RmqInfoModal modalData={data.status} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} prettifyTime={prettifyTime} />
+            <RmqInfoModal modalData={data.status} rmqModalOpen={rmqModalOpen} rmqInfoAvailable={rmqInfoAvailable} setRmqInfoAvailable={setRmqInfoAvailable} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} prettifyTime={prettifyTime} />
           </Grid>
         </Grid>
       </>
@@ -342,10 +342,10 @@ function ReloadWithConfirmationModal ({ disableReload, data, link, reloadConfirm
       {disableReload
         ? null
         : <Tooltip arrow title="Reload">
-            <IconButton>
-              <PowerSettingsNew style={{ color: '#484848' }} cursor={'pointer'} onClick={handleReloadConfirmationOpen} />
-            </IconButton>
-          </Tooltip>
+          <IconButton>
+            <PowerSettingsNew style={{ color: '#484848' }} cursor={'pointer'} onClick={handleReloadConfirmationOpen} />
+          </IconButton>
+        </Tooltip>
       }
 
       <Dialog
@@ -381,6 +381,8 @@ export default function OverviewAgentPaper ({ data, useScreenshotView }) {
   const [dockerModalOpen, setDockerModalOpen] = useState(false)
   const [eleraModalOpen, setEleraModalOpen] = useState(false)
   const [rmqModalOpen, setRmqModalOpen] = useState(false)
+  const [eleraServicesAvailable, setEleraServicesAvailable] = useState(false)
+  const [rmqInfoAvailable, setRmqInfoAvailable] = useState(false)
   const handleReloadConfirmationClose = () => setReloadConfirmationOpen(false)
   const handleReloadConfirmationOpen = () => setReloadConfirmationOpen(true)
   const handleDumpConfirmationClose = () => setDumpConfirmationOpen(false)
@@ -430,8 +432,17 @@ export default function OverviewAgentPaper ({ data, useScreenshotView }) {
       }
     }
     if (data.status.EleraServices) {
+      const eleraServicesProp = JSON.parse(Object.values(data.status.EleraServices)[0])
+      let isServiceOnline = false
+      for (let i = 0; i < eleraServicesProp.length; i++) {
+        if (eleraServicesProp[i].name === 'status' && eleraServicesProp[i].value === 'ONLINE') {
+          isServiceOnline = true
+          break
+        }
+      }
+
       // if elera status on the first (default) container isn't online, make it REDDDDDD
-      if ((JSON.parse(Object.values(data.status.EleraServices)[0]).containers[0].status) !== 'ONLINE' && agentBackgroundColorStyle !== '#ffc2cd') {
+      if (isServiceOnline && agentBackgroundColorStyle !== '#ffc2cd') {
         setAgentBackgroundColorStyle('#ffc2cd')
       }
     }
@@ -512,8 +523,8 @@ export default function OverviewAgentPaper ({ data, useScreenshotView }) {
               <ScreenshotModal data={data} screenshotOpen={screenshotOpen} handleScreenshotOpen={handleScreenshotOpen} handleScreenshotClose={handleScreenshotClose} />
             </Grid>
           </Grid>
-          <ModalDisplayButtonsComponentTitle data={data}></ModalDisplayButtonsComponentTitle>
-          <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} />
+          <ModalDisplayButtonsComponentTitle data={data} eleraServicesAvailable={eleraServicesAvailable} rmqInfoAvailable={rmqInfoAvailable}></ModalDisplayButtonsComponentTitle>
+          <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} rmqInfoAvailable={rmqInfoAvailable} setRmqInfoAvailable={setRmqInfoAvailable} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} setEleraServicesAvailable={setEleraServicesAvailable} eleraServicesAvailable={eleraServicesAvailable} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} />
         </Grid>
       </Paper >
     )

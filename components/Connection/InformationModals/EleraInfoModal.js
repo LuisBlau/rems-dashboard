@@ -30,13 +30,33 @@ const Root = styled('main')((
   }
 }))
 
-export default function EleraInfoModal ({ modalData, eleraModalOpen, handleEleraModalClose, handleEleraModalOpen }) {
+export default function EleraInfoModal ({ modalData, eleraModalOpen, eleraServicesAvailable, setEleraServicesAvailable, handleEleraModalClose, handleEleraModalOpen }) {
   const eleraServices = []
+  let eleraServicesList = []
+  let eleraServiceStatus = ''
+  let lastModifiedTimestamp = ''
   if (modalData.EleraServices) {
-    const newObj = JSON.parse(Object.values(modalData.EleraServices)[0])
-    for (let i = 0; i < newObj.containers[0].services.length; i++) {
-      eleraServices.push(Object.keys(newObj.containers[0].services[i])[0])
+    const eleraServiceProp = JSON.parse(Object.values(modalData.EleraServices)[0])
+
+    // Search for 3 particular properties within the eleraServiceProp array
+    // Grab the first occurrence of each
+    for (let i = 0; i < eleraServiceProp.length; i++) {
+      if (eleraServiceProp[i].name === 'services') {
+        eleraServicesList = eleraServiceProp[i].value
+      } else if (eleraServiceProp[i].name === 'status') {
+        eleraServiceStatus = eleraServiceProp[i].value
+      } else if (eleraServiceProp[i].name === 'lastModifiedTimestamp') {
+        lastModifiedTimestamp = eleraServiceProp[i].value
+      }
     }
+
+    for (let i = 0; i < eleraServicesList.length; i++) {
+      eleraServices.push(Object.keys(eleraServicesList[i])[0])
+    }
+  }
+
+  if (eleraServices.length > 0) {
+    setEleraServicesAvailable(true)
   }
 
   const style = {
@@ -57,7 +77,7 @@ export default function EleraInfoModal ({ modalData, eleraModalOpen, handleElera
     flexDirection: 'column'
   }
 
-  if (modalData.EleraServices) {
+  if (eleraServicesAvailable) {
     return (
       <Grid item xs={12}>
         <Tooltip arrow title="Elera Service Information">
@@ -72,7 +92,7 @@ export default function EleraInfoModal ({ modalData, eleraModalOpen, handleElera
         >
           <Box sx={style}>
             <Typography marginBottom={3} fontWeight={'Bold'} fontSize={'h6.fontSize'}>
-              Elera Services - {JSON.parse(Object.values(modalData.EleraServices)[0]).containers[0].status} - Last Updated: {new Date(JSON.parse(Object.values(modalData.EleraServices)[0]).containers[0].lastModifiedTimestamp).toDateString()}
+              Elera Services - {eleraServiceStatus} - Last Updated: {new Date(lastModifiedTimestamp).toDateString()}
             </Typography>
             <Container maxWidth="lg" className={classes.container}>
               <Grid container spacing={3}>
