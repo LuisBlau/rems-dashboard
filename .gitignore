@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.yarn
 
 # misc
 .DS_Store
