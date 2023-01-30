@@ -17,6 +17,7 @@ import SnmpCommand from '../components/snmpCommand'
 import Cookies from 'universal-cookie'
 import axios from 'axios'
 import { isIPAddress } from 'ip-address-validator'
+import _ from 'lodash'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
 const SuccessToastDuration = 4000
@@ -72,7 +73,7 @@ const Root = styled('main')((
 
 }))
 
-export default function snmp () {
+export default function snmp() {
   const [cInit, setcInit] = useState(false)
   const [snmpRequests, setSnmpRequests] = useState({})
   const [snmpTrapPort, setSnmpTrapPort] = useState('')
@@ -93,7 +94,7 @@ export default function snmp () {
       res.data.forEach(v => {
         packages.push(v.storeName)
       })
-      setStores(packages)
+      setStores(_.uniq(packages, true))
     })
   }, [])
 
@@ -284,23 +285,21 @@ export default function snmp () {
             <Grid item xs={4.5} />
             <Grid item>
               <Autocomplete
-                disablePortal
+                autocomplete
                 options={stores}
                 onInputChange={handleSelectedStore}
-                value={selectedStore}
                 sx={{ width: 300, marginBottom: 3 }}
-                renderInput={(params) => <TextField {...params} label="Store" value={params} onChange={handleSelectedStore} />}
+                renderInput={(store) => <TextField {...store} label="Store" value={store} key={store} onChange={handleSelectedStore} />}
               />
               <Autocomplete
                 disabled={agents == null}
                 disablePortal
                 options={agents}
-                value={selectedAgent}
                 onInputChange={handleSelectedAgent}
                 sx={{ width: 300, marginBottom: 3 }}
-                renderInput={(params) => <TextField {...params} label="Agent" value={params} onChange={handleSelectedAgent} />}
+                renderInput={(agent) => <TextField {...agent} label="Agent" value={agent} onChange={handleSelectedAgent} />}
               />
-              <TextField value={snmpTrapPort} onChange={changeTrapPort} sx={{ width: 300, marginBottom: 3 }} label="Trap Port" variant="outlined"/>
+              <TextField value={snmpTrapPort} onChange={changeTrapPort} sx={{ width: 300, marginBottom: 3 }} label="Trap Port" variant="outlined" />
             </Grid>
           </Grid>
           {Object.keys(snmpRequests).map(function (idx) {
