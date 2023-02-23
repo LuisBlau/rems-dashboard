@@ -47,12 +47,12 @@ const Root = styled('main')((
   }
 }))
 
-function timeSince (date) {
+function timeSince(date) {
   const seconds = ((new Date() - new Date(date)) / 1000)
   return prettifyTime(seconds) + ' ago'
 }
 
-function prettifyTime (seconds) {
+function prettifyTime(seconds) {
   let interval = seconds / 31536000
 
   if (interval > 1) {
@@ -77,7 +77,7 @@ function prettifyTime (seconds) {
   return -1 * Math.floor(seconds) + ' seconds'
 }
 
-function DisplaySystemType (props) {
+function DisplaySystemType(props) {
   if (props.data.status) {
     if (props.data.status.EleraClient) {
       if (props.data.status.EleraClient.configured === 'true') {
@@ -87,15 +87,13 @@ function DisplaySystemType (props) {
           </Grid>
         )
       }
-    }
-    if (props.data.status.Controller) {
+    } else if (props.data.status.Controller) {
       return (
         <Grid item xs={12}>
           <Typography>Controller</Typography>
         </Grid>
       )
-    }
-    if (props.data.status.SIGui) {
+    } else if (props.data.status.SIGui) {
       if (props.data.status.SIGui.configured === 'true') {
         return (
           <Grid item xs={12}>
@@ -103,24 +101,27 @@ function DisplaySystemType (props) {
           </Grid>
         )
       }
-    }
-    // TODO: investigate if this boolean is being used properly, and adjust here.
-    if (props.data.is_master) {
+    } else if (props.data.is_master) { // TODO: investigate if this boolean is being used properly, and adjust here.
       return (
         <Grid item xs={12}>
           <Typography>Controller - Master</Typography>
         </Grid>
       )
+    } else {
+      return (
+        <Grid item xs={12}>
+          <Typography>Register</Typography>
+        </Grid>
+      )
     }
   }
-
   return (
     <Grid item xs={12}>
-      &nbsp;
+      <Typography>Register</Typography>
     </Grid>
   )
 }
-function DisplayOnOffStatus (props) {
+function DisplayOnOffStatus(props) {
   if (props.data.online) {
     return (
       <Grid item xs={4}>
@@ -135,7 +136,7 @@ function DisplayOnOffStatus (props) {
   )
 }
 
-function ModalDisplayButtonsComponentTitle ({ data, eleraServicesAvailable, rmqInfoAvailable }) {
+function ModalDisplayButtonsComponentTitle({ data, eleraServicesAvailable, rmqInfoAvailable }) {
   if (data.status) {
     if (data.status.docker || eleraServicesAvailable || rmqInfoAvailable) {
       return (
@@ -151,7 +152,7 @@ function ModalDisplayButtonsComponentTitle ({ data, eleraServicesAvailable, rmqI
   }
 }
 
-function ModalDisplayButtonsComponent ({ data, dockerModalOpen, handleDockerModalClose, handleDockerModalOpen, rmqInfoAvailable, setRmqInfoAvailable, eleraModalOpen, eleraServicesAvailable, setEleraServicesAvailable, handleEleraModalClose, handleEleraModalOpen, rmqModalOpen, handleRmqModalClose, handleRmqModalOpen }) {
+function ModalDisplayButtonsComponent({ data, dockerModalOpen, handleDockerModalClose, handleDockerModalOpen, rmqInfoAvailable, setRmqInfoAvailable, eleraModalOpen, eleraServicesAvailable, setEleraServicesAvailable, handleEleraModalClose, handleEleraModalOpen, rmqModalOpen, handleRmqModalClose, handleRmqModalOpen }) {
   if (data.status) {
     return (
       <>
@@ -172,7 +173,7 @@ function ModalDisplayButtonsComponent ({ data, dockerModalOpen, handleDockerModa
   return null
 }
 
-function DisplaySalesApplication (props) {
+function DisplaySalesApplication(props) {
   const { data, error } = useSWR(
     '/REMS/agents?store=' + props.data.storeName + '&agentName=' + props.data.agentName,
     fetcher
@@ -203,7 +204,7 @@ function DisplaySalesApplication (props) {
   return null
 }
 
-function ScreenshotModal ({ data, screenshotOpen, handleScreenshotOpen, handleScreenshotClose }) {
+function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScreenshotClose }) {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -240,7 +241,7 @@ function ScreenshotModal ({ data, screenshotOpen, handleScreenshotOpen, handleSc
   )
 }
 
-function ScreenCaptureDisplay ({ agentData, refreshInterval, width, height }) {
+function ScreenCaptureDisplay({ agentData, refreshInterval, width, height }) {
   const style = {
     marginTop: 3,
     position: 'relative',
@@ -304,7 +305,7 @@ function ScreenCaptureDisplay ({ agentData, refreshInterval, width, height }) {
   }
 }
 
-function DumpWithConfirmationModal ({ data, link, dumpConfirmationOpen, handleDumpConfirmationOpen, handleDumpConfirmationClose }) {
+function DumpWithConfirmationModal({ data, link, dumpConfirmationOpen, handleDumpConfirmationOpen, handleDumpConfirmationClose }) {
   const confirmationString = 'Are you sure you want to dump agent: ' + data.agentName.replace(data.storeName + '-', '') + '?'
 
   return (
@@ -334,7 +335,7 @@ function DumpWithConfirmationModal ({ data, link, dumpConfirmationOpen, handleDu
   )
 }
 
-function ReloadWithConfirmationModal ({ disableReload, data, link, reloadConfirmationOpen, handleReloadConfirmationOpen, handleReloadConfirmationClose }) {
+function ReloadWithConfirmationModal({ disableReload, data, link, reloadConfirmationOpen, handleReloadConfirmationOpen, handleReloadConfirmationClose }) {
   const confirmationString = 'Are you sure you want to reload agent: ' + data.agentName.replace(data.storeName + '-', '') + '?'
 
   return (
@@ -368,7 +369,7 @@ function ReloadWithConfirmationModal ({ disableReload, data, link, reloadConfirm
   )
 }
 
-export default function OverviewAgentPaper ({ data, useScreenshotView }) {
+export default function OverviewAgentPaper({ data, useScreenshotView }) {
   const context = useContext(UserContext)
   let disableReload = true
   if (context.userRoles.includes('admin')) {
