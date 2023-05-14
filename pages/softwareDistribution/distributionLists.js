@@ -26,9 +26,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AgentSelectFilter from '../../components/PageFilterComponents/AgentSelectFilter';
 import _ from 'lodash';
 import UserContext from '../../pages/UserContext'
-import mockAxios from '../../mocks/mock';
+// import mockAxios from '../../mocks/mock';
 
-mockAxios(axios);
+// mockAxios(axios);
 
 
 const PREFIX = 'distributionLists';
