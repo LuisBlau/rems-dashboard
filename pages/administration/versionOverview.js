@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import { Box } from '@mui/system';
 import { DataGrid } from '@mui/x-data-grid';
+import { Button, Snackbar, SnackbarContent } from '@mui/material';
 import UserContext from '../../pages/UserContext'
 
 const PREFIX = 'versionOverview';
@@ -32,18 +33,35 @@ const Root = styled('main')(({ theme }) => ({
 export default function versionOverview() {
     const [agents, setAgents] = useState([]);
     const [rem, setRem] = useState({});
+    const [open, setOpen] = useState(false);
+    const context = useContext(UserContext)
+    const [selectedRetailer, setSelectedRetailer] = useState('')
+    const [userIsAdmin, setUserIsAdmin] = useState(false)
+
+    const pasVersionRenderer = (value) => {
+        const installPas = (e) => {
+            axios.get("/api/registers/installPas?store=" + value.row.storeName + "&agent=" + value.row.agentName + "&retailer_id=" + value.row.retailer_id).then((e) => setOpen(true))
+        }
+        if (!value.value && userIsAdmin) {
+            return <Button onClick={installPas} variant="contained">Install PAS</Button>
+        }
+        return <p>{value.value}</p>
+    }
     const columns = [
         { field: 'storeName', headerName: 'Store', sortable: true, flex: 1 },
         { field: 'agentName', headerName: 'Agent', sortable: true, flex: 1 },
         { field: 'rma', headerName: 'RMA version', sortable: true, flex: 1 },
-        { field: 'pas', headerName: 'PAS extension', sortable: true, flex: 1 }
+        { field: 'pas', headerName: 'PAS extension', sortable: true, flex: 1, renderCell: pasVersionRenderer }
     ];
-    const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     useEffect(() => {
         if (context) {
             setSelectedRetailer(context.selectedRetailer)
+            if (context.userRoles.length > 0) {
+                if (_.includes(context.userRoles, 'toshibaAdmin')) {
+                    setUserIsAdmin(true)
+                }
+            }
         }
     }, [context])
 
@@ -90,6 +108,17 @@ export default function versionOverview() {
                         pageSizeOptions={[5, 10, 15]}
                     />
                 </Box>
+                <Snackbar
+                    open={open}
+                    autoHideDuration={2000}
+                    onClose={() => setOpen(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <SnackbarContent
+                        message={"Sent install request"}
+                        style={{ backgroundColor: 'green' }}
+                    />
+                </Snackbar>
             </Container>
         </Root>
     );
