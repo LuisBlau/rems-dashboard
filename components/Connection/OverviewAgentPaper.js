@@ -287,8 +287,12 @@ function ScreenCaptureDisplay({ agentData, refreshInterval, width, height, selec
         btoa(unescape(encodeURIComponent(JSON.stringify(screenCaptureCommand).replace('/sg', ''))))
     );
 
+    let retailerSegment = `retailerId=${selectedRetailer}`
+    if (context.selectedRetailerIsTenant === true) {
+        retailerSegment = `retailerId=${context.selectedRetailerParentRemsServerId}`
+    }
     const { data, error } = useSWR(
-        `/REMS/agentScreenShot?retailerId=${selectedRetailer}&storeName=` + agentData.storeName + '&agentName=' + agentData.agentName,
+        `/REMS/agentScreenShot?${retailerSegment}&storeName=` + agentData.storeName + '&agentName=' + agentData.agentName,
         fetcher,
         { refreshInterval }
     );

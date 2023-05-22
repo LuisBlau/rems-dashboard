@@ -103,7 +103,9 @@ export default function EnterpriseOverview() {
     const [isRefetch, setIsRefetch] = useState(false);
 
     useEffect(() => {
-        if (context?.selectedRetailer) setSelectedRetailer(context.selectedRetailer)
+        if (context?.selectedRetailer) {
+            setSelectedRetailer(context.selectedRetailer)
+        }
     }, [context?.selectedRetailer])
 
     useEffect(() => {
@@ -247,16 +249,20 @@ export default function EnterpriseOverview() {
         const localContinents = [];
         const localStores = [];
 
-        axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}`).then(function (res) {
+        axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
             let counter = 0;
             let onlineCounter = 0;
             let upLanes = 0;
             let totalLanes = 0;
+
             res.data.forEach((store) => {
                 store["label"] = store.storeName;
                 const storeRetailer = allRetailers.find(x => x.retailer_id === store.retailer_id)
                 if (storeRetailer !== undefined) {
                     store["description"] = storeRetailer.description
+                }
+                if (context.selectedRetailerIsTenant === true) {
+                    store["description"] = context.selectedRetailerDescription
                 }
                 // only able to map stores we have the lat/lng for
                 if (store.geometry && store.continent && store.retailer_id) {
@@ -302,6 +308,7 @@ export default function EnterpriseOverview() {
                         continent: `${store.continent}`,
                         country: `${store.country}`,
                         retailer: `${store.retailer_id}`,
+                        tenant: `${store.tenant_id}`,
                         str: `${store.continent} ${store.country}`
                     });
                     counter++;
@@ -313,7 +320,11 @@ export default function EnterpriseOverview() {
                 localAllFilters.forEach((filter) => {
                     if (filter.type === 'store') {
                         let retailer = allRetailers.find((x) => x.retailer_id === filter.retailer);
-                        filter.str = `${filter.str} ${retailer.description} ${filter.name}`;
+                        if (retailer) {
+                            filter.str = `${filter.str} ${retailer.description} ${filter.name}`;
+                        } else {
+                            filter.str = `${filter.str} ${context.selectedRetailerDescription} ${filter.name}`
+                        }
                     }
                 });
             }

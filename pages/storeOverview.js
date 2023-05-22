@@ -193,7 +193,6 @@ function PerformanceButtonsRegion({ userIsToshibaAdmin, params }) {
 }
 
 export default function StoreOverview() {
-    const userContext = useContext(UserContext);
     const [screenshotView, setScreenshotView] = useState(false);
     const [storeAlerts, setStoreAlerts] = useState([]);
     const [storeAlertDescriptions, setStoreAlertDescriptions] = useState([]);
@@ -237,41 +236,73 @@ export default function StoreOverview() {
                 // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
                 // for now, I'll do this: 
                 let userHasRetailer = true
-                if (context.userRetailers !== 'All') {
-                    context.userRetailers.forEach(retailer => {
-                        if (params.get('retailer_id') !== context.selectedRetailer) {
-                            userHasRetailer = false
-                            setUserHasAccess(false)
-                        }
-                    });
-                }
-                if (userHasRetailer) {
-                    await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
-                        let scoCounter = 0;
-                        let downCounter = 0;
-                        const controllers = [];
-                        const agents = [];
-                        if (resp.data) {
-                            const response = resp.data;
-                            response.forEach((agent) => {
-                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
-                                    controllers.push(agent);
-                                } else {
-                                    agents.push(agent);
-                                }
-                                if (agent.isSCO === true) {
-                                    scoCounter++;
-                                }
-                                if (agent.online === false) {
-                                    downCounter++;
-                                }
-                            });
-                            setStoreAgents(_.concat(controllers, agents));
-                            setAgentCount(agents.length);
-                            setScoCount(scoCounter);
-                            setDownAgentCount(downCounter);
-                        }
-                    });
+                if (params.get('tenant_id') !== null) {
+                    if (params.get('tenant_id') !== context.selectedRetailer) {
+                        userHasRetailer = false
+                        setUserHasAccess(false)
+                    }
+                    if (userHasRetailer) {
+                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
+                            let scoCounter = 0;
+                            let downCounter = 0;
+                            const controllers = [];
+                            const agents = [];
+                            if (resp.data) {
+                                const response = resp.data;
+                                response.forEach((agent) => {
+                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                        controllers.push(agent);
+                                    } else {
+                                        agents.push(agent);
+                                    }
+                                    if (agent.isSCO === true) {
+                                        scoCounter++;
+                                    }
+                                    if (agent.online === false) {
+                                        downCounter++;
+                                    }
+                                });
+                                setStoreAgents(_.concat(controllers, agents));
+                                setAgentCount(agents.length);
+                                setScoCount(scoCounter);
+                                setDownAgentCount(downCounter);
+                            }
+                        });
+                    }
+                } else {
+                    if (params.get('retailer_id') !== context.selectedRetailer) {
+                        userHasRetailer = false
+                        setUserHasAccess(false)
+                    }
+
+                    if (userHasRetailer) {
+                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                            let scoCounter = 0;
+                            let downCounter = 0;
+                            const controllers = [];
+                            const agents = [];
+                            if (resp.data) {
+                                const response = resp.data;
+                                response.forEach((agent) => {
+                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                        controllers.push(agent);
+                                    } else {
+                                        agents.push(agent);
+                                    }
+                                    if (agent.isSCO === true) {
+                                        scoCounter++;
+                                    }
+                                    if (agent.online === false) {
+                                        downCounter++;
+                                    }
+                                });
+                                setStoreAgents(_.concat(controllers, agents));
+                                setAgentCount(agents.length);
+                                setScoCount(scoCounter);
+                                setDownAgentCount(downCounter);
+                            }
+                        });
+                    }
                 }
             }
 
@@ -283,7 +314,7 @@ export default function StoreOverview() {
 
         const fetchAlerts = async () => {
             async function getStoreAlerts() {
-                await axios.get(`/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                await axios.get(`/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
                     if (resp.data) {
                         const alerts = [];
                         const response = resp.data;
@@ -454,10 +485,10 @@ export default function StoreOverview() {
                                 </TabList>
                             </Box>
                             <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
-                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id') }} height={'100%'} />
+                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                             <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
-                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id') }} height={'100%'} />
+                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                         </TabContext>
                         <Box pt={1} pb={1}>

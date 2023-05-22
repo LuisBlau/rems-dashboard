@@ -57,27 +57,29 @@ export default function CreateDeploymentConfig() {
     const [deploys, setDeploys] = useState(null);
     const [toastFailure, setToastFailure] = useState('');
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
+
 
     useEffect(() => {
-        if (context) {
-            if (context.selectedRetailer) {
-                setSelectedRetailer(context.selectedRetailer)
+        if (context.selectedRetailer) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/deploy-configs?retailerId=${context.selectedRetailer}`).then(function (res) {
+                    const packages = [];
+                    res.data.forEach((v) => {
+                        packages.push(v);
+                    });
+                    setDeploys(packages);
+                });
+            } else if (context.selectedRetailerParentRemsServerId) {
+                axios.get(`/api/REMS/deploy-configs?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                    const packages = [];
+                    res.data.forEach((v) => {
+                        packages.push(v);
+                    });
+                    setDeploys(packages);
+                });
             }
         }
-    }, [context])
-
-    useEffect(() => {
-        if (selectedRetailer !== '') {
-            axios.get(`/api/REMS/deploy-configs?retailerId=${selectedRetailer}`).then(function (res) {
-                const packages = [];
-                res.data.forEach((v) => {
-                    packages.push(v);
-                });
-                setDeploys(packages);
-            });
-        }
-    }, [selectedRetailer]);
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
 
     const addCommand = () => {
         const id = Date.now();
@@ -90,8 +92,21 @@ export default function CreateDeploymentConfig() {
     };
 
     const deleteDeploymentConfig = () => {
-        if (configId) {
-            axios.get(`/api/REMS/delete-deploy-config?retailerId=${selectedRetailer}&id=` + configId).then(function (resp) {
+        if (configId && context.selectedRetailerIsTenant === false) {
+            axios.get(`/api/REMS/delete-deploy-config?retailerId=${context.selectedRetailer}&id=` + configId).then(function (resp) {
+                if (resp.status === 200) {
+                    setToastSuccess(resp.data.message);
+                    setOpenSuccess(true);
+                } else {
+                    setToastFailure(resp.data.message);
+                    setOpenFailure(true);
+                }
+            });
+            setTimeout(function () {
+                window.location.reload(true);
+            }, successToastDuration + 500);
+        } else if (context.selectedRetailerParentRemsServerId) {
+            axios.get(`/api/REMS/delete-deploy-config?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&id=` + configId).then(function (resp) {
                 if (resp.status === 200) {
                     setToastSuccess(resp.data.message);
                     setOpenSuccess(true);
@@ -123,9 +138,13 @@ export default function CreateDeploymentConfig() {
             steps: commandList,
         };
 
-        const retailerId = asCommon === true ? 'common' : selectedRetailer;
+        const retailerId = asCommon === true ? 'common' : context.selectedRetailer;
+        let varString = `retailerId=${retailerId}`
+        if (context.selectedRetailerIsTenant === true) {
+            varString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerId}`
+        }
 
-        axios.post(`/api/sendCommand?retailerId=${retailerId}`, commandObj)
+        axios.post(`/api/sendCommand?${varString}`, commandObj)
             .then(function (response) {
                 if (response.status !== 200) {
                     setToastFailure('Error Saving Deployment!!');
@@ -258,7 +277,9 @@ export default function CreateDeploymentConfig() {
                     {Object.keys(commands).map(function (idx) {
                         return (
                             <Command
-                                selectedRetailer={selectedRetailer}
+                                selectedRetailer={context.selectedRetailer}
+                                isTenant={context.selectedRetailerIsTenant}
+                                parentRemsServer={context.selectedRetailerParentRemsServerId}
                                 key={'cmd-' + idx}
                                 id={idx}
                                 st={commands[idx]}

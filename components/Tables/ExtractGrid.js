@@ -6,6 +6,8 @@ import moment from 'moment';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import axios from 'axios';
+import { useContext } from 'react';
+import UserContext from '../../pages/UserContext';
 const PREFIX = 'ExtractGrid';
 
 const classes = {
@@ -56,25 +58,50 @@ const onGridReady = (params) => {
 
 export default function ExtractGrid({ store, height }) {
     const [storeExtracts, setStoreExtracts] = useState([]);
+    const context = useContext(UserContext)
     useEffect(() => {
-        if (store) {
-            axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}`).then(function (res) {
-                const extracts = [];
-                res.data.forEach((v) => {
-                    extracts.push(v);
-                });
-                setStoreExtracts(extracts);
-            });
-        } else {
-            axios.get('/api/registers/extracts').then(function (res) {
-                const extracts = [];
-                res.data.forEach((v) => {
-                    extracts.push(v);
-                });
-                setStoreExtracts(extracts);
-            });
+        if (context) {
+            if (store) {
+                if (store.tenantId !== null) {
+                    axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}`).then(function (res) {
+                        const extracts = [];
+                        res.data.forEach((v) => {
+                            extracts.push(v);
+                        });
+                        setStoreExtracts(extracts);
+                    });
+                } else {
+                    axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}`).then(function (res) {
+                        const extracts = [];
+                        res.data.forEach((v) => {
+                            extracts.push(v);
+                        });
+                        setStoreExtracts(extracts);
+                    });
+                }
+            } else {
+                if (context.selectedRetailer) {
+                    if (context.selectedRetailerIsTenant === false) {
+                        axios.get('/api/registers/extracts?retailerId=' + context.selectedRetailer).then(function (res) {
+                            const extracts = [];
+                            res.data.forEach((v) => {
+                                extracts.push(v);
+                            });
+                            setStoreExtracts(extracts);
+                        });
+                    } else if (context.selectedRetailerParentRemsServerId) {
+                        axios.get('/api/registers/extracts?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
+                            const extracts = [];
+                            res.data.forEach((v) => {
+                                extracts.push(v);
+                            });
+                            setStoreExtracts(extracts);
+                        });
+                    }
+                }
+            }
         }
-    }, [store]);
+    }, [store, context]);
 
     return (
         <div className="ag-theme-alpine" style={{ height, width: '100%', overflowX: 'hidden' }}>

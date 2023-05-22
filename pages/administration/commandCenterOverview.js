@@ -80,15 +80,10 @@ export default function CommandCenterOverview() {
     const [autocompleteKey, setAutocompleteKey] = useState('');
     const [configItems, setConfigItems] = useState([])
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
     const [isRefetch, setIsRefetch] = useState(false);
     const { accounts } = useMsal();
     const username = accounts.length > 0 ? accounts[0].username : '';
     const SuccessToastDuration = 4000;
-
-    useEffect(() => {
-        if (context?.selectedRetailer) setSelectedRetailer(context.selectedRetailer)
-    }, [context?.selectedRetailer])
 
     useEffect(() => {
         if (!isRefetch) {
@@ -194,8 +189,8 @@ export default function CommandCenterOverview() {
     })
 
     useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
+        if (context.selectedRetailer) {
+            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
                 // fetch configuration info
                 const configurationArray = res.data.configuration;
                 const configurationInfo = [];
@@ -211,7 +206,7 @@ export default function CommandCenterOverview() {
                 setShowAttendedLanesWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewAttendedLanesUpWidget').configValue);
             })
         }
-    }, [selectedRetailer]);
+    }, [context.selectedRetailer]);
 
     useEffect(() => {
         if (configItems.length > 0) {
@@ -238,6 +233,7 @@ export default function CommandCenterOverview() {
         const localStores = [];
         if (allRetailers.length === 0) {
             await axios.get('/api/REMS/getAllRetailerDetails').then(function (res) {
+                console.log(res.data)
                 setAllRetailers(res.data);
             })
         }
@@ -297,26 +293,52 @@ export default function CommandCenterOverview() {
                         });
                     }
                     if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
-                        localRetailers.push({
-                            id: `${store.retailer_id}`,
-                            type: 'Retailer',
-                            name: '',
-                            display: '',
+                        if (store.tenant_id === undefined) {
+                            localRetailers.push({
+                                id: `${store.retailer_id}`,
+                                type: 'Retailer',
+                                name: '',
+                                display: '',
+                                continent: `${store.continent}`,
+                                country: `${store.country}`,
+                                str: `${store.continent} ${store.country}`
+                            });
+                        }
+                        else {
+                            localRetailers.push({
+                                id: `${store.tenant_id}`,
+                                type: 'Retailer',
+                                name: '',
+                                display: '',
+                                continent: `${store.continent}`,
+                                country: `${store.country}`,
+                                str: `${store.continent} ${store.country}`
+                            });
+                        }
+                    }
+                    if (store.tenant_id === undefined) {
+                        localStores.push({
+                            id: `${store._id}`,
+                            type: 'Store',
+                            name: `${store.storeName}`,
+                            display: `${store.storeName}`,
                             continent: `${store.continent}`,
                             country: `${store.country}`,
+                            retailer: `${store.retailer_id}`,
+                            str: `${store.continent} ${store.country}`
+                        });
+                    } else {
+                        localStores.push({
+                            id: `${store._id}`,
+                            type: 'Store',
+                            name: `${store.storeName}`,
+                            display: `${store.storeName}`,
+                            continent: `${store.continent}`,
+                            country: `${store.country}`,
+                            retailer: `${store.tenant_id}`,
                             str: `${store.continent} ${store.country}`
                         });
                     }
-                    localStores.push({
-                        id: `${store._id}`,
-                        type: 'Store',
-                        name: `${store.storeName}`,
-                        display: `${store.storeName}`,
-                        continent: `${store.continent}`,
-                        country: `${store.country}`,
-                        retailer: `${store.retailer_id}`,
-                        str: `${store.continent} ${store.country}`
-                    });
                     stores.push(store);
                 }
             });

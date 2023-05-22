@@ -77,28 +77,34 @@ export default function DeploymentStatus() {
     const [statusFilter, setStatusFilter] = useState('All');
     const [statusFilterItems, setStatusFilterItems] = useState(null);
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
     const [packageFilter, setPackageFilter] = useState(0);
 
     useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
+        if (context.selectedRetailer) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailer)
+                    .then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)));
+                setStatusFilterItems([
+                    { id: 'All', name: 'All Status' },
+                    { id: 'Pending', name: 'Pending' },
+                    { id: 'Failed', name: 'Failed' },
+                    { id: 'Success', name: 'Success' },
+                    { id: 'Cancel', name: 'Cancelled' },
+                ]);
+            } else if (context.selectedRetailerParentRemsServerId) {
+                axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer)
+                    .then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)));
+                setStatusFilterItems([
+                    { id: 'All', name: 'All Status' },
+                    { id: 'Pending', name: 'Pending' },
+                    { id: 'Failed', name: 'Failed' },
+                    { id: 'Success', name: 'Success' },
+                    { id: 'Cancel', name: 'Cancelled' },
+                ]);
+            }
         }
     }, [context])
-    useEffect(() => {
-        if (selectedRetailer !== '') {
-            axios
-                .get('/api/REMS/deploy-configs?retailerId=' + selectedRetailer)
-                .then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)));
-            setStatusFilterItems([
-                { id: 'All', name: 'All Status' },
-                { id: 'Pending', name: 'Pending' },
-                { id: 'Failed', name: 'Failed' },
-                { id: 'Success', name: 'Success' },
-                { id: 'Cancel', name: 'Cancelled' },
-            ]);
-        }
-    }, [selectedRetailer]);
+
     if (packageFilterItems == null) {
         return 'loading . . .';
     }
@@ -138,14 +144,14 @@ export default function DeploymentStatus() {
                             </Select>
                         </Grid>
                         <PackageFilterItemsDisplay
-                            selectedRetailer={selectedRetailer}
+                            selectedRetailer={context.selectedRetailer}
                             packageFilterItems={packageFilterItems}
                             packageFilter={packageFilter}
                             setPackageFilter={setPackageFilter} />
                     </Grid>
                 </Box>
                 <DeployTable
-                    selectedRetailer={selectedRetailer}
+                    selectedRetailer={context.selectedRetailer}
                     storeFilter={storeFilter}
                     packageFilter={packageFilter}
                     maxRecords={maxRecords}

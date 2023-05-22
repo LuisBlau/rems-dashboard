@@ -30,7 +30,8 @@ export default function GoogleMap({ places, mapParams, setMapParams }) {
             city: place.city,
             status: place.status,
             retailer: place.retailer_id,
-            description: place.description
+            description: place.description,
+            tenant: place.tenant_id
         },
         geometry: {
             type: "Point",
@@ -130,6 +131,7 @@ export default function GoogleMap({ places, mapParams, setMapParams }) {
                             markerColor={cluster.properties.status}
                             storeId={cluster.properties.storeName}
                             retailer_id={cluster.properties.retailer}
+                            tenant_id={cluster.properties.tenant}
                         />
                     )
                 })}

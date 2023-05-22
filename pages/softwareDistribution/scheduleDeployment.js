@@ -111,14 +111,14 @@ export default function ScheduleDeployment() {
         },
     };
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     useEffect(() => {
-        if (context.selectedRetailer) {
-            setSelectedRetailer(context.selectedRetailer);
-        }
         if (context.selectedRetailer && context.userRetailers?.length > 0) {
-            axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
+            let searchParams = `retailerId=common,${context.selectedRetailer}`
+            if (context.selectedRetailerIsTenant === true && context.selectedRetailerParentRemsServerId) {
+                searchParams = `retailerId=common,${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+            }
+            axios.get(`/api/REMS/deploy-configs?${searchParams}`).then(function (res) {
                 const data = [];
                 const response = _.groupBy(res.data, 'retailer_id');
                 for (const soft of Object.keys(response)) {
@@ -136,40 +136,66 @@ export default function ScheduleDeployment() {
                 setOptions(data)
             });
         }
-    }, [context])
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     useEffect(() => {
         setStoreNames([]);
-        if (selectedRetailer !== '') {
+        if (context.selectedRetailer) {
             // TODO:
             // this won't be performant when we have a large number of uploads
             // we should do this later in the workflow, once a deploy-config is
             // selected, and filter the request
-            axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
-                const uploads = [];
-                res.data.forEach((upload) => {
-                    uploads.push({
-                        fileId: upload.id,
-                        fileName: upload.filename,
-                        description: upload.description,
-                        packages: upload.packages,
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailer}`).then(function (res) {
+                    const uploads = [];
+                    res.data.forEach((upload) => {
+                        uploads.push({
+                            fileId: upload.id,
+                            fileName: upload.filename,
+                            description: upload.description,
+                            packages: upload.packages,
+                        });
                     });
+                    setAllUploads(uploads);
                 });
-                setAllUploads(uploads);
-            });
 
-            axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
-                const sNames = [];
-                const stores = [];
-                resp.data.forEach((v) => {
-                    stores.push(v);
-                    sNames.push(v.list_name);
+                axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailer}`).then((resp) => {
+                    const sNames = [];
+                    const stores = [];
+                    resp.data.forEach((v) => {
+                        stores.push(v);
+                        sNames.push(v.list_name);
+                    });
+                    setAllStoresDetails(stores);
+                    setStoreNames(sNames);
                 });
-                setAllStoresDetails(stores);
-                setStoreNames(sNames);
-            });
+            } else if (context.selectedRetailerParentRemsServerId) {
+                axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                    const uploads = [];
+                    res.data.forEach((upload) => {
+                        uploads.push({
+                            fileId: upload.id,
+                            fileName: upload.filename,
+                            description: upload.description,
+                            packages: upload.packages,
+                        });
+                    });
+                    setAllUploads(uploads);
+                });
+
+                axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then((resp) => {
+                    const sNames = [];
+                    const stores = [];
+                    resp.data.forEach((v) => {
+                        stores.push(v);
+                        sNames.push(v.list_name);
+                    });
+                    setAllStoresDetails(stores);
+                    setStoreNames(sNames);
+                });
+            }
         }
-    }, [selectedRetailer]);
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
 
     function getUsefulInformation(agents, useful) {
         const arr = [];
@@ -247,7 +273,11 @@ export default function ScheduleDeployment() {
         );
         const usefulInformation = [];
         // gets useful agent/store info for the selected retailer
-        await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
+        let paramsString = `retailer=${context.selectedRetailer}`
+        if (context.selectedRetailerIsTenant === true) {
+            paramsString = `retailer=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+        }
+        await axios.get(`/api/REMS/agents?${paramsString}`).then(function (res) {
             res.data.forEach((element) => {
                 usefulInformation.push({
                     storeAgentCombo: element.storeName + ':' + element.agentName,
@@ -327,6 +357,9 @@ export default function ScheduleDeployment() {
         formValues.name = config.name;
         formValues.id = config.id;
         formValues.retailerId = config.retailer_id;
+        if (context.selectedRetailerIsTenant === true) {
+            formValues.tenantId = config.tenant_id;
+        }
         formValues.storeList = _storeList;
         // formValues.listNames = _listNames,
         // Don't adjust for users time zone i.e we are always in store time.
@@ -338,8 +371,11 @@ export default function ScheduleDeployment() {
 
         setFormValues(formValues);
 
-        axios
-            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
+        let paramString = `retailerId=${context.selectedRetailer}`
+        if (context.selectedRetailerIsTenant === true) {
+            paramString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+        }
+        axios.post(`/api/deploy-schedule?${paramString}`, _formValues)
             .then(function (response) {
                 if (response.data.message !== 'Success') {
                     setToastFailure(response.data);

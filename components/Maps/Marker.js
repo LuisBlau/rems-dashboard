@@ -23,7 +23,7 @@ function StoreInfoPanel({ text }) {
     );
 }
 
-const Marker = ({ text, markerColor, storeId, retailer_id, pointCount, isCluster, points, cluster, supercluster, mapRef, lat, lng }) => {
+const Marker = ({ text, markerColor, storeId, retailer_id, pointCount, isCluster, points, cluster, supercluster, mapRef, lat, lng, tenant_id }) => {
     const context = useContext(UserContext)
     const router = useRouter();
     const [showStoreInfo, setShowStoreInfo] = useState(false);
@@ -38,12 +38,22 @@ const Marker = ({ text, markerColor, storeId, retailer_id, pointCount, isCluster
         position: 'relative'
     };
 
-
     if (!isCluster) {
-        if (_.some(context.userRetailers, retailer => retailer.configuration && retailer.configuration.pas_subscription_tier === 'advanced')) {
+        if (_.some(context.userRetailers, retailer => retailer.configuration && retailer.configuration.pas_subscription_tier === 'advanced' && tenant_id === undefined)) {
             return (
                 <div
                     onClick={() => router.push('/storeOverview?storeName=' + storeId + '&retailer_id=' + retailer_id)}
+                    style={markerStyle}
+                    onMouseEnter={(e) => { setShowStoreInfo(true); e.currentTarget.parentElement.style['z-index'] = 1; }}
+                    onMouseLeave={(e) => { setShowStoreInfo(false); e.currentTarget.parentElement.style['z-index'] = 0; }}
+                >
+                    <div style={{ "whiteSpace": "nowrap", "display": showStoreInfo ? "inline-block" : "none" }}>{<StoreInfoPanel text={text} />}</div>
+                </div>
+            );
+        } else if (_.some(context.userRetailers, retailer => retailer.configuration && retailer.configuration.pas_subscription_tier === 'advanced')) {
+            return (
+                <div
+                    onClick={() => router.push('/storeOverview?storeName=' + storeId + '&retailer_id=' + retailer_id + '&tenant_id=' + tenant_id)}
                     style={markerStyle}
                     onMouseEnter={(e) => { setShowStoreInfo(true); e.currentTarget.parentElement.style['z-index'] = 1; }}
                     onMouseLeave={(e) => { setShowStoreInfo(false); e.currentTarget.parentElement.style['z-index'] = 0; }}

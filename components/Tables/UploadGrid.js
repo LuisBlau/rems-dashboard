@@ -53,7 +53,6 @@ export default function UploadGrid() {
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadData, setUploadData] = useState([])
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     const columns = [
         {
@@ -91,20 +90,20 @@ export default function UploadGrid() {
             ),
         },
     ];
-    useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
-        }
-    }, [context])
 
     useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${selectedRetailer}`)
+        if (context.selectedRetailer && context.selectedRetailerIsTenant === false) {
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
+                .then((response) => {
+                    setUploadData(response.data)
+                })
+        } else if (context.selectedRetailerParentRemsServerId) {
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`)
                 .then((response) => {
                     setUploadData(response.data)
                 })
         }
-    }, [selectedRetailer])
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     const changeArchiveStatus = (e, id) => {
         axios.get('/api/REMS/setArchive?id=' + id.toString() + '&archived=' + (e.target.checked).toString())

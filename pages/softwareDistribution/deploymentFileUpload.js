@@ -47,8 +47,8 @@ export default function DeploymentFileUpload() {
     const [description, setDescription] = useState('');
     const [progress, setProgress] = useState(0);
     const [fileName, setFileName] = useState('');
-    const {selectedRetailer} = useContext(UserContext)
-   
+    const context = useContext(UserContext)
+
 
     // On file select (from the pop up)
     const onFileChange = (event) => {
@@ -79,7 +79,7 @@ export default function DeploymentFileUpload() {
         // }
         // const webSocket = new WebSocket(`ws://${websocketUrl}:448/`)
 
-        if (!uploading && selectedRetailer !== '') {
+        if (!uploading && context.selectedRetailer && context.selectedRetailerIsTenant === false) {
             setUploading(true);
             // Create an object of formData
             const formData = new FormData();
@@ -88,18 +88,46 @@ export default function DeploymentFileUpload() {
             formData.append('file', selectedFile);
             formData.append('description', description);
             // Send formData object
-            axios
-                .post(`/api/REMS/uploadfile?retailerId=${selectedRetailer}`, formData, {
-                    onUploadProgress: function (e) {
-                        const totalLength = e.lengthComputable
-                            ? e.total
-                            : e.target.getResponseHeader('content-length') ||
-                            e.target.getResponseHeader('x-decompressed-content-length');
-                        if (totalLength !== null) {
-                            setProgress(Math.round((e.loaded * 100) / totalLength));
-                        }
-                    },
-                })
+            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailer}`, formData, {
+                onUploadProgress: function (e) {
+                    const totalLength = e.lengthComputable
+                        ? e.total
+                        : e.target.getResponseHeader('content-length') ||
+                        e.target.getResponseHeader('x-decompressed-content-length');
+                    if (totalLength !== null) {
+                        setProgress(Math.round((e.loaded * 100) / totalLength));
+                    }
+                },
+            })
+                .then(function (resp) {
+                    // webSocket.onmessage = (event) => {
+                    //   const data = JSON.parse(event.data)
+                    //   setProgress(data)
+                    //   if (data === 100) {
+                    //     webSocket.close()
+                    //   }
+                    // }
+                });
+        } else if (!uploading && context.selectedRetailer && context.selectedRetailerParentRemsServerId) {
+            setUploading(true);
+            // Create an object of formData
+            const formData = new FormData();
+
+            // Update the formData object
+            formData.append('file', selectedFile);
+            formData.append('description', description);
+            // Send formData object
+            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, formData, {
+                onUploadProgress: function (e) {
+                    const totalLength = e.lengthComputable
+                        ? e.total
+                        : e.target.getResponseHeader('content-length') ||
+                        e.target.getResponseHeader('x-decompressed-content-length');
+                    if (totalLength !== null) {
+                        setProgress(Math.round((e.loaded * 100) / totalLength));
+                    }
+                },
+            })
                 .then(function (resp) {
                     // webSocket.onmessage = (event) => {
                     //   const data = JSON.parse(event.data)
@@ -162,7 +190,7 @@ export default function DeploymentFileUpload() {
                     </Button>
                     <ProgressIndicator progress={progress} inProgress={uploading} />
                 </Stack>
-                <UploadGrid selectedRetailer={selectedRetailer} />
+                <UploadGrid />
                 <Box pt={4}>
                     <Copyright />
                 </Box>

@@ -144,12 +144,21 @@ export default function Command(props) {
         },
         upload: function () {
             if (state.downloads.length === 0) {
-                axios.get(`/api/REMS/uploads?retailerId=${props.selectedRetailer}`).then(function (response) {
-                    setArgs({
-                        ...state,
-                        downloads: response,
+                if (props.isTenant === false) {
+                    axios.get(`/api/REMS/uploads?retailerId=${props.selectedRetailer}`).then(function (response) {
+                        setArgs({
+                            ...state,
+                            downloads: response,
+                        });
                     });
-                });
+                } else {
+                    axios.get(`/api/REMS/uploads?retailerId=${props.parentRemsServer}&tenantId=${props.selectedRetailer}`).then(function (response) {
+                        setArgs({
+                            ...state,
+                            downloads: response,
+                        });
+                    });
+                }
                 return <p>loading</p>;
             }
 

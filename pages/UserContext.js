@@ -16,6 +16,9 @@ export const UserContextProvider = (props) => {
     const [userDetails, setUserDetails] = useState(null)
     const username = accounts.length > 0 ? accounts[0].username : '';
     const [selectedRetailer, setSelectedRetailer] = useState('')
+    const [selectedRetailerDescription, setSelectedRetailerDescription] = useState('')
+    const [selectedRetailerIsTenant, setSelectedRetailerIsTenant] = useState(null)
+    const [selectedRetailerParentRemsServerId, setSelectedRetailerParentRemsServerId] = useState(null)
     const cookies = new Cookies();
 
     const getRoles = async () => {
@@ -98,6 +101,21 @@ export const UserContextProvider = (props) => {
     }, [userDetails])
 
     useEffect(() => {
+        if (selectedRetailer !== '') {
+            if (_.find(userRetailers, x => x.retailer_id === selectedRetailer).isTenant === true) {
+                setSelectedRetailerIsTenant(true)
+                axios.get(`/api/REMS/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
+                    setSelectedRetailerDescription(res.data.description)
+                    setSelectedRetailerParentRemsServerId(res.data.retailer_id)
+                })
+            } else {
+                setSelectedRetailerIsTenant(false)
+                setSelectedRetailerParentRemsServerId(null)
+            }
+        }
+    }, [selectedRetailer])
+
+    useEffect(() => {
         if (!selectedRetailer && userRetailers) {
             getSelectedRetailer();
         }
@@ -117,7 +135,10 @@ export const UserContextProvider = (props) => {
         setHasChildren,
         selectedRetailer,
         setSelectedRetailer,
-        setUserDetails
+        setUserDetails,
+        selectedRetailerIsTenant,
+        selectedRetailerDescription,
+        selectedRetailerParentRemsServerId
     };
 
     return (

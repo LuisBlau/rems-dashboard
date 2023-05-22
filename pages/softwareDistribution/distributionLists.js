@@ -89,14 +89,7 @@ export default function DistributionLists() {
     const [chooseFileDisabler, setChooseFileDisabler] = useState(true);
     const [selectedAgentsNames, setSelectedAgentsNames] = useState([]);
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
     const [dcOpen, dcSetOpen] = useState(false)
-
-    useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
-        }
-    }, [context])
 
     useEffect(() => {
         if (Object.keys(selectedExistingList).length > 0) {
@@ -113,14 +106,17 @@ export default function DistributionLists() {
         setSelectedVersion(version);
     }
 
-    // do once on page load
     useEffect(() => {
-        // gets list of distributions
-        if (selectedRetailer !== '') {
-            axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => setExistingLists(resp.data));
+        if (context.selectedRetailer) {
+            let stringParams = `${context.selectedRetailer}`
+            if (context.selectedRetailerParentRemsServerId) {
+                stringParams = `${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+            }
+
+            axios.get(`/api/REMS/store-list?retailerId=${stringParams}`).then((resp) => setExistingLists(resp.data));
 
             // gets versions of software(s) associated with agents that are assigned to the selected retailer
-            axios.get('/api/registers/versions').then(function (res) {
+            axios.get(`/api/registers/versions?retailerId=${stringParams}`).then(function (res) {
                 const data = [];
                 for (const soft of Object.keys(res.data)) {
                     const entry = { children: [], label: soft, value: soft };
@@ -134,13 +130,9 @@ export default function DistributionLists() {
                 }
                 setVersionData(data);
             });
-        }
-    }, [selectedRetailer]);
 
-    useEffect(() => {
-        if (selectedRetailer !== '') {
             // gets all agents for the selected retailer
-            axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
+            axios.get(`/api/REMS/agents?retailer=${stringParams}`).then(function (res) {
                 const data = [];
                 res.data.forEach((item) => {
                     // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
@@ -154,7 +146,7 @@ export default function DistributionLists() {
                 setAvailableAgents(data);
             });
         }
-    }, [selectedRetailer])
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     const onFileChange = (event) => {
         const inputFile = event.target.files[0];
@@ -445,6 +437,9 @@ export default function DistributionLists() {
                         storeInformation.id = existingLists[i].id;
                         storeInformation.retailer_id = existingLists[i].retailer_id;
                         storeInformation.list_name = existingLists[i].list_name;
+                        if (context.selectedRetailerIsTenant === true) {
+                            storeInformation.tenant_id = existingLists[i].tenant_id;
+                        }
                         break;
                     }
                 }
@@ -464,9 +459,11 @@ export default function DistributionLists() {
                     }
                 });
             }
-
-            axios
-                .post(`/api/REMS/save-store-data?retailerId=${selectedRetailer}`, storeInformation)
+            let stringParams = `retailerId=${context.selectedRetailer}`
+            if (context.selectedRetailerIsTenant === true) {
+                stringParams = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+            }
+            axios.post(`/api/REMS/save-store-data?${stringParams}`, storeInformation)
                 .then(function (response) {
                     if (response.status !== 200) {
                         setToast('Error Saving Store-list!!');
