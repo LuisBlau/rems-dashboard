@@ -237,10 +237,13 @@ export default function StoreOverview() {
                 // for now, I'll do this: 
                 let userHasRetailer = true
                 if (params.get('tenant_id') !== null) {
-                    if (params.get('tenant_id') !== context.selectedRetailer) {
-                        userHasRetailer = false
-                        setUserHasAccess(false)
-                    }
+                    let userHasRetailer = false
+                    context.userRetailers.forEach(retailer => {
+                        if (params.get('tenant_id') === retailer.retailer_id) {
+                            userHasRetailer = true
+                        }
+                    });
+                    setUserHasAccess(userHasRetailer)
                     if (userHasRetailer) {
                         await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
                             let scoCounter = 0;
@@ -270,10 +273,13 @@ export default function StoreOverview() {
                         });
                     }
                 } else {
-                    if (params.get('retailer_id') !== context.selectedRetailer) {
-                        userHasRetailer = false
-                        setUserHasAccess(false)
-                    }
+                    let userHasRetailer = false
+                    context.userRetailers.forEach(retailer => {
+                        if (params.get('retailer_id') === retailer.retailer_id) {
+                            userHasRetailer = true
+                        }
+                    });
+                    setUserHasAccess(userHasRetailer)
 
                     if (userHasRetailer) {
                         await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
@@ -536,8 +542,4 @@ export default function StoreOverview() {
         )
     }
 
-}
-
-function customizeText({ valueText }) {
-    return `${valueText}%`;
 }
