@@ -79,7 +79,7 @@ export default function CreateDeploymentConfig() {
                 });
             }
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
+    }, [context.selectedRetailerIsTenant, context.selectedRetailerParentRemsServerId]);
 
     const addCommand = () => {
         const id = Date.now();

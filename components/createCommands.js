@@ -58,6 +58,13 @@ export default function Command(props) {
                         value={getval('args')}
                         required={true}
                     />
+                    <TextField
+                        label="Runtime Path (optional)"
+                        variant="standard"
+                        onChange={setval('path')}
+                        value={getval('path')}
+                        required={false}
+                    />
                 </div>
             );
         },
