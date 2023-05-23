@@ -4,10 +4,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import { Box } from '@mui/system';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, Snackbar, SnackbarContent } from '@mui/material';
+import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
 import UserContext from '../../pages/UserContext'
 
 const PREFIX = 'versionOverview';
@@ -30,6 +29,33 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
+function a11yProps(index) {
+    return {
+        id: `simple-tab-${index}`,
+        'aria-controls': `simple-tabpanel-${index}`,
+    };
+}
+
+function TabPanel(props) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && (
+                <Container className={classes.container}>
+                    {children}
+                </Container>
+            )}
+        </div>
+    );
+}
+
 export default function versionOverview() {
     const [agents, setAgents] = useState([]);
     const [rem, setRem] = useState({});
@@ -37,6 +63,11 @@ export default function versionOverview() {
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [userIsAdmin, setUserIsAdmin] = useState(false)
+    const [selectedTab, setSelectedTab] = useState(0)
+
+    const handleChangeTab = (event, newValue) => {
+        setSelectedTab(newValue);
+    };
 
     const pasVersionRenderer = (value) => {
         const installPas = (e) => {
@@ -47,11 +78,20 @@ export default function versionOverview() {
         }
         return <p>{value.value}</p>
     }
-    const columns = [
+    const remsColumns = [
         { field: 'storeName', headerName: 'Store', sortable: true, flex: 1 },
         { field: 'agentName', headerName: 'Agent', sortable: true, flex: 1 },
         { field: 'rma', headerName: 'RMA version', sortable: true, flex: 1 },
         { field: 'pas', headerName: 'PAS extension', sortable: true, flex: 1, renderCell: pasVersionRenderer }
+    ];
+
+    const checColumns = [
+        { field: 'storeName', headerName: 'Store', sortable: true, flex: 1 },
+        { field: 'agentName', headerName: 'Agent', sortable: true, flex: 1 },
+        { field: 'rma', headerName: 'RMA version', sortable: true, flex: 1 },
+        { field: 'SIGUI', headerName: 'SI GUI Version', sortable: true, flex: 1 },
+        { field: 'CHEC', headerName: 'CHEC Version', sortable: true, flex: 1 },
+        { field: 'JavaPOS', headerName: 'Java POS Version', sortable: true, flex: 1 }
     ];
 
     useEffect(() => {
@@ -83,29 +123,31 @@ export default function versionOverview() {
             <Typography align="center" variant="h3">
                 Versions Overview
             </Typography>
-            <Container className={classes.container}>
-                <Box sx={{ maxWidth: 500, mb: 3, width: '100%' }}>
-                    <Typography align="left" variant="h5">
+            <Tabs value={selectedTab} onChange={handleChangeTab} centered>
+                <Tab label="REMS" {...a11yProps(0)} />
+                <Tab label="CHEC" {...a11yProps(1)} />
+            </Tabs>
+            <TabPanel value={selectedTab} index={0}>
+                <Paper elevation={5} sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+                    <Typography variant="h5" sx={{ padding: 1 }}>
                         REMS version: {rem?.rems_version}
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    <Typography align="left" variant="h5">
+                    <Typography variant="h5" sx={{ padding: 1 }}>
                         PAS kar version: {rem?.pas_version}_{rem?.build_number}
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    <Typography align="left" variant="h5">
+                    <Typography variant="h5" sx={{ padding: 1 }}>
                         CF version: {rem?.cloudforwarder_version}
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                </Box>
+                </Paper>
                 <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
                     <DataGrid
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
                         }}
                         rows={agents}
-                        columns={columns}
+                        columns={remsColumns}
                         pageSizeOptions={[5, 10, 15]}
+                        isRowSelectable={false}
                     />
                 </Box>
                 <Snackbar
@@ -119,7 +161,31 @@ export default function versionOverview() {
                         style={{ backgroundColor: 'green' }}
                     />
                 </Snackbar>
-            </Container>
+            </TabPanel>
+            <TabPanel value={selectedTab} index={1}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
+                    <DataGrid
+                        initialState={{
+                            pagination: { paginationModel: { pageSize: 10 } },
+                        }}
+                        rows={agents}
+                        columns={checColumns}
+                        pageSizeOptions={[5, 10, 15]}
+                        isRowSelectable={false}
+                    />
+                </Box>
+                <Snackbar
+                    open={open}
+                    autoHideDuration={2000}
+                    onClose={() => setOpen(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <SnackbarContent
+                        message={"Sent install request"}
+                        style={{ backgroundColor: 'green' }}
+                    />
+                </Snackbar>
+            </TabPanel>
         </Root>
     );
 }
