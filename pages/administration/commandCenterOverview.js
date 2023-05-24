@@ -80,7 +80,7 @@ export default function CommandCenterOverview() {
     const [autocompleteKey, setAutocompleteKey] = useState('');
     const [configItems, setConfigItems] = useState([])
     const context = useContext(UserContext)
-    const [isRefetch, setIsRefetch] = useState(false);
+    const [isRefetch, setIsRefetch] = useState(null);
     const { accounts } = useMsal();
     const username = accounts.length > 0 ? accounts[0].username : '';
     const SuccessToastDuration = 4000;
@@ -150,7 +150,7 @@ export default function CommandCenterOverview() {
         // this is a little hack to place the map to the selected filter
         setIsFilterSelect(true)
         setMapParams({
-            ...mapParams.userMapCenter,
+            userMapCenter: { ...mapParams.userMapCenter },
             userMapZoom: 3,
         })
         setTimeout(() => {
@@ -160,21 +160,20 @@ export default function CommandCenterOverview() {
 
     const applyAllPreviouslyAppliedFilters = () => {
         if (filtersApplied.length !== 0) {
+            let filteredPlaces = allPlaces
             filtersApplied.forEach((filter) => {
                 if (Object.keys(filter)[0] === 'Retailer') {
-                    const filteredPlaces = allPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
                 } else if (Object.keys(filter)[0] === 'Store') {
-                    const filteredPlaces = allPlaces.filter((x) => x._id === selectedStore.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x._id === selectedStore.id);
                 } else if (Object.keys(filter)[0] === 'Country') {
-                    const filteredPlaces = allPlaces.filter((x) => x.country === selectedCountry.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
                 } else if (Object.keys(filter)[0] === 'Continent') {
-                    const filteredPlaces = allPlaces.filter((x) => x.continent === selectedContinent.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
                 }
             });
+            setPlaces(filteredPlaces);
+
         } else {
             setPlaces(allPlaces);
         }
@@ -223,7 +222,7 @@ export default function CommandCenterOverview() {
         }
     }, [configItems, storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage,])
 
-    async function fetchData() {
+    async function fetchData(isRefresh = false) {
         const stores = [];
         const localAllFilters = [];
 
@@ -233,7 +232,6 @@ export default function CommandCenterOverview() {
         const localStores = [];
         if (allRetailers.length === 0) {
             await axios.get('/api/REMS/getAllRetailerDetails').then(function (res) {
-                console.log(res.data)
                 setAllRetailers(res.data);
             })
         }
@@ -346,10 +344,12 @@ export default function CommandCenterOverview() {
             localAllFilters.push(...localContinents, ...localCountries, ...localRetailers, ...localStores);
             setStoresOnline({ 'online': onlineStoreCount, 'total': totalStoreCount, 'percentUp': ((onlineStoreCount / totalStoreCount) * 100) });
             setLanesUp({ 'online': onlineLanesCount, 'total': totalLanesCount, 'percentUp': ((onlineLanesCount / totalLanesCount) * 100) });
-            setPlaces(stores);
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
-            setFilteredFilters(localAllFilters);
+            if (!isRefresh) {
+                setPlaces(stores);
+                setFilteredFilters(localAllFilters);
+            }
         });
     }
 
@@ -360,8 +360,8 @@ export default function CommandCenterOverview() {
     useEffect(() => {
         if (allRetailers && pullStorePeriodically > 0) {
             const interval = setInterval(() => {
-                setIsRefetch(true);
-                fetchData()
+                setIsRefetch(Math.random());
+                fetchData(true)
             }, pullStorePeriodically);
             return () => clearInterval(interval);
         }
@@ -413,7 +413,7 @@ export default function CommandCenterOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores]);
+    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         if (selectedContinent !== null && selectedCountry !== null && selectedFilterRetailer !== null) {
@@ -547,7 +547,7 @@ export default function CommandCenterOverview() {
         }
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-    }, [filtersApplied]);
+    }, [allPlaces, filtersApplied]);
 
     useEffect(() => {
         if (places.length > 0 && allPlaces.length > 0 && allRetailers.length > 0) {

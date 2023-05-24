@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
+import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -35,9 +36,6 @@ import {
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
-import 'rsuite/dist/rsuite.min.css';
-import { TreePicker } from 'rsuite';
-import _ from 'lodash';
 import UserContext from '../../pages/UserContext'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
@@ -73,7 +71,6 @@ const uiWidth = 600;
 const formValues = {
     name: '',
     id: '',
-    retailerId: '',
     storeList: '',
     dateTime: '',
 };
@@ -395,18 +392,14 @@ export default function ScheduleDeployment() {
         setVersionCollisionDialogOpen(false);
     }
 
-    function handleSelectDeployConfig(selectedConfig, e) {
+    function handleSelectDeployConfig(selectedConfig) {
         if (selectedConfig) {
-            if (selectedConfig === 'common' || selectedConfig === 'selectedRetailer') {
-                e.preventDefault();
-                return;
-            }
             setSelectedDeployConfig(selectedConfig);
             // retrieve config by name
             // traverse the 'steps' array
             // retrieve any that have 'upload'
             // get file name from there
-            const selectedConfigDetailSteps = deployConfigs.find((x) => x.id === selectedConfig)?.steps ?? [];
+            const selectedConfigDetailSteps = deployConfigs.find((x) => x.name === selectedConfig.label).steps;
             const newSelectedUploadedFiles = [];
             selectedConfigDetailSteps.forEach((step) => {
                 if (step.type === 'upload') {
@@ -432,17 +425,23 @@ export default function ScheduleDeployment() {
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={2} sx={{ alignItems: 'center' }}>
-                        <TreePicker
-                            placement="bottomEnd"
-                            onChange={(selectedConfig, e) => {
-                                handleSelectDeployConfig(selectedConfig, e);
-                            }}
-                            data={_options}
-                            style={{
-                                width: uiWidth
-                            }}
+                        <Autocomplete
+                            id="select-deploy-config"
                             value={selectedDeployConfig}
-                            placeholder="Deployment Configuration to Schedule"
+                            onChange={(event, selectedConfig) => {
+                                handleSelectDeployConfig(selectedConfig);
+                            }}
+                            options={_options}
+                            noOptionsText="Error Loading Package List"
+                            renderInput={(params) => (
+                                <TextField
+                                    sx={{ width: uiWidth }}
+                                    {...params}
+                                    label="Deploy-Config to Schedule"
+                                    InputProps={{ ...params.InputProps, type: 'search' }}
+                                    required={true}
+                                />
+                            )}
                         />
                         <FormControl sx={{ minWidth: 120 }}>
                             <InputLabel sx={{ width: 200 }} id="distro-list-label">

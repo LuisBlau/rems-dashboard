@@ -129,8 +129,6 @@ export default function UserSettings() {
 
     const handleUserSelected = (e, selectedValue) => {
         if (selectedValue !== null) {
-            setSelectedUsersRetailers([])
-            setSelectedUsersRoles([])
             setSelectedUser(selectedValue)
         }
     };

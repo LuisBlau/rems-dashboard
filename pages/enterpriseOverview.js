@@ -100,7 +100,7 @@ export default function EnterpriseOverview() {
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [mapParams, setMapParams] = useState(null);
-    const [isRefetch, setIsRefetch] = useState(false);
+    const [isRefetch, setIsRefetch] = useState(null);
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -242,7 +242,7 @@ export default function EnterpriseOverview() {
     }, []);
 
 
-    function fetchStore() {
+    function fetchStore(isRefresh = false) {
         const stores = [];
         const localAllFilters = [];
         const localCountries = [];
@@ -330,10 +330,12 @@ export default function EnterpriseOverview() {
             }
             setStoresOnline({ 'online': onlineCounter, 'total': counter, 'percentUp': ((onlineCounter / counter) * 100) });
             setLanesUp({ 'online': upLanes, 'total': totalLanes, 'percentUp': ((upLanes / totalLanes) * 100) });
-            setPlaces(stores);
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
-            setFilteredFilters(localAllFilters);
+            if (!isRefresh) {
+                setPlaces(stores);
+                setFilteredFilters(localAllFilters);
+            }
         });
     }
 
@@ -350,8 +352,8 @@ export default function EnterpriseOverview() {
     useEffect(() => {
         if (selectedRetailer && pullStorePeriodically > 0) {
             const interval = setInterval(() => {
-                setIsRefetch(true);
-                fetchStore()
+                setIsRefetch(Math.random());
+                fetchStore(true)
             }, pullStorePeriodically);
             return () => clearInterval(interval);
         }
@@ -374,7 +376,7 @@ export default function EnterpriseOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores]);
+    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         let temp = [...filtersApplied];
@@ -461,8 +463,8 @@ export default function EnterpriseOverview() {
         }
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-    }, [filtersApplied]);
 
+    }, [allPlaces, filtersApplied, isRefetch]);
 
     return (
         <Root className={classes.content}>
