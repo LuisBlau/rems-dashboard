@@ -158,7 +158,7 @@ export default function versionOverview() {
                 >
                     <SnackbarContent
                         message={"Sent install request"}
-                        style={{ backgroundColor: 'green' }}
+                        style={{ backgroundColor: '#5BA52E' }}
                     />
                 </Snackbar>
             </TabPanel>
@@ -182,7 +182,7 @@ export default function versionOverview() {
                 >
                     <SnackbarContent
                         message={"Sent install request"}
-                        style={{ backgroundColor: 'green' }}
+                        style={{ backgroundColor: '#5BA52E' }}
                     />
                 </Snackbar>
             </TabPanel>

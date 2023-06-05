@@ -586,7 +586,7 @@ export default function EnterpriseOverview() {
                     >
                         <SnackbarContent
                             message={message}
-                            style={{ backgroundColor: message === 'Default map view saved successfully' ? 'green' : 'red' }}
+                            style={{ backgroundColor: message === 'Default map view saved successfully' ? '#5BA52E' : 'red' }}
                         />
                     </Snackbar>
                 </Box>

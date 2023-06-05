@@ -628,7 +628,7 @@ export default function CommandCenterOverview() {
                         >
                             <SnackbarContent
                                 message={message}
-                                style={{ backgroundColor: message === 'Default map view saved successfully' ? 'green' : 'red' }}
+                                style={{ backgroundColor: message === 'Default map view saved successfully' ? '#5BA52E' : 'red' }}
                             />
                         </Snackbar>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignContent: 'center', height: '100%', justifyContent: 'space-around' }}>

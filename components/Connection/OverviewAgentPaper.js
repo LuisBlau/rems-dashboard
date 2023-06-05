@@ -127,18 +127,28 @@ function DisplaySystemType(props) {
 }
 function DisplayOnOffStatus(props) {
     if (props.data.online) {
-        return (
-            <Grid item xs={4}>
-                <Typography color="green">Online</Typography>
-            </Grid>
-        );
+        if (props.data.authState === "authenticated") {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="#5BA52E">Online</Typography>
+                </Grid>
+            );
+        } else if (props.data.authState === "unauthenticated") {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="red">Unauthenticated</Typography>
+                </Grid>
+            );
+        }
     }
+
     return (
         <Grid item xs={4}>
             <Typography color="red">Offline</Typography>
         </Grid>
     );
 }
+
 
 function ModalDisplayButtonsComponentTitle({ data }) {
     if (data.status) {
@@ -565,7 +575,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                         <Grid item xs={4}>
                             <DisplayOnOffStatus data={data} />
                         </Grid>
-                        <Grid item xs={7}>
+                        <Grid item xs={9}>
                             <Typography>OS: {data.os}</Typography>
                         </Grid>
                     </Grid>
