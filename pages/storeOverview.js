@@ -209,7 +209,11 @@ export default function StoreOverview() {
 
         const fetchAlerts = async () => {
             async function getStoreAlerts() {
-                await axios.get(`/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
+                let alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
+                if (context.selectedRetailerIsTenant === true) {
+                    alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
+                }
+                await axios.get(alertsUrl).then((resp) => {
                     if (resp.data) {
                         const alerts = [];
                         const response = resp.data;
