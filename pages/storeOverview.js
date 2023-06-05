@@ -4,29 +4,18 @@ import React, { useContext, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import {
     Button,
-    Card,
-    CardActionArea,
-    CardContent,
-    CardMedia,
     Dialog,
     DialogActions,
     DialogTitle,
     Paper,
     Switch,
     Typography,
-    Link as MatUILink,
     DialogContent,
     ListItem,
     Divider,
     LinearProgress,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import ErrorImage from '../public/images/error.png';
-import ProcessingMetricsImage from '../public/images/processing-metrics.png';
-import ContainerImage from '../public/images/container.png';
-import EleraImage from '../public/images/elera.png';
-import TicketsImage from '../public/images/tickets.png';
-import Image from 'next/image';
 import axios from 'axios';
 import 'react-spinner-animated/dist/index.css';
 import DumpGrid from '../components/Tables/DumpGrid';
@@ -35,7 +24,6 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import Link from 'next/link';
 import _ from 'lodash';
 import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
 import Copyright from '../components/Copyright';
@@ -66,7 +54,6 @@ export default function StoreOverview() {
     const [scoCount, setScoCount] = useState(0);
     const [downAgentCount, setDownAgentCount] = useState(0);
     const [selectedTab, setSelectedTab] = useState('dumps');
-    const [userIsToshibaAdmin, setUserIsToshibaAdmin] = useState(false);
     const [screenShotEnable, setScreenShotEnable] = useState(false);
     const [userHasAccess, setUserHasAccess] = useState(true)
     const [elera, setElera] = useState({});
@@ -92,12 +79,6 @@ export default function StoreOverview() {
         setScreenshotView(!screenshotView);
     }
     useEffect(() => {
-        if (context) {
-            if (context.userRoles.includes('toshibaAdmin')) {
-                setUserIsToshibaAdmin(true)
-            }
-        }
-
         const fetchStoreInfo = async () => {
             async function getStoreAgents() {
                 // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...

@@ -5,9 +5,11 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
+import { useRouter } from 'next/router';
 import React, { } from 'react';
 
 export default function EleraInfoPaper({ elera, agent, eleraContainers }) {
+    const router = useRouter();
     let key = agent
     let value = elera[agent]
     let workingStatus = null;
@@ -30,7 +32,7 @@ export default function EleraInfoPaper({ elera, agent, eleraContainers }) {
             <Grid container sx={{ padding: 2 }}>
                 <Grid container spacing={1}>
                     <Grid item xs={12}>
-                        <Typography variant="h6">Elera -- {key.replace(params.get('storeName') + '-', '')}</Typography>
+                        <Typography variant="h6">Elera -- {params.get('storeName') + '-' + agent}</Typography>
                     </Grid>
                 </Grid>
                 <Grid container spacing={1}>
@@ -57,7 +59,7 @@ export default function EleraInfoPaper({ elera, agent, eleraContainers }) {
                 </Grid>
             </Grid>
             <Box sx={{ display: 'flex', flexDirection: 'row' }} >
-                <Button variant="contained" sx={{ margin: 1, width: '25%' }} disableElevation>Health</Button>
+                <Button variant="contained" sx={{ margin: 1, width: '25%' }} onClick={() => router.push('/store/eleraHealth?storeName=' + params.get("storeName") + '&retailer_id=' + params.get("retailer_id") + '&agentName=' + agent)} disableElevation>Health</Button>
                 <Button variant="contained" sx={{ margin: 1, backgroundColor: '#4BA6FE', width: '25%', color: '#FFFFFF' }} disableElevation>Stats</Button>
             </Box>
         </Paper>
