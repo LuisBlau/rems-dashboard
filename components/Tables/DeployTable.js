@@ -146,10 +146,6 @@ export function DeployTable(props) {
     const [data, setData] = useState([])
 
     useEffect(() => {
-        console.log(data)
-    }, [data])
-
-    useEffect(() => {
         if (context.selectedRetailer !== 'null' && context.selectedRetailerIsTenant === false) {
             axios.get('/api/REMS/deploys?retailerId=' + context.selectedRetailer +
                 '&store=' + props.storeFilter +
@@ -264,7 +260,7 @@ export function DeployTable(props) {
                                         <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
                                     </Grid>
                                     <Grid item xs={2}>
-                                        <Typography sx={{ flexShrink: 0 }}>Store: {deploy.storeName}</Typography>
+                                        <Typography sx={{ flexShrink: 0 }}>Agent: {deploy.agentName}</Typography>
                                     </Grid>
                                     <Grid item xs={3}>
                                         <Typography sx={{ flexShrink: 0 }}>Package: {deploy.package}</Typography>

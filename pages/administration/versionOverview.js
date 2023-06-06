@@ -8,6 +8,7 @@ import { Box } from '@mui/system';
 import { DataGrid } from '@mui/x-data-grid';
 import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
 import UserContext from '../../pages/UserContext'
+import _ from 'lodash';
 
 const PREFIX = 'versionOverview';
 
@@ -57,6 +58,7 @@ function TabPanel(props) {
 }
 
 export default function versionOverview() {
+    const [allAgents, setAllAgents] = useState([])
     const [agents, setAgents] = useState([]);
     const [rem, setRem] = useState({});
     const [open, setOpen] = useState(false);
@@ -66,6 +68,12 @@ export default function versionOverview() {
     const [selectedTab, setSelectedTab] = useState(0)
 
     const handleChangeTab = (event, newValue) => {
+        if (newValue === 1) {
+            const newAgents = _.filter(allAgents, x => x.CHEC !== undefined)
+            setAgents(newAgents)
+        } else {
+            setAgents(allAgents)
+        }
         setSelectedTab(newValue);
     };
 
@@ -114,6 +122,10 @@ export default function versionOverview() {
                     ...agent,
                     id: agent._id
                 })));
+                setAllAgents(x.data.agents.map((agent) => ({
+                    ...agent,
+                    id: agent._id
+                })));
             });
         }
     }, [selectedRetailer]);
@@ -147,7 +159,6 @@ export default function versionOverview() {
                         rows={agents}
                         columns={remsColumns}
                         pageSizeOptions={[5, 10, 15]}
-                        isRowSelectable={false}
                     />
                 </Box>
                 <Snackbar
@@ -171,7 +182,6 @@ export default function versionOverview() {
                         rows={agents}
                         columns={checColumns}
                         pageSizeOptions={[5, 10, 15]}
-                        isRowSelectable={false}
                     />
                 </Box>
                 <Snackbar
