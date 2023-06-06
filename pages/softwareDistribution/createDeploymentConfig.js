@@ -7,7 +7,6 @@ import Command from '../../components/createCommands';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import Autocomplete from '@mui/material/Autocomplete';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddTaskIcon from '@mui/icons-material/AddTask';
@@ -18,9 +17,12 @@ import AlertTitle from '@mui/material/AlertTitle';
 import Typography from '@mui/material/Typography';
 import Copyright from '../../components/Copyright';
 import UserContext from '../../pages/UserContext'
+import 'rsuite/dist/rsuite.min.css';
+import { TreePicker } from 'rsuite';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext } from 'react';
+import { Controller, useForm } from "react-hook-form";
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
 const successToastDuration = 4000;
@@ -48,7 +50,6 @@ const Root = styled('main')(({ theme }) => ({
 
 export default function CreateDeploymentConfig() {
     const [cInit, setcInit] = useState(false);
-    const [name, setName] = useState('');
     const [commands, setCommands] = useState({});
     const [configId, setConfigId] = useState(null);
     const [openSuccess, setOpenSuccess] = useState(false);
@@ -57,29 +58,77 @@ export default function CreateDeploymentConfig() {
     const [deploys, setDeploys] = useState(null);
     const [toastFailure, setToastFailure] = useState('');
     const context = useContext(UserContext)
+    const [_options, setOptions] = useState([]);
+    const [selectedDeployConfig, setSelectedDeployConfig] = useState(null);
+    const [isCommon, setIsCommon] = useState(false);
+    const [retailerType, setRetailerType] = useState('');
 
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm({
+        mode: 'all'
+    });
 
     useEffect(() => {
         if (context.selectedRetailer) {
-            if (context.selectedRetailerIsTenant === false) {
-                axios.get(`/api/REMS/deploy-configs?retailerId=${context.selectedRetailer}`).then(function (res) {
-                    const packages = [];
-                    res.data.forEach((v) => {
-                        packages.push(v);
-                    });
-                    setDeploys(packages);
+            if (!context.selectedRetailerIsTenant) {
+                axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
+                    handleOptions(_.groupBy(res.data, 'retailer_id'));
+                    setDeploys(res.data);
                 });
             } else if (context.selectedRetailerParentRemsServerId) {
                 axios.get(`/api/REMS/deploy-configs?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
-                    const packages = [];
-                    res.data.forEach((v) => {
-                        packages.push(v);
-                    });
-                    setDeploys(packages);
+                    handleOptions(_.groupBy(res.data, 'retailer_id'));
+                    setDeploys(res.data);
                 });
             }
         }
     }, [context.selectedRetailerIsTenant, context.selectedRetailerParentRemsServerId]);
+
+    useEffect(() => {
+        if (deploys?.length > 0) {
+
+            const localDeploys = structuredClone(deploys)
+            const dep = _.find(localDeploys, (d) => {
+                return d.name === selectedDeployConfig && d.retailer_id === (isCommon ? 'common' : context.selectedRetailer);
+            })
+            if (dep) {
+                setConfigId(dep.id);
+                const steps = dep.steps.map(function (s, idx) {
+                    const obj = {};
+                    obj.id = idx;
+                    obj.type = s.type;
+                    delete s.type;
+                    obj.arguments = s;
+                    return obj;
+                });
+                const stepsobj = {};
+                for (const v of steps) {
+                    stepsobj[v.id] = v;
+                }
+                setValue('configName', selectedDeployConfig);
+                setCommands(stepsobj);
+            }
+        }
+
+    }, [selectedDeployConfig]);
+
+    const handleOptions = response => {
+        let data = []
+        if (Object.keys(response).length > 0) {
+            for (const soft of Object.keys(response)) {
+                const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                for (const v of response[soft]) {
+                    entry.children.push({
+                        label: v.name,
+                        value: v.name,
+                        type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                    });
+                }
+                data.push(entry);
+            }
+        }
+        setOptions(data)
+    }
 
     const addCommand = () => {
         const id = Date.now();
@@ -91,9 +140,9 @@ export default function CreateDeploymentConfig() {
         });
     };
 
-    const deleteDeploymentConfig = () => {
-        if (configId && context.selectedRetailerIsTenant === false) {
-            axios.get(`/api/REMS/delete-deploy-config?retailerId=${context.selectedRetailer}&id=` + configId).then(function (resp) {
+    const deleteDeploymentConfig = (selectedRetailer) => {
+        if (configId && !context.selectedRetailerIsTenant) {
+            axios.get(`/api/REMS/delete-deploy-config?retailerId=${selectedRetailer}&id=` + configId).then(function (resp) {
                 if (resp.status === 200) {
                     setToastSuccess(resp.data.message);
                     setOpenSuccess(true);
@@ -110,6 +159,7 @@ export default function CreateDeploymentConfig() {
                 if (resp.status === 200) {
                     setToastSuccess(resp.data.message);
                     setOpenSuccess(true);
+
                 } else {
                     setToastFailure(resp.data.message);
                     setOpenFailure(true);
@@ -124,9 +174,7 @@ export default function CreateDeploymentConfig() {
         }
     };
 
-    const handleSubmit = (event, asCommon) => {
-        event.preventDefault();
-
+    const onSubmit = (data) => {
         const commandList = [];
         for (const x in commands) {
             const y = commands[x];
@@ -134,14 +182,13 @@ export default function CreateDeploymentConfig() {
         }
 
         const commandObj = {
-            name,
+            name: data.configName,
             steps: commandList,
         };
 
-        const retailerId = asCommon === true ? 'common' : context.selectedRetailer;
-        let varString = `retailerId=${retailerId}`
+        let varString = `retailerId=${retailerType}`
         if (context.selectedRetailerIsTenant === true) {
-            varString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerId}`
+            varString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerType}`
         }
 
         axios.post(`/api/sendCommand?${varString}`, commandObj)
@@ -190,10 +237,6 @@ export default function CreateDeploymentConfig() {
         });
     };
 
-    const handleNameChange = (e) => {
-        setName(e.target.value);
-    };
-
     if (!cInit) {
         setcInit(true);
         addCommand();
@@ -204,73 +247,58 @@ export default function CreateDeploymentConfig() {
     }
 
     const handleSelectedDeploy = (e, selectedValue) => {
+        if (selectedValue === 'common' || selectedValue === context.selectedRetailer) {
+            e.preventDefault();
+            return;
+        }
+        setSelectedDeployConfig(selectedValue)
         setCommands({})
-        setName('')
-        setTimeout(() => {
-            const localDeploys = structuredClone(deploys)
-            const dep = _.find(localDeploys, (d) => {
-                return d.name === selectedValue;
-            })
-            if (dep) {
-                setConfigId(dep.id);
-                const steps = dep.steps.map(function (s, idx) {
-                    const obj = {};
-                    obj.id = idx;
-                    obj.type = s.type;
-                    delete s.type;
-                    obj.arguments = s;
-                    return obj;
-                });
-                const stepsobj = {};
-                for (const v of steps) {
-                    stepsobj[v.id] = v;
-                }
-                setName(selectedValue);
-                setCommands(stepsobj);
-            }
-        }, 100)
-
-
+        setValue('configName', '');
     };
 
-    const listItems = deploys.map(function (c, index) {
-        return c.name
-    });
+    const onSelectDeploy = i => {
+        setIsCommon(i.type === 'common')
+    }
 
     return (
         <Root className={classes.content}>
             <Container maxWidth="xl" className={classes.container}>
-                <form>
+                <form onSubmit={handleSubmit(onSubmit)}>
                     <Typography align="center" variant="h3">
                         Create Deployment Configuration
                     </Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={4}>
-                            <TextField
-                                label="Deploy-Config Name"
-                                variant="filled"
-                                sx={{ marginBottom: 3 }}
-                                onChange={handleNameChange}
-                                value={name}
-                                required={true}
+                            <Controller
+                                rules={{ required: true }}
+                                render={({ field }) => <TextField
+                                    {...field}
+                                    label="Deploy-Config Name"
+                                    variant="filled"
+                                    sx={{ marginBottom: 3 }}
+                                />}
+                                defaultValue=""
+                                control={control}
+                                name="configName"
                             />
+
+                            {errors?.configName && <Typography variant='body2' color='error'>This field is required</Typography>}
                         </Grid>
                         <Grid item xs={4} />
                         <Grid item xs={4}>
-                            <Autocomplete
-                                sx={{ padding: 1, width: 300 }}
-                                onChange={handleSelectedDeploy}
-                                getOptionLabel={(option) => option}
-                                options={listItems}
-                                renderOption={(params, option) => {
-                                    return (
-                                        <li {...params} key={option}>
-                                            {option}
-                                        </li>
-                                    );
+                            <TreePicker
+                                placement="bottomEnd"
+                                onChange={(selectedConfig, e) => {
+                                    handleSelectedDeploy(e, selectedConfig);
                                 }}
-                                renderInput={(params) => <TextField {...params} label={'Load Existing Config'}
-                                />}
+                                onSelect={onSelectDeploy}
+                                data={_options}
+                                style={{
+                                    width: 300,
+                                    padding: 8
+                                }}
+                                value={selectedDeployConfig}
+                                placeholder="Load Existing Config"
                             />
                         </Grid>
                     </Grid>
@@ -297,33 +325,37 @@ export default function CreateDeploymentConfig() {
                     >
                         Add Task to Deployment Config
                     </Button>
+                    {context?.userRoles?.includes('toshibaAdmin') && selectedDeployConfig && (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }}
+                            endIcon={<DeleteIcon />}
+                            onClick={() => deleteDeploymentConfig(isCommon ? 'common' : context.selectedRetailer)}
+                        >
+                            Delete  Deployment Configuration
+                        </Button>
+                    )}
                     <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }}
-                        endIcon={<DeleteIcon />}
-                        onClick={deleteDeploymentConfig}
-                    >
-                        Delete Deployment Configuration
-                    </Button>
-                    <Button
+                        type='submit'
                         variant="contained"
                         color="primary"
                         sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }}
                         endIcon={<SaveIcon />}
-                        onClick={e => handleSubmit(e, false)}
+                        onClick={e => setRetailerType(context.selectedRetailer)}
                     >
                         Save Deployment Configuration
                     </Button>
                     {context?.userRoles?.includes('toshibaAdmin') && (
                         <Button
+                            type='submit'
                             variant="contained"
                             color="primary"
                             sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }}
                             endIcon={<SaveIcon />}
-                            onClick={e => handleSubmit(e, true)}
+                            onClick={e => setRetailerType('common')}
                         >
-                            Create Common Deployment Configuration
+                            Save Common Deployment Configuration
                         </Button>
                     )}
                 </form>

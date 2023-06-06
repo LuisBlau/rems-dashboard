@@ -304,9 +304,9 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                     };
                     MenuItems.push(tmp);
                     tmp = {
-                        id: 'software-distribution',
-                        name: 'Software Distribution',
-                        icon: <Image src={SoftwareDistributionIcon} alt="SoftwareDistributionIcon" />,
+                        id: 'remote-diagnostics',
+                        name: 'Remote Diagnostics',
+                        icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
                         enabled: pasSubscriptionTier === 'advanced',
                         items: [
                             {

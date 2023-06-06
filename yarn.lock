@@ -7710,6 +7710,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-hook-form@npm:^7.44.2":
+  version: 7.44.2
+  resolution: "react-hook-form@npm:7.44.2"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18
+  checksum: 0c17f8fc33b52ff3caa9de433e1ff3e79f9b797bddd2e80f1156d8a6324710cc360b700e560562ee822e129b440f730f2990caa1e79a3eb66094d9e235410b46
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.13.1, react-is@npm:^16.6.3, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -7958,6 +7967,7 @@ __metadata:
     prop-types: ^15.8.1
     react: latest
     react-dom: latest
+    react-hook-form: ^7.44.2
     react-spinner-animated: ^3.1.1
     rsuite: ^5.19.0
     semantic-ui-css: ^2.5.0

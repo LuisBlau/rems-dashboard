@@ -4,7 +4,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -36,6 +35,9 @@ import {
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import 'rsuite/dist/rsuite.min.css';
+import { TreePicker } from 'rsuite';
+import _ from 'lodash';
 import UserContext from '../../pages/UserContext'
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
@@ -71,6 +73,7 @@ const uiWidth = 600;
 const formValues = {
     name: '',
     id: '',
+    retailerId: '',
     storeList: '',
     dateTime: '',
 };
@@ -92,7 +95,9 @@ export default function ScheduleDeployment() {
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState('');
     const [openMissingMaster, setOpenMissingMaster] = useState(false);
+    const [openFileMissingPackages, setOpenFileMissingPackages] = useState(false);
     const [toastMissingMaster, setToastMissingMaster] = useState('');
+    const [toastMissingPackages, setToastMissingPackages] = useState('')
     const [openFailure, setOpenFailure] = useState(false);
     const [toastFailure, setToastFailure] = useState('');
     const [storeFilterNames, setStoreFilterNames] = React.useState([]);
@@ -108,14 +113,14 @@ export default function ScheduleDeployment() {
         },
     };
     const context = useContext(UserContext)
+    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     useEffect(() => {
+        if (context.selectedRetailer) {
+            setSelectedRetailer(context.selectedRetailer);
+        }
         if (context.selectedRetailer && context.userRetailers?.length > 0) {
-            let searchParams = `retailerId=common,${context.selectedRetailer}`
-            if (context.selectedRetailerIsTenant === true && context.selectedRetailerParentRemsServerId) {
-                searchParams = `retailerId=common,${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
-            }
-            axios.get(`/api/REMS/deploy-configs?${searchParams}`).then(function (res) {
+            axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
                 const data = [];
                 const response = _.groupBy(res.data, 'retailer_id');
                 for (const soft of Object.keys(response)) {
@@ -133,66 +138,40 @@ export default function ScheduleDeployment() {
                 setOptions(data)
             });
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
+    }, [context])
 
     useEffect(() => {
         setStoreNames([]);
-        if (context.selectedRetailer) {
+        if (selectedRetailer !== '') {
             // TODO:
             // this won't be performant when we have a large number of uploads
             // we should do this later in the workflow, once a deploy-config is
             // selected, and filter the request
-            if (context.selectedRetailerIsTenant === false) {
-                axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailer}`).then(function (res) {
-                    const uploads = [];
-                    res.data.forEach((upload) => {
-                        uploads.push({
-                            fileId: upload.id,
-                            fileName: upload.filename,
-                            description: upload.description,
-                            packages: upload.packages,
-                        });
+            axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
+                const uploads = [];
+                res.data.forEach((upload) => {
+                    uploads.push({
+                        fileId: upload.id,
+                        fileName: upload.filename,
+                        description: upload.description,
+                        packages: upload.packages,
                     });
-                    setAllUploads(uploads);
                 });
+                setAllUploads(uploads);
+            });
 
-                axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailer}`).then((resp) => {
-                    const sNames = [];
-                    const stores = [];
-                    resp.data.forEach((v) => {
-                        stores.push(v);
-                        sNames.push(v.list_name);
-                    });
-                    setAllStoresDetails(stores);
-                    setStoreNames(sNames);
+            axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
+                const sNames = [];
+                const stores = [];
+                resp.data.forEach((v) => {
+                    stores.push(v);
+                    sNames.push(v.list_name);
                 });
-            } else if (context.selectedRetailerParentRemsServerId) {
-                axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
-                    const uploads = [];
-                    res.data.forEach((upload) => {
-                        uploads.push({
-                            fileId: upload.id,
-                            fileName: upload.filename,
-                            description: upload.description,
-                            packages: upload.packages,
-                        });
-                    });
-                    setAllUploads(uploads);
-                });
-
-                axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then((resp) => {
-                    const sNames = [];
-                    const stores = [];
-                    resp.data.forEach((v) => {
-                        stores.push(v);
-                        sNames.push(v.list_name);
-                    });
-                    setAllStoresDetails(stores);
-                    setStoreNames(sNames);
-                });
-            }
+                setAllStoresDetails(stores);
+                setStoreNames(sNames);
+            });
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
+    }, [selectedRetailer]);
 
     function getUsefulInformation(agents, useful) {
         const arr = [];
@@ -213,18 +192,27 @@ export default function ScheduleDeployment() {
 
     useEffect(() => {
         const miffedStoreAgentPackageVersions = [];
+        const missingPackages = [];
         if (selectedUploadedFiles.length > 0 && agentVersions.length > 0) {
             const packages = [];
             if (selectedUploadedFiles.length > 0) {
                 selectedUploadedFiles.forEach((file) => {
                     if (file) {
-                        const filePacks = [];
-                        file.packages.forEach((pack) => {
-                            filePacks.push(pack);
-                        });
-                        packages.push(filePacks);
+                        if (file.packages) {
+                            const filePacks = [];
+                            file.packages.forEach((pack) => {
+                                filePacks.push(pack);
+                            });
+                            packages.push(filePacks);
+                        } else {
+                            missingPackages.push(file.description)
+                        }
                     }
                 });
+            }
+            if (missingPackages.length > 0) {
+                setToastMissingPackages(missingPackages)
+                setOpenFileMissingPackages(true)
             }
             agentVersions.forEach((agent) => {
                 if (agent && agent.versions) {
@@ -270,11 +258,7 @@ export default function ScheduleDeployment() {
         );
         const usefulInformation = [];
         // gets useful agent/store info for the selected retailer
-        let paramsString = `retailer=${context.selectedRetailer}`
-        if (context.selectedRetailerIsTenant === true) {
-            paramsString = `retailer=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
-        }
-        await axios.get(`/api/REMS/agents?${paramsString}`).then(function (res) {
+        await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
             res.data.forEach((element) => {
                 usefulInformation.push({
                     storeAgentCombo: element.storeName + ':' + element.agentName,
@@ -354,9 +338,6 @@ export default function ScheduleDeployment() {
         formValues.name = config.name;
         formValues.id = config.id;
         formValues.retailerId = config.retailer_id;
-        if (context.selectedRetailerIsTenant === true) {
-            formValues.tenantId = config.tenant_id;
-        }
         formValues.storeList = _storeList;
         // formValues.listNames = _listNames,
         // Don't adjust for users time zone i.e we are always in store time.
@@ -368,11 +349,8 @@ export default function ScheduleDeployment() {
 
         setFormValues(formValues);
 
-        let paramString = `retailerId=${context.selectedRetailer}`
-        if (context.selectedRetailerIsTenant === true) {
-            paramString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
-        }
-        axios.post(`/api/deploy-schedule?${paramString}`, _formValues)
+        axios
+            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
             .then(function (response) {
                 if (response.data.message !== 'Success') {
                     setToastFailure(response.data);
@@ -392,14 +370,18 @@ export default function ScheduleDeployment() {
         setVersionCollisionDialogOpen(false);
     }
 
-    function handleSelectDeployConfig(selectedConfig) {
+    function handleSelectDeployConfig(selectedConfig, e) {
         if (selectedConfig) {
+            if (selectedConfig === 'common' || selectedConfig === 'selectedRetailer') {
+                e.preventDefault();
+                return;
+            }
             setSelectedDeployConfig(selectedConfig);
             // retrieve config by name
             // traverse the 'steps' array
             // retrieve any that have 'upload'
             // get file name from there
-            const selectedConfigDetailSteps = deployConfigs.find((x) => x.name === selectedConfig.label).steps;
+            const selectedConfigDetailSteps = deployConfigs.find((x) => x.id === selectedConfig)?.steps ?? [];
             const newSelectedUploadedFiles = [];
             selectedConfigDetailSteps.forEach((step) => {
                 if (step.type === 'upload') {
@@ -425,23 +407,17 @@ export default function ScheduleDeployment() {
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={2} sx={{ alignItems: 'center' }}>
-                        <Autocomplete
-                            id="select-deploy-config"
-                            value={selectedDeployConfig}
-                            onChange={(event, selectedConfig) => {
-                                handleSelectDeployConfig(selectedConfig);
+                        <TreePicker
+                            placement="bottomEnd"
+                            onChange={(selectedConfig, e) => {
+                                handleSelectDeployConfig(selectedConfig, e);
                             }}
-                            options={_options}
-                            noOptionsText="Error Loading Package List"
-                            renderInput={(params) => (
-                                <TextField
-                                    sx={{ width: uiWidth }}
-                                    {...params}
-                                    label="Deploy-Config to Schedule"
-                                    InputProps={{ ...params.InputProps, type: 'search' }}
-                                    required={true}
-                                />
-                            )}
+                            data={_options}
+                            style={{
+                                width: uiWidth
+                            }}
+                            value={selectedDeployConfig}
+                            placeholder="Deployment Configuration to Schedule"
                         />
                         <FormControl sx={{ minWidth: 120 }}>
                             <InputLabel sx={{ width: 200 }} id="distro-list-label">
@@ -501,6 +477,19 @@ export default function ScheduleDeployment() {
                 <Box pt={4}>
                     <Copyright />
                 </Box>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openFileMissingPackages}
+                    autoHideDuration={missingMasterToastDuration}
+                    onClose={(event) => {
+                        setOpenFileMissingPackages(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="error">
+                        <AlertTitle>File(s) Missing Packages!</AlertTitle>
+                        {toastMissingPackages}
+                    </Alert>
+                </Snackbar>
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openMissingMaster}

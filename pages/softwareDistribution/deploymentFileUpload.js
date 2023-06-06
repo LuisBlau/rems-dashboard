@@ -7,9 +7,11 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import { Stack } from '@mui/material';
+import { FormControl, InputLabel, Stack } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import { green } from '@mui/material/colors';
 import axios from 'axios';
 import ProgressIndicator from '../../components/ProgressIndicator';
@@ -39,7 +41,6 @@ const Root = styled('main')(({ theme }) => ({
 const Input = styled('input')({
     display: 'none',
 });
-
 export default function DeploymentFileUpload() {
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -47,6 +48,7 @@ export default function DeploymentFileUpload() {
     const [description, setDescription] = useState('');
     const [progress, setProgress] = useState(0);
     const [fileName, setFileName] = useState('');
+    const [fileType, setFileType] = useState('RETAILER');
     const context = useContext(UserContext)
 
 
@@ -78,8 +80,8 @@ export default function DeploymentFileUpload() {
         //   websocketUrl = 'rems-dashboard-test.azurewebsites.net'
         // }
         // const webSocket = new WebSocket(`ws://${websocketUrl}:448/`)
-
-        if (!uploading && context.selectedRetailer && context.selectedRetailerIsTenant === false) {
+        const retailerId = fileType === 'RETAILER' ? context.selectedRetailer : fileType;
+        if (!uploading && retailerId && context.selectedRetailerIsTenant === false) {
             setUploading(true);
             // Create an object of formData
             const formData = new FormData();
@@ -88,7 +90,7 @@ export default function DeploymentFileUpload() {
             formData.append('file', selectedFile);
             formData.append('description', description);
             // Send formData object
-            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailer}`, formData, {
+            axios.post(`/api/REMS/uploadfile?retailerId=${retailerId}`, formData, {
                 onUploadProgress: function (e) {
                     const totalLength = e.lengthComputable
                         ? e.total
@@ -108,7 +110,7 @@ export default function DeploymentFileUpload() {
                     //   }
                     // }
                 });
-        } else if (!uploading && context.selectedRetailer && context.selectedRetailerParentRemsServerId) {
+        } else if (!uploading && retailerId && context.selectedRetailerParentRemsServerId) {
             setUploading(true);
             // Create an object of formData
             const formData = new FormData();
@@ -117,7 +119,7 @@ export default function DeploymentFileUpload() {
             formData.append('file', selectedFile);
             formData.append('description', description);
             // Send formData object
-            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, formData, {
+            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerId}`, formData, {
                 onUploadProgress: function (e) {
                     const totalLength = e.lengthComputable
                         ? e.total
@@ -141,7 +143,6 @@ export default function DeploymentFileUpload() {
             console.log('context is probably not loaded?')
         }
     };
-
     const updateDescription = (e) => {
         setDescription(e.target.value);
     };
@@ -174,6 +175,22 @@ export default function DeploymentFileUpload() {
                         onChange={updateDescription}
                         sx={{ width: 275 }}
                     />
+                    {context?.userRoles?.includes('toshibaAdmin') &&
+                        <FormControl>
+                            <InputLabel id="select-file-type-label">Upload Type</InputLabel>
+                            <Select
+                                id="fileType"
+                                value={fileType}
+                                labelId='select-file-type-label'
+                                label="Upload Type  -"
+                                onChange={(e) => setFileType(e.target.value)}
+                                sx={{ width: 300, fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}
+                            >
+                                <MenuItem value={'RETAILER'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS RETAILER DEPLOYMENT</MenuItem>
+                                <MenuItem value={'COMMON'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS COMMON DEPLOYMENT</MenuItem>
+                            </Select>
+                        </FormControl>
+                    }
                     <Button
                         variant="contained"
                         color="primary"
@@ -190,7 +207,7 @@ export default function DeploymentFileUpload() {
                     </Button>
                     <ProgressIndicator progress={progress} inProgress={uploading} />
                 </Stack>
-                <UploadGrid />
+                <UploadGrid selectedRetailer={context?.selectedRetailer} />
                 <Box pt={4}>
                     <Copyright />
                 </Box>
