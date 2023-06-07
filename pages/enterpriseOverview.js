@@ -306,10 +306,10 @@ export default function EnterpriseOverview() {
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
             setFilteredFilters(localAllFilters);
-            setSelectedContinent(null);
-            setSelectedCountry(null);
-            setSelectedStore(null);
-            setFiltersApplied([]);
+            // setSelectedContinent(null);
+            // setSelectedCountry(null);
+            // setSelectedStore(null);
+            // setFiltersApplied([]);
         });
     }
 
