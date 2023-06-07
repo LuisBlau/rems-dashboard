@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useMsal } from '@azure/msal-react';
 import Cookies from 'universal-cookie';
-import mockAxios from '../mocks/mock';
-mockAxios(axios);
+// import mockAxios from '../mocks/mock';
+// mockAxios(axios);
 const UserContext = React.createContext();
 
 export const UserContextProvider = (props) => {
@@ -14,32 +14,37 @@ export const UserContextProvider = (props) => {
     const [openedMenuItems, setOpenedMenuItems] = useState([]);
     const [hasChildren, setHasChildren] = useState(false);
     const { accounts } = useMsal();
-    const [userDetails, setUserDetails] = useState({
-      "_id": "63ea4c9bd6e19c0470d6e403",
-      "firstName": null,
-      "lastName": null,
-      "email": "cirrus.hazard@toshiba.com",
-      "retailer": [
-          "All"
-      ],
-      "role": [
-          "user",
-          "admin",
-          "devops",
-          "support",
-          "toshibaAdmin",
-          "commandCenterViewer"
-      ],
-      "userDefinedMapConfig": {
-          "userMapZoom": 6,
-          "userMapCenter": {
-              "lat": 48.89890248912957,
-              "lng": 5.746983266166881
-          }
-      }
-    })
+    const [userDetails, setUserDetails] = useState(null)
+    // const [userDetails, setUserDetails] = useState({
+    //  "_id": "63ea4c9bd6e19c0470d6e403",
+    //   "firstName": null,
+    //   "lastName": null,
+    //   "email": "cirrus.hazard@toshiba.com",
+    //   "retailer": [
+    //       "All"
+    //   ],
+    //   "role": [
+    //       "user",
+    //       "admin",
+    //       "devops",
+    //       "support",
+    //       "toshibaAdmin",
+    //       "commandCenterViewer"
+    //   ],
+    //   "userDefinedMapConfig": {
+    //       "userMapZoom": 6,
+    //       "userMapCenter": {
+    //           "lat": 48.89890248912957,
+    //           "lng": 5.746983266166881
+    //       }
+    //   }
+    // })
     const username = accounts.length > 0 ? accounts[0].username : '';
-    const [selectedRetailer, setSelectedRetailer] = useState('T0USAVE')
+    // const [selectedRetailer, setSelectedRetailer] = useState('T0USAVE')
+    const [selectedRetailer, setSelectedRetailer] = useState('')
+    const [selectedRetailerDescription, setSelectedRetailerDescription] = useState('')
+    const [selectedRetailerIsTenant, setSelectedRetailerIsTenant] = useState(null)
+    const [selectedRetailerParentRemsServerId, setSelectedRetailerParentRemsServerId] = useState(null)
     const cookies = new Cookies();
 
     const getRoles = async () => {
@@ -122,6 +127,21 @@ export const UserContextProvider = (props) => {
     }, [userDetails])
 
     useEffect(() => {
+        if (selectedRetailer !== '') {
+            if (_.find(userRetailers, x => x.retailer_id === selectedRetailer).isTenant === true) {
+                setSelectedRetailerIsTenant(true)
+                axios.get(`/api/REMS/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
+                    setSelectedRetailerDescription(res.data.description)
+                    setSelectedRetailerParentRemsServerId(res.data.retailer_id)
+                })
+            } else {
+                setSelectedRetailerIsTenant(false)
+                setSelectedRetailerParentRemsServerId(null)
+            }
+        }
+    }, [selectedRetailer])
+
+    useEffect(() => {
         if (!selectedRetailer && userRetailers) {
             getSelectedRetailer();
         }
@@ -141,7 +161,10 @@ export const UserContextProvider = (props) => {
         setHasChildren,
         selectedRetailer,
         setSelectedRetailer,
-        setUserDetails
+        setUserDetails,
+        selectedRetailerIsTenant,
+        selectedRetailerDescription,
+        selectedRetailerParentRemsServerId
     };
 
     return (

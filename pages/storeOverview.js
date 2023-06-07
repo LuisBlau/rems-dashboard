@@ -4,29 +4,18 @@ import React, { useContext, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import {
     Button,
-    Card,
-    CardActionArea,
-    CardContent,
-    CardMedia,
     Dialog,
     DialogActions,
     DialogTitle,
     Paper,
     Switch,
     Typography,
-    Link as MatUILink,
     DialogContent,
     ListItem,
     Divider,
     LinearProgress,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import ErrorImage from '../public/images/error.png';
-import ProcessingMetricsImage from '../public/images/processing-metrics.png';
-import ContainerImage from '../public/images/container.png';
-import EleraImage from '../public/images/elera.png';
-import TicketsImage from '../public/images/tickets.png';
-import Image from 'next/image';
 import axios from 'axios';
 import 'react-spinner-animated/dist/index.css';
 import DumpGrid from '../components/Tables/DumpGrid';
@@ -35,11 +24,11 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import Link from 'next/link';
 import _ from 'lodash';
 import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
 import Copyright from '../components/Copyright';
 import UserContext from './UserContext';
+import EleraInfoRegion from '../components/StoreOverview/EleraInfoRegion';
 
 const PREFIX = 'storeOverview';
 
@@ -55,145 +44,7 @@ const Root = styled('main')(() => ({
     },
 }));
 
-function PerformanceButtonsRegion({ userIsToshibaAdmin, params }) {
-    const serviceNowTicketsUrl =
-        'https://toshibatagstest.service-now.com/now/nav/ui/classic/params/target/incident_list.do%3Fsysparm_query%3Dactive%253Dtrue%255Eu_store.nameSTARTSWITH' +
-        params.get('storeName') +
-        '%26sysparm_first_row%3D1%26sysparm_view%3D%2Cembed%3DT';
-
-    if (userIsToshibaAdmin) {
-        return (
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexGrow: 1,
-                    flexDirection: 'column',
-                    justifyContent: 'space-around',
-                    padding: 3,
-                }}
-            >
-                <Box style={{ display: 'flex', justifyContent: 'center' }}>
-                    <Typography fontSize={25}>Performance</Typography>
-                </Box>
-                <Card sx={{ display: 'flex', flexGrow: 1, margin: .5 }} elevation={10}>
-                    <Link href="/needsRehoming/serviceTrace">
-                        <CardActionArea sx={{ display: 'flex', height: '100%' }}>
-                            <CardMedia
-                                sx={{
-                                    justifySelf: 'flex-start',
-                                    alignSelf: 'center',
-                                    marginLeft: 1,
-                                    height: 40,
-                                    width: 40,
-                                }}
-                            >
-                                <Image style={{ maxWidth: 40, maxHeight: 40 }} src={ErrorImage} alt="Error Image" />
-                            </CardMedia>
-                            <CardContent >
-                                <Typography>
-                                    Transaction Tracing
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                    </Link>
-                </Card>
-                <Card sx={{ display: 'flex', flexGrow: 1, margin: .5 }} elevation={10}>
-                    <Link href="/needsRehoming/systemPerformance">
-                        <CardActionArea sx={{ display: 'flex', height: '100%' }}>
-                            <CardMedia
-                                sx={{
-                                    justifySelf: 'flex-start',
-                                    alignSelf: 'center',
-                                    marginLeft: 1,
-                                    height: 40,
-                                    width: 40,
-                                }}
-                            >
-                                <Image style={{ maxWidth: 40, maxHeight: 40 }} src={ProcessingMetricsImage} alt="Processing Metrics Image" />
-                            </CardMedia>
-                            <CardContent >
-                                <Typography>
-                                    Store Performance
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                    </Link>
-                </Card>
-                <Card sx={{ display: 'flex', flexGrow: 1, margin: .5 }} elevation={10}>
-                    <Link href="needsRehoming/dockerStats">
-                        <CardActionArea sx={{ display: 'flex', height: '100%' }}>
-                            <CardMedia
-                                sx={{
-                                    justifySelf: 'flex-start',
-                                    alignSelf: 'center',
-                                    marginLeft: 1,
-                                    height: 40,
-                                    width: 40,
-                                }}
-                            >
-                                <Image style={{ maxWidth: 40, maxHeight: 40 }} src={ContainerImage} alt="Container Image" />
-                            </CardMedia>
-                            <CardContent >
-                                <Typography>
-                                    Cloud Infrastructure
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                    </Link>
-                </Card>
-                <Card sx={{ display: 'flex', flexGrow: 1, margin: .5 }} elevation={10}>
-                    <Link href="needsRehoming/eleraStats">
-                        <CardActionArea sx={{ display: 'flex', height: '100%' }}>
-                            <CardMedia
-                                sx={{
-                                    justifySelf: 'flex-start',
-                                    alignSelf: 'center',
-                                    marginLeft: 1,
-                                    height: 40,
-                                    width: 40,
-                                }}
-                            >
-                                <Image style={{ maxWidth: 40, maxHeight: 40 }} src={EleraImage} alt="Elera Image" />
-                            </CardMedia>
-                            <CardContent >
-                                <Typography>
-                                    ELERA Dashboard
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                    </Link>
-                </Card>
-                <Card sx={{ display: 'flex', flexGrow: 1, margin: .5 }} elevation={10}>
-                    <MatUILink target={'_blank'} href={serviceNowTicketsUrl}>
-                        <CardActionArea sx={{ display: 'flex', height: '100%' }}>
-                            <CardMedia
-                                sx={{
-                                    justifySelf: 'flex-start',
-                                    alignSelf: 'center',
-                                    marginLeft: 1,
-                                    height: 40,
-                                    width: 40,
-                                }}
-                            >
-                                <Image style={{ maxWidth: 40, maxHeight: 40 }} src={TicketsImage} alt="Tickets Image" />
-                            </CardMedia>
-                            <CardContent >
-                                <Typography>
-                                    ServiceNow Tickets
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                    </MatUILink>
-                </Card>
-            </Box>
-        )
-    } else {
-        return null
-    }
-}
-
 export default function StoreOverview() {
-    const userContext = useContext(UserContext);
     const [screenshotView, setScreenshotView] = useState(false);
     const [storeAlerts, setStoreAlerts] = useState([]);
     const [storeAlertDescriptions, setStoreAlertDescriptions] = useState([]);
@@ -203,9 +54,11 @@ export default function StoreOverview() {
     const [scoCount, setScoCount] = useState(0);
     const [downAgentCount, setDownAgentCount] = useState(0);
     const [selectedTab, setSelectedTab] = useState('dumps');
-    const [userIsToshibaAdmin, setUserIsToshibaAdmin] = useState(false);
     const [screenShotEnable, setScreenShotEnable] = useState(false);
     const [userHasAccess, setUserHasAccess] = useState(true)
+    const [elera, setElera] = useState({});
+
+    const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader"]
 
     const handleTabChange = (event, newValue) => {
         setSelectedTab(newValue);
@@ -226,52 +79,125 @@ export default function StoreOverview() {
         setScreenshotView(!screenshotView);
     }
     useEffect(() => {
-        if (context) {
-            if (context.userRoles.includes('toshibaAdmin')) {
-                setUserIsToshibaAdmin(true)
-            }
-        }
-
         const fetchStoreInfo = async () => {
             async function getStoreAgents() {
                 // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
                 // for now, I'll do this: 
                 let userHasRetailer = true
-                if (context.userRetailers !== 'All') {
+                if (params.get('tenant_id') !== null) {
+                    userHasRetailer = false
                     context.userRetailers.forEach(retailer => {
-                        if (params.get('retailer_id') !== context.selectedRetailer) {
-                            userHasRetailer = false
-                            setUserHasAccess(false)
+                        if (params.get('tenant_id') === retailer.retailer_id) {
+                            userHasRetailer = true
                         }
                     });
-                }
-                if (userHasRetailer) {
-                    await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
-                        let scoCounter = 0;
-                        let downCounter = 0;
-                        const controllers = [];
-                        const agents = [];
-                        if (resp.data) {
-                            const response = resp.data;
-                            response.forEach((agent) => {
-                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
-                                    controllers.push(agent);
-                                } else {
-                                    agents.push(agent);
-                                }
-                                if (agent.isSCO === true) {
-                                    scoCounter++;
-                                }
-                                if (agent.online === false) {
-                                    downCounter++;
-                                }
-                            });
-                            setStoreAgents(_.concat(controllers, agents));
-                            setAgentCount(agents.length);
-                            setScoCount(scoCounter);
-                            setDownAgentCount(downCounter);
+                    setUserHasAccess(userHasRetailer)
+                    if (userHasRetailer) {
+                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
+                            let scoCounter = 0;
+                            let downCounter = 0;
+                            const controllers = [];
+                            const agents = [];
+                            let newElera = {}
+                            if (resp.data) {
+                                const response = resp.data;
+                                response.forEach((agent) => {
+                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                        controllers.push(agent);
+                                    } else {
+                                        agents.push(agent);
+                                    }
+                                    if (agent.isSCO === true) {
+                                        scoCounter++;
+                                    }
+                                    if (agent.online === false) {
+                                        downCounter++;
+                                    }
+                                    if ("status" in agent && "docker" in agent["status"]) {
+                                        let container_status = {}
+                                        let workingContainers = 0
+                                        for (var containerName of eleraContainers) {
+                                            if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
+                                                let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
+                                                let stat = JSON.parse(statStr)["State"]
+                                                container_status[containerName] = stat
+                                                if (stat == "running") workingContainers++
+                                            }
+
+                                            if (Object.keys(container_status).length > 0) {
+                                                container_status["workingContainers"] = workingContainers;
+                                                newElera[agent.agentName] = container_status
+                                            }
+
+                                        }
+                                    }
+                                });
+
+                                setStoreAgents(_.concat(controllers, agents));
+                                setAgentCount(agents.length);
+                                setScoCount(scoCounter);
+                                setDownAgentCount(downCounter);
+                                setElera(newElera);
+                            }
+                        });
+                    }
+                } else {
+                    let userHasRetailer = false
+                    context.userRetailers.forEach(retailer => {
+                        if (params.get('retailer_id') === retailer.retailer_id) {
+                            userHasRetailer = true
                         }
                     });
+                    setUserHasAccess(userHasRetailer)
+
+                    if (userHasRetailer) {
+                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                            let scoCounter = 0;
+                            let downCounter = 0;
+                            const controllers = [];
+                            const agents = [];
+                            let newElera = {}
+                            if (resp.data) {
+                                const response = resp.data;
+                                response.forEach((agent) => {
+                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                        controllers.push(agent);
+                                    } else {
+                                        agents.push(agent);
+                                    }
+                                    if (agent.isSCO === true) {
+                                        scoCounter++;
+                                    }
+                                    if (agent.online === false) {
+                                        downCounter++;
+                                    }
+                                    if ("status" in agent && "docker" in agent["status"]) {
+                                        let container_status = {}
+                                        let workingContainers = 0
+                                        for (var containerName of eleraContainers) {
+                                            if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
+                                                let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
+                                                let stat = JSON.parse(statStr)["State"]
+                                                container_status[containerName] = stat
+                                                if (stat == "running") workingContainers++
+                                            }
+
+                                            if (Object.keys(container_status).length > 0) {
+                                                container_status["workingContainers"] = workingContainers;
+                                                newElera[agent.agentName] = container_status
+                                            }
+
+                                        }
+                                    }
+                                });
+                                setStoreAgents(_.concat(controllers, agents));
+                                setAgentCount(agents.length);
+                                setScoCount(scoCounter);
+                                setElera(newElera);
+                                setDownAgentCount(downCounter);
+                            }
+                        });
+                    }
                 }
             }
 
@@ -283,7 +209,11 @@ export default function StoreOverview() {
 
         const fetchAlerts = async () => {
             async function getStoreAlerts() {
-                await axios.get(`/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                let alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
+                if (context.selectedRetailerIsTenant === true) {
+                    alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
+                }
+                await axios.get(alertsUrl).then((resp) => {
                     if (resp.data) {
                         const alerts = [];
                         const response = resp.data;
@@ -441,10 +371,16 @@ export default function StoreOverview() {
                             </div>
                         </Paper>
                     </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                        <AgentDetailsRegion storeAgents={storeAgents} screenshotView={screenshotView} />
-                        <PerformanceButtonsRegion userIsToshibaAdmin={userIsToshibaAdmin} params={params} />
-                    </Box>
+                    {Object.keys(elera).length > 0 ?
+                        <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
+                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} />
+                            <EleraInfoRegion elera={elera} eleraContainers={eleraContainers} />
+                        </Box>
+                        :
+                        <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
+                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} />
+                        </Box>
+                    }
                     <Box sx={{ height: '23%', width: '100%' }}>
                         <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
                             <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
@@ -454,10 +390,10 @@ export default function StoreOverview() {
                                 </TabList>
                             </Box>
                             <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
-                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id') }} height={'100%'} />
+                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                             <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
-                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id') }} height={'100%'} />
+                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                         </TabContext>
                         <Box pt={1} pb={1}>
@@ -505,8 +441,4 @@ export default function StoreOverview() {
         )
     }
 
-}
-
-function customizeText({ valueText }) {
-    return `${valueText}%`;
 }

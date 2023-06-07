@@ -45,7 +45,6 @@ const colorRows = (params) => {
 export default function VersionGrid({ height }) {
     const [versions, setVersions] = useState([]);
     const [showAllRetailers, setShowAllRetailers] = useState(false);
-    const [selectedRetailer, setSelectedRetailer] = useState('')
     const context = useContext(UserContext)
 
     const changeShownRetailers = (event) => {
@@ -54,25 +53,13 @@ export default function VersionGrid({ height }) {
     }
 
     useEffect(() => {
-        if (context) {
-            if (context.selectedRetailer) {
-                setSelectedRetailer(context.selectedRetailer)
-            }
-        }
-    }, [context])
-
-    useEffect(() => {
-        let url = ''
-        if (selectedRetailer !== '') {
-            url = `/api/REMS/versionCombinations?retailerId=${selectedRetailer}`
+        if (context.selectedRetailer) {
+            axios.get(`/api/REMS/versionCombinations?allRetailers=false&retailerId=${context.selectedRetailer}`).then((x) => setVersions(x.data))
         }
         if (showAllRetailers) {
-            url = "/api/REMS/versionCombinations?allRetailers=true"
+            axios.get("/api/REMS/versionCombinations?allRetailers=true").then((x) => setVersions(x.data))
         }
-        if (url !== '') {
-            axios.get(url).then((x) => setVersions(x.data))
-        }
-    }, [showAllRetailers, selectedRetailer]);
+    }, [showAllRetailers, context.selectedRetailer]);
 
     return (
         <div className="ag-theme-alpine" style={{ height: height, width: '100%' }}>
@@ -83,7 +70,6 @@ export default function VersionGrid({ height }) {
                 <AgGridColumn sortable={true} filter={true} field="cf"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} field="count"></AgGridColumn>
                 <AgGridColumn sortable={true} filter={true} field="retailer"></AgGridColumn>
-
             </AgGridReact>
         </div>
     );

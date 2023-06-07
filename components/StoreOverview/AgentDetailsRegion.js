@@ -5,7 +5,7 @@ import OverviewAgentPaper from '../Connection/OverviewAgentPaper';
 import React from 'react';
 import { TripleMaze } from 'react-spinner-animated';
 
-export default function AgentDetailsRegion({ storeAgents, screenshotView }) {
+export default function AgentDetailsRegion({ boxWidth, paperWidth, storeAgents, screenshotView }) {
     if (storeAgents.length === 0) {
         return (
             <div role="progressbar" style={{ width: '100%', height: '100%' }}>
@@ -14,9 +14,9 @@ export default function AgentDetailsRegion({ storeAgents, screenshotView }) {
         );
     } else {
         return (
-            <Box sx={{ display: 'flex', width: '100%', flexDirection: 'row', flexWrap: 'wrap', overflowY: 'auto' }}>
+            <Box sx={{ display: 'flex', width: `${boxWidth}%`, flexDirection: 'row', flexWrap: 'wrap', overflowY: 'auto' }}>
                 {storeAgents.map((agent, index) => (
-                    <Box key={index} sx={{ width: '20%', padding: 2 }}>
+                    <Box key={index} sx={{ width: `${paperWidth}%`, padding: 2 }}>
                         <Paper elevation={10}>
                             <OverviewAgentPaper data={agent} useScreenshotView={screenshotView} />
                         </Paper>

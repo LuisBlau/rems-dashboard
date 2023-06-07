@@ -127,18 +127,28 @@ function DisplaySystemType(props) {
 }
 function DisplayOnOffStatus(props) {
     if (props.data.online) {
-        return (
-            <Grid item xs={4}>
-                <Typography color="green">Online</Typography>
-            </Grid>
-        );
+        if (props.data.authState === "authenticated") {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="#5BA52E">Online</Typography>
+                </Grid>
+            );
+        } else if (props.data.authState === "unauthenticated") {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="red">Unauthenticated</Typography>
+                </Grid>
+            );
+        }
     }
+
     return (
         <Grid item xs={4}>
             <Typography color="red">Offline</Typography>
         </Grid>
     );
 }
+
 
 function ModalDisplayButtonsComponentTitle({ data }) {
     if (data.status) {
@@ -269,7 +279,8 @@ function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScr
 
 }
 
-function ScreenCaptureDisplay({ agentData, refreshInterval, width, height, selectedRetailer }) {
+function ScreenCaptureDisplay({ agentData, refreshInterval, width, height }) {
+    const context = useContext(UserContext)
     const style = {
         display: 'flex',
         justifyContent: 'center',
@@ -286,9 +297,14 @@ function ScreenCaptureDisplay({ agentData, refreshInterval, width, height, selec
         '/api/registers/commands/' +
         btoa(unescape(encodeURIComponent(JSON.stringify(screenCaptureCommand).replace('/sg', ''))))
     );
+    let retailerSegment = `retailerId=${context.selectedRetailer}`
+
+    if (context.selectedRetailerIsTenant === true) {
+        retailerSegment = `retailerId=${context.selectedRetailerParentRemsServerId}`
+    }
 
     const { data, error } = useSWR(
-        `/REMS/agentScreenShot?retailerId=${selectedRetailer}&storeName=` + agentData.storeName + '&agentName=' + agentData.agentName,
+        `/REMS/agentScreenShot?${retailerSegment}&storeName=` + agentData.storeName + '&agentName=' + agentData.agentName,
         fetcher,
         { refreshInterval }
     );
@@ -447,7 +463,6 @@ function ReloadWithConfirmationModal({
 
 export default function OverviewAgentPaper({ data, useScreenshotView }) {
     const context = useContext(UserContext);
-    const [selectedRetailer, setSelectedRetailer] = useState('')
     const [screenShotEnable, setScreenShotEnable] = useState(false)
     let disableReload = true;
     if (context.userRoles.includes('admin') || context.userRoles.includes('toshibaAdmin')) {
@@ -462,13 +477,6 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
             }
         }
     }, [data])
-
-
-    useEffect(() => {
-        if (context.selectedRetailer !== '') {
-            setSelectedRetailer(context.selectedRetailer)
-        }
-    }, [context])
 
     const [screenshotOpen, setScreenshotOpen] = useState(false);
     const [dumpConfirmationOpen, setDumpConfirmationOpen] = useState(false);
@@ -567,7 +575,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                         <Grid item xs={4}>
                             <DisplayOnOffStatus data={data} />
                         </Grid>
-                        <Grid item xs={7}>
+                        <Grid item xs={9}>
                             <Typography>OS: {data.os}</Typography>
                         </Grid>
                     </Grid>
@@ -643,7 +651,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                                 screenshotOpen={screenshotOpen}
                                 handleScreenshotOpen={handleScreenshotOpen}
                                 handleScreenshotClose={handleScreenshotClose}
-                                selectedRetailer={selectedRetailer}
+                                selectedRetailer={context.selectedRetailer}
                             />
                         </Grid>
                         <Grid item xs={1} sx={{ margin: 1 }}>
@@ -667,7 +675,6 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                 height={200}
                 width={200}
                 refreshInterval={30000}
-                selectedRetailer={selectedRetailer}
             ></ScreenCaptureDisplay>
         );
     }

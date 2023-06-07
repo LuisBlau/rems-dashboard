@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
 import useSWR from 'swr';
 import fetcher from '../../lib/fetcherWithHeader';
@@ -53,39 +53,57 @@ export default function ExtractRequestGrid(props) {
     const [toastSuccess, setToastSuccess] = useState('');
     const [openFailure, setOpenFailure] = useState(false);
     const [toastFailure, setToastFailure] = useState('');
+    const [agents, setAgents] = useState([])
+    const [agentsList, setAgentsList] = useState([])
     const context = useContext(UserContext)
 
-    const { data, error } = useSWR([`/REMS/agents?retailer=${props.selectedRetailer}`, props.state], fetcher);
-    if (error) return <Root>failed to load</Root>;
-    if (!data) return <div>loading...</div>;
-    const registerlist = [];
-    for (const x of data) {
-        const obj = {
-            retailerId: x.retailer_id,
-            storeName: x.storeName,
-            agent: x.agentName,
-            os: x.os,
-            isRMA: x.deviceType !== 3,
-            hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
-            hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
-            hasChec: false,
-        };
-
-        // Checking to see if 'CHEC' is mentioned in the versions list.
-        // If it is, I assume that we can request a chec capture
-        // Probably not right so should check with Brent
-        if (x.versions !== undefined) {
-            for (let i = 0; i < x.versions.length; i++) {
-                const objKeys = Object.keys(x.versions[i]);
-                if (objKeys[0] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
-                    obj.hasChec = true;
-                    break;
-                }
+    useEffect(() => {
+        if (context.selectedRetailer) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
+                    setAgents(res.data)
+                })
+            } else if (context.selectedRetailerParentRemsServerId) {
+                axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
+                    setAgents(res.data)
+                })
             }
         }
+    }, [context])
 
-        registerlist.push(obj);
-    }
+    useEffect(() => {
+        const list = [];
+
+        for (const x of agents) {
+            const obj = {
+                retailerId: x.retailer_id,
+                storeName: x.storeName,
+                agent: x.agentName,
+                os: x.os,
+                isRMA: x.deviceType !== 3,
+                hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
+                hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
+                hasChec: false,
+            };
+
+            // Checking to see if 'CHEC' is mentioned in the versions list.
+            // If it is, I assume that we can request a chec capture
+            // Probably not right so should check with Brent
+            if (x.versions !== undefined) {
+                for (let i = 0; i < x.versions.length; i++) {
+                    const objKeys = Object.keys(x.versions[i]);
+                    if (objKeys[0] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
+                        obj.hasChec = true;
+                        break;
+                    }
+                }
+            }
+
+            list.push(obj);
+        }
+        setAgentsList(list)
+    }, [agents])
+
 
     const processSuccessfulResponse = function (res, type) {
         if (res.status !== 200) {
@@ -226,7 +244,7 @@ export default function ExtractRequestGrid(props) {
 
     return (
         <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
-            <AgGridReact rowData={registerlist} onGridReady={sortGrid}>
+            <AgGridReact rowData={agentsList} onGridReady={sortGrid}>
                 <AgGridColumn
                     sortable={true}
                     filter={true}

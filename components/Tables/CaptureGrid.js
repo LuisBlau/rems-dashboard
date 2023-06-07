@@ -31,16 +31,29 @@ export default function CaptureGrid() {
 
     useEffect(() => {
         if (context.selectedRetailer !== '') {
-            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
-                const captures = []
-                response.data.forEach(element => {
-                    captures.push({
-                        ...element,
-                        id: element._id
-                    })
-                });
-                setCaptures(captures)
-            })
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
+                    const captures = []
+                    response.data.forEach(element => {
+                        captures.push({
+                            ...element,
+                            id: element._id
+                        })
+                    });
+                    setCaptures(captures)
+                })
+            } else {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (response) {
+                    const captures = []
+                    response.data.forEach(element => {
+                        captures.push({
+                            ...element,
+                            id: element._id
+                        })
+                    });
+                    setCaptures(captures)
+                })
+            }
         }
     }, [context])
 

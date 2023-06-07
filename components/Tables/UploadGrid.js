@@ -53,7 +53,6 @@ export default function UploadGrid() {
     const [openSuccess, setOpenSuccess] = useState(false);
     const [uploadData, setUploadData] = useState([])
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     const columns = [
         {
@@ -64,7 +63,7 @@ export default function UploadGrid() {
         {
             field: 'filename',
             headerName: 'File Name',
-            width: 400,
+            width: 300,
             sortable: true,
             filterable: true
         },
@@ -76,35 +75,53 @@ export default function UploadGrid() {
             sortable: true,
             valueGetter: (params) => new Date(params.row.timestamp),
         },
+
+        {
+            field: 'retailer_id',
+            headerName: 'File Origin',
+            width: 100,
+            renderCell: (params) => params.value === 'COMMON' ? params.value : 'RETAILER',
+        },
         {
             field: 'archived',
             headerName: 'Archived',
             width: 100,
             renderCell: (params) => (
                 <Switch
-                    checked={params.value}
                     onChange={(e) => {
                         changeArchiveStatus(e, params.row._id);
                     }}
+                    checked={params.value == "true" ? true : false}
+                    disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
                     color="success"
                 />
             ),
         },
     ];
-    useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
-        }
-    }, [context])
 
-    useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${selectedRetailer}`)
+    function fetchUploadData() {
+        if (context.selectedRetailer && context.selectedRetailerIsTenant === false) {
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
+                .then((response) => {
+                    setUploadData(response.data)
+                })
+        } else if (context.selectedRetailerParentRemsServerId) {
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`)
+                .then((response) => {
+                    setUploadData(response.data)
+                })
+        } else {
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
                 .then((response) => {
                     setUploadData(response.data)
                 })
         }
-    }, [selectedRetailer])
+    }
+    useEffect(() => {
+        if (context.selectedRetailer) {
+            fetchUploadData()
+        }
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     const changeArchiveStatus = (e, id) => {
         axios.get('/api/REMS/setArchive?id=' + id.toString() + '&archived=' + (e.target.checked).toString())
@@ -114,14 +131,9 @@ export default function UploadGrid() {
                     setOpenFailure(true);
                     return;
                 }
-                // uploadData[_.findIndex(uploadData, (x) => x._id === id)].archived = !uploadData[_.findIndex(uploadData, (x) => x._id === id)].archived
-                //     setUploadData(uploadData)
+                fetchUploadData()
                 setToastSuccess('Archive Info Successfully Saved.');
                 setOpenSuccess(true);
-
-                setTimeout(function () {
-                    window.location.reload(true);
-                }, SuccessToastDuration + 500);
             })
             .catch(function (error) {
                 console.log(error);
@@ -134,11 +146,17 @@ export default function UploadGrid() {
         return (
             <Box sx={{ height: 550, width: '100%' }}>
                 <DataGrid
-                    rows={uploadData}
+                    initialState={{
+                        sorting: {
+                            sortModel: [{ field: 'timestamp', sort: 'desc' }]
+                        },
+                        pagination: { paginationModel: { pageSize: 10 } },
+                    }}
+                    rows={uploadData?.map((item, key) => ({ ...item, id: key }))}
                     columns={columns}
-                    pageSize={5}
+                    pageSizeOptions={[5, 10, 15]}
                     checkboxSelection={false}
-                    disableSelectionOnClick
+                    rowSelection={false}
                 />
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

@@ -1,21 +1,24 @@
 /* eslint-disable react/prop-types */
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-
+import 'rsuite/dist/rsuite.min.css';
+import { TreePicker } from 'rsuite';
 import axios from 'axios';
-
+import { useContext } from 'react';
+import UserContext from '../pages/UserContext';
 export default function Command(props) {
     const _width = 150;
-
+    const [value, setValue] = useState(null);
+    const [configs, setConfigs] = useState([]);
     const [state, setArgs] = useState({ ...props.st, downloads: [] });
-
+    const context = useContext(UserContext)
     const setProp = props.setst;
 
     const handlechange = (event) => {
@@ -33,6 +36,16 @@ export default function Command(props) {
     const getval = (name) => {
         return state.arguments[name];
     };
+
+    useEffect(() => {
+        if (state?.arguments?.file && configs?.length > 0) {
+            const findConfig = configs?.find(item => item.id == state?.arguments?.file && item?.retailer_id == state?.arguments?.fileowner);
+            setValue({ ...value, [props.id]: findConfig?._id });
+
+        }
+    }, [state?.arguments?.file, configs])
+
+
     const commands = {
         '': function () {
             return <div />;
@@ -57,6 +70,13 @@ export default function Command(props) {
                         onChange={setval('args')}
                         value={getval('args')}
                         required={true}
+                    />
+                    <TextField
+                        label="Runtime Path (optional)"
+                        variant="standard"
+                        onChange={setval('path')}
+                        value={getval('path')}
+                        required={false}
                     />
                 </div>
             );
@@ -143,45 +163,92 @@ export default function Command(props) {
             );
         },
         upload: function () {
+            let data = []
+            let response = {};
             if (state.downloads.length === 0) {
-                axios.get(`/api/REMS/uploads?retailerId=${props.selectedRetailer}`).then(function (response) {
-                    setArgs({
-                        ...state,
-                        downloads: response,
+                if (props.isTenant === false) {
+                    axios.get(`/api/REMS/uploads?retailerId=${props.selectedRetailer}`).then(function (res) {
+                        setConfigs(res.data)
+                        response = _.groupBy(res.data, 'retailer_id');
+                        for (const soft of Object.keys(response)) {
+                            const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                            for (const v of response[soft]) {
+                                entry.children.push({
+                                    label: v.description,
+                                    value: v._id,
+                                    type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                                });
+                            }
+                            data.push(entry);
+                        }
+                        setArgs({
+                            ...state,
+                            downloads: data,
+                        });
                     });
-                });
+                } else {
+                    axios.get(`/api/REMS/uploads?retailerId=${props.parentRemsServer}&tenantId=${props.selectedRetailer}`).then(function (res) {
+                        setConfigs(res.data)
+                        response = _.groupBy(res.data, 'retailer_id');
+                        for (const soft of Object.keys(response)) {
+                            const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                            for (const v of response[soft]) {
+                                entry.children.push({
+                                    label: v.description,
+                                    value: v._id,
+                                    type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                                });
+                            }
+                            data.push(entry);
+                        }
+                        setArgs({
+                            ...state,
+                            downloads: data,
+                        });
+                    });
+                }
                 return <p>loading</p>;
             }
 
             return (
                 <div style={{ display: 'flex', gap: '20px' }}>
                     <FormControl required={true}>
-                        <Select
-                            sx={{ margin: 1, width: _width }}
-                            value={getval('file') || ''}
-                            label="Type"
-                            labelId="demo-simple-select-label"
-                            onChange={setval('file')}
-                        >
-                            {state.downloads.data.map((down, index) => (
-                                <MenuItem key={'dn-' + index} value={down.id}>
-                                    {down.description}
-                                </MenuItem>
-                            ))}
-                        </Select>
+                        <TreePicker
+                            onChange={(selectedConfig, e) => {
+                                setValue({ ...value, [props.id]: selectedConfig })
+                                const findConfig = configs?.find(item => item._id == selectedConfig);
+                                if (selectedConfig === 'COMMON' || selectedConfig === context?.selectedRetailer) {
+                                    e.preventDefault();
+                                    setArgs({ ...state, arguments: '' });
+                                    setProp(props.id, { ...state, arguments: '' });
+                                    return;
+                                }
+                                setArgs({ ...state, arguments: { file: findConfig?.id, fileowner: findConfig?.retailer_id } });
+                                setProp(props.id, { ...state, arguments: { file: findConfig?.id, fileowner: findConfig?.retailer_id } });
+                            }}
+                            data={state.downloads}
+                            style={{
+                                width: 250,
+                                padding: 8
+                            }}
+                            value={value?.[props.id]}
+                            placeholder="Type"
+                        />
                     </FormControl>
                     <TextField
                         label="Destination Folder"
                         variant="standard"
                         onChange={setval('to_location')}
-                        value={getval('to_location')}
+                        value={getval('to_location') || ""}
                         required={true}
                     />
                     <TextField
                         label="Destination Filename"
                         variant="standard"
                         onChange={setval('filename')}
-                        value={getval('filename')}
+                        value={getval('filename') || ""}
                         required={true}
                     />
                 </div>

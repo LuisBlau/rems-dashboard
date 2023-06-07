@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import GoogleMapReact from 'google-maps-react-markers'
 import Marker from './Marker';
 import useSupercluster from 'use-supercluster';
-import UserContext from '../../pages/UserContext';
 
 const defaultProps = {
     center: {
@@ -14,40 +13,13 @@ const defaultProps = {
     zoom: 1,
 };
 
-export default function GoogleMap({ places, mapParams, setMapParams, isFilterSelect }) {
+export default function GoogleMap({ places, mapParams, setMapParams }) {
 
     const mapRef = useRef();
     const [zoom, setZoom] = useState(mapParams?.userMapZoom)
     const [ready, setReady] = useState(false);
     const [mapBounds, setMapBounds] = useState(null);
     const [center, setCenter] = useState({ lat: mapParams?.userMapCenter?.lat, lng: mapParams?.userMapCenter?.lng })
-
-    useEffect(() => {
-        if (mapParams && ready) {
-            setZoom(mapParams?.userMapZoom);
-            setCenter({
-                lat: mapParams?.userMapCenter?.lat,
-                lng: mapParams?.userMapCenter?.lng
-            });
-        }
-    }, [mapParams, ready]);
-
-    useEffect(() => {
-        if (places.length > 0 && ready) {
-            setCenter({ lat: places[0].geometry.location.lat, lng: places[0].geometry.location.lon })
-            if (!isFilterSelect) {
-                mapRef.current.panTo({ lat: center?.lat, lng: center?.lng });
-            } else {
-                mapRef.current.panTo({ lat: places[0].geometry.location.lat, lng: places[0].geometry.location.lon });
-            }
-            if (places.length === 1) {
-                mapRef.current.setZoom(8)
-            } else {
-                mapRef.current.setZoom(zoom)
-            }
-        }
-    }, [places, ready, isFilterSelect]);
-
     const points = places.map(place => ({
         type: "Feature",
         properties: {
@@ -58,7 +30,8 @@ export default function GoogleMap({ places, mapParams, setMapParams, isFilterSel
             city: place.city,
             status: place.status,
             retailer: place.retailer_id,
-            description: place.description
+            description: place.description,
+            tenant: place.tenant_id
         },
         geometry: {
             type: "Point",
@@ -69,7 +42,6 @@ export default function GoogleMap({ places, mapParams, setMapParams, isFilterSel
                 ]
         }
     }))
-
     const { clusters, supercluster } = useSupercluster({
         points,
         bounds: mapBounds,
@@ -79,6 +51,18 @@ export default function GoogleMap({ places, mapParams, setMapParams, isFilterSel
             maxZoom: 20
         }
     })
+
+    useEffect(() => {
+        if (mapParams && ready) {
+            setZoom(mapParams?.userMapZoom);
+            setCenter({
+                lat: mapParams?.userMapCenter?.lat,
+                lng: mapParams?.userMapCenter?.lng
+            });
+            mapRef.current.panTo({ lat: mapParams?.userMapCenter?.lat, lng: mapParams?.userMapCenter?.lng });
+            mapRef.current.setZoom(mapParams?.userMapZoom)
+        }
+    }, [mapParams, ready]);
 
     const onMapChange = ({ bounds, zoom, center }) => {
         const ne = bounds.getNorthEast();
@@ -147,6 +131,7 @@ export default function GoogleMap({ places, mapParams, setMapParams, isFilterSel
                             markerColor={cluster.properties.status}
                             storeId={cluster.properties.storeName}
                             retailer_id={cluster.properties.retailer}
+                            tenant_id={cluster.properties.tenant}
                         />
                     )
                 })}

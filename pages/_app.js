@@ -122,7 +122,7 @@ export default function MyApp(props) {
             <ThemeProvider theme={theme}>
                 <Root>
                     {/* TODO: Does this URL need to be configurable? */}
-                    {/* <script type="module" src="https://bi-analytics-dev.toshiba-solutions.com/javascripts/api/tableau.embedding.3.latest.min.js"></script> */}
+                    <script type="module" src="https://bi-analytics.toshiba-solutions.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
                     <Head>
                         <title>TGCS | PAS Portal</title>
                         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

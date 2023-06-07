@@ -25,10 +25,10 @@ import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StartIcon from '@mui/icons-material/Start';
 import BusAlertIcon from '@mui/icons-material/BusAlert';
-
-const Console = (prop) => (
-    console[Object.keys(prop)[0]](...Object.values(prop)), null // ➜ React components must return something
-);
+import { useState } from 'react';
+import { useContext } from 'react';
+import UserContext from '../../pages/UserContext.js';
+import { useEffect } from 'react';
 
 function StatusBadge(props) {
     switch (props.itemStatus) {
@@ -140,20 +140,30 @@ function StepCommands(step) {
 }
 
 export function DeployTable(props) {
-    const [open, setOpen] = React.useState(false);
-    const [submitInformation, setSubmitInformation] = React.useState(null);
+    const [open, setOpen] = useState(false);
+    const [submitInformation, setSubmitInformation] = useState(null);
+    const context = useContext(UserContext)
+    const [data, setData] = useState([])
 
-    const { data, error } = useSWR(
-        '/REMS/deploys?retailerId=' + props.selectedRetailer +
-        '&store=' + props.storeFilter +
-        '&package=' + props.packageFilter +
-        '&records=' + props.maxRecords +
-        '&status=' + props.statusFilter,
-        fetcher
-    );
+    useEffect(() => {
+        if (context.selectedRetailer !== 'null' && context.selectedRetailerIsTenant === false) {
+            axios.get('/api/REMS/deploys?retailerId=' + context.selectedRetailer +
+                '&store=' + props.storeFilter +
+                '&package=' + props.packageFilter +
+                '&records=' + props.maxRecords +
+                '&status=' + props.statusFilter)
+                .then((resp) => setData(resp.data))
+        } else if (context.selectedRetailerParentRemsServerId) {
+            axios.get('/api/REMS/deploys?retailerId=' + context.selectedRetailerParentRemsServerId +
+                '&store=' + props.storeFilter +
+                '&package=' + props.packageFilter +
+                '&records=' + props.maxRecords +
+                '&status=' + props.statusFilter +
+                '&tenantId=' + context.selectedRetailer)
+                .then((resp) => setData(resp.data))
+        }
 
-    if (error) return <div>failed to load</div>;
-    if (!data) return <div>loading...</div>;
+    }, [context.selectedRetailer, context.selectedRetailerIsTenant])
 
     const handleClickOpen = (event) => {
         setOpen(true);
@@ -179,8 +189,11 @@ export function DeployTable(props) {
             id: deployInfo[1],
         };
 
-        axios
-            .post(`/api/REMS/deploy-cancel?retailerId=${props.selectedRetailer}`, deployUpdate)
+        let filters = `retailerId=${context.selectedRetailer}`
+        if (context.selectedRetailerIsTenant === true) {
+            filters = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+        }
+        axios.post(`/api/REMS/deploy-cancel?${filters}`, deployUpdate)
             .then((response) => {
                 console.log('cancel response : ', response);
                 // This worked so reload the page to show the new status.
@@ -210,7 +223,7 @@ export function DeployTable(props) {
             return 'Deployment FAILED.';
         else if (item.status == 'Pending')
             return 'Deployment PENDING';
-            else if (item.status == 'Success')
+        else if (item.status == 'Success')
             return 'Deployment SUCCESS';
         return '';
     }
@@ -247,7 +260,7 @@ export function DeployTable(props) {
                                         <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
                                     </Grid>
                                     <Grid item xs={2}>
-                                        <Typography sx={{ flexShrink: 0 }}>Store: {deploy.storeName}</Typography>
+                                        <Typography sx={{ flexShrink: 0 }}>Agent: {deploy.agentName}</Typography>
                                     </Grid>
                                     <Grid item xs={3}>
                                         <Typography sx={{ flexShrink: 0 }}>Package: {deploy.package}</Typography>

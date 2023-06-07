@@ -67,11 +67,7 @@ export default function snmp() {
     const [ips, setIps] = useState([]);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [bulkUpload, setBulkUpload] = useState(false)
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [fileName, setFileName] = useState('');
-
-
 
     const uploadColumns = [
         { field: 'store', headerName: 'Store Name', width: 150 },
@@ -85,17 +81,14 @@ export default function snmp() {
 
     const [uploadedRows, setUploadedRows] = useState([])
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
 
     useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
-        }
-    }, [context])
-
-    useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}`).then(function (res) {
+        if (context.selectedRetailer) {
+            let stringParams = `retailerId=${context.selectedRetailer}&isTenant=false`
+            if (context.selectedRetailerParentRemsServerId) {
+                stringParams = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+            }
+            axios.get(`/api/REMS/stores?${stringParams}`).then(function (res) {
                 const packages = [];
                 res.data.forEach((v) => {
                     packages.push(v.storeName);
@@ -103,7 +96,7 @@ export default function snmp() {
                 setStores(packages);
             });
         }
-    }, [selectedRetailer]);
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
 
     const onFileChange = (event) => {
         const inputFile = event.target.files[0];
@@ -228,7 +221,7 @@ export default function snmp() {
                 counter += 1
             });
             const commandObj = {
-                retailer: selectedRetailer,
+                retailer: context.selectedRetailer,
                 storeName: store.store,
                 agentName: store.agent,
                 configFile: "user/rma/rmauser.properties",
@@ -242,6 +235,9 @@ export default function snmp() {
                     subDeviceAddresses
 
                 ]
+            }
+            if (context.selectedRetailerIsTenant === true) {
+                commandObj.retailer = context.selectedRetailerParentRemsServerId
             }
             axios.post('/api/sendSNMPRequest', commandObj).then(function (response) {
                 if (response.status !== 200) {
@@ -312,13 +308,23 @@ export default function snmp() {
         // clears agent when a different store is selected
         setSelectedAgent(null);
         if (selectedValue) {
-            axios.get('/api/REMS/agents?store=' + selectedValue + '&retailer=' + selectedRetailer).then(function (res) {
-                const packages = [];
-                res.data.forEach((v) => {
-                    packages.push(v.agentName);
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get('/api/REMS/agents?store=' + selectedValue + '&retailer=' + context.selectedRetailer).then(function (res) {
+                    const packages = [];
+                    res.data.forEach((v) => {
+                        packages.push(v.agentName);
+                    });
+                    setAgents(packages);
                 });
-                setAgents(packages);
-            });
+            } else {
+                axios.get('/api/REMS/agents?store=' + selectedValue + '&retailer=' + context.selectedRetailerParentRemsServerId).then(function (res) {
+                    const packages = [];
+                    res.data.forEach((v) => {
+                        packages.push(v.agentName);
+                    });
+                    setAgents(packages);
+                });
+            }
         } else {
             setAgents([])
         }
@@ -348,7 +354,7 @@ export default function snmp() {
         }
 
         const commandObj = {
-            retailer: selectedRetailer,
+            retailer: context.selectedRetailer,
             storeName: selectedStore,
             agentName: selectedAgent,
             configFile: 'user/rma/rmauser.properties',
@@ -368,6 +374,10 @@ export default function snmp() {
                 deviceAddresses,
             ],
         };
+
+        if (context.selectedRetailerIsTenant === true) {
+            commandObj.retailer = context.selectedRetailerParentRemsServerId
+        }
 
         axios
             .post('/api/sendSNMPRequest', commandObj)
@@ -400,8 +410,12 @@ export default function snmp() {
 
     const handleGatherConfig = (agent) => {
         setSnmpRequests({});
+        let retailer = context.selectedRetailer
+        if (context.selectedRetailerIsTenant === true) {
+            retailer = context.selectedRetailerParentRemsServerId
+        }
         // Get config values for agent and stores selected
-        axios.get('/api/getSNMPConfig', { params: { sName: selectedStore, aName: agent } }).then(function (res) {
+        axios.get(`/api/getSNMPConfig?retailerId=${retailer}`, { params: { sName: selectedStore, aName: agent } }).then(function (res) {
             if (res.data && res.data.find((o) => o['com.tgcs.retail.snmpDevices.count'])) {
                 const snmpDeviceCount = Object.entries(
                     res.data.find((o) => o['com.tgcs.retail.snmpDevices.count'])

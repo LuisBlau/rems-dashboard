@@ -48,11 +48,11 @@ export default function UserSettings() {
             }
         }
 
-        axios.post(`/api/REMS/userSettingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: mapParams })
+        axios.post(`/api/REMS/userSettingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: '' })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
-                    userDefinedMapConfig: mapParams
+                    userDefinedMapConfig: ''
                 });
 
                 setToastSuccess(' Map View Reset successfully');

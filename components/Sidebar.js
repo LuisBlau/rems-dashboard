@@ -304,9 +304,9 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                     };
                     MenuItems.push(tmp);
                     tmp = {
-                        id: 'software-distribution',
-                        name: 'Software Distribution',
-                        icon: <Image src={SoftwareDistributionIcon} alt="SoftwareDistributionIcon" />,
+                        id: 'remote-diagnostics',
+                        name: 'Remote Diagnostics',
+                        icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
                         enabled: pasSubscriptionTier === 'advanced',
                         items: [
                             {
@@ -362,6 +362,12 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                     enabled: pasSubscriptionTier === 'advanced'
                                 },
                                 {
+                                    name: 'Version Overview',
+                                    route: '/administration/versionOverview',
+                                    icon: null,
+                                    enabled: roles.includes('toshibaAdmin')
+                                },
+                                {
                                     name: 'Retailer Settings',
                                     route: '/administration/retailerSettings',
                                     enabled: true
@@ -378,12 +384,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
 
                     if (MenuItems.some((x) => x.name === 'Administration') && roles.includes('toshibaAdmin')) {
                         tmp = [
-                            {
-                                name: 'Version Overview',
-                                route: '/administration/versionOverview',
-                                icon: null,
-                                enabled: roles.includes('toshibaAdmin')
-                            },
                             {
                                 name: 'Version Mismatch Finder',
                                 route: '/administration/versionMismatch',

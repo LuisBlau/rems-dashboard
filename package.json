@@ -1,7 +1,7 @@
 {
     "name": "rems-dashboard",
     "packageManager": "yarn@3.3.1",
-    "version": "4.1.35",
+    "version": "4.2.7",
     "private": true,
     "dependencies": {
         "@azure/msal-browser": "2.32.0",
@@ -35,6 +35,7 @@
         "prop-types": "^15.8.1",
         "react": "latest",
         "react-dom": "latest",
+        "react-hook-form": "^7.44.2",
         "react-spinner-animated": "^3.1.1",
         "rsuite": "^5.19.0",
         "semantic-ui-css": "^2.5.0",

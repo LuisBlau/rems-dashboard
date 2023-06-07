@@ -100,21 +100,40 @@ export default function EnterpriseOverview() {
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [mapParams, setMapParams] = useState(null);
+    const [isRefetch, setIsRefetch] = useState(null);
 
     useEffect(() => {
-        if (context?.selectedRetailer) setSelectedRetailer(context.selectedRetailer)
-        if (context?.userDetails?.userDefinedMapConfig) {
-            setMapParams(context?.userDetails?.userDefinedMapConfig);
-        } else {
-            setMapParams({
-                userMapZoom: 3,
-                userMapCenter: {
-                    lat: 38.8097343,
-                    lng: -90.5556199,
-                }
-            })
+        if (context?.selectedRetailer) {
+            setSelectedRetailer(context.selectedRetailer)
         }
-    }, [context?.selectedRetailer, context?.userDetails?.userDefinedMapConfig])
+    }, [context?.selectedRetailer])
+
+    useEffect(() => {
+        if (!isRefetch) {
+            if (context?.userDetails?.userDefinedMapConfig) {
+                setMapParams(context?.userDetails?.userDefinedMapConfig);
+            } else {
+                if (places.length > 0) {
+                    setMapParams({
+                        userMapZoom: places.length === 0 ? 8 : 3,
+                        userMapCenter: {
+                            lat: places[0].geometry.location.lat,
+                            lng: places[0].geometry.location.lon,
+                        }
+                    })
+                } else {
+                    setMapParams({
+                        userMapZoom: 3,
+                        userMapCenter: {
+                            lat: 38.8097343,
+                            lng: -90.5556199,
+                        }
+                    })
+                }
+            }
+        }
+
+    }, [context?.userDetails?.userDefinedMapConfig, places])
 
     useEffect(() => {
         if (selectedRetailer && selectedRetailer !== '') {
@@ -140,6 +159,7 @@ export default function EnterpriseOverview() {
     useEffect(() => {
         if (configInfo.length > 0) {
             if (storesOnline && lanesUp) {
+                console.log({storesOnline, lanesUp})
                 setWidget({
                     onlineStore: storesOnline.percentUp,
                     onlineStoreText: `${storesOnline.online}/${storesOnline.total}`,
@@ -182,7 +202,7 @@ export default function EnterpriseOverview() {
         // this is a little hack to place the map to the selected filter
         setIsFilterSelect(true)
         setMapParams({
-            ...mapParams.userMapCenter,
+            ...mapParams,
             userMapZoom: 3,
         })
         setTimeout(() => {
@@ -223,23 +243,27 @@ export default function EnterpriseOverview() {
     }, []);
 
 
-    function fetchStore() {
+    function fetchStore(isRefresh = false) {
         const stores = [];
         const localAllFilters = [];
         const localCountries = [];
         const localContinents = [];
         const localStores = [];
 
-        axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}`).then(function (res) {
+        axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
             let counter = 0;
             let onlineCounter = 0;
             let upLanes = 0;
             let totalLanes = 0;
+
             res.data.forEach((store) => {
                 store["label"] = store.storeName;
                 const storeRetailer = allRetailers.find(x => x.retailer_id === store.retailer_id)
                 if (storeRetailer !== undefined) {
                     store["description"] = storeRetailer.description
+                }
+                if (context.selectedRetailerIsTenant === true) {
+                    store["description"] = context.selectedRetailerDescription
                 }
                 // only able to map stores we have the lat/lng for
                 if (store.geometry && store.continent && store.retailer_id) {
@@ -285,10 +309,12 @@ export default function EnterpriseOverview() {
                         continent: `${store.continent}`,
                         country: `${store.country}`,
                         retailer: `${store.retailer_id}`,
+                        tenant: `${store.tenant_id}`,
                         str: `${store.continent} ${store.country}`
                     });
                     counter++;
                     stores.push(store);
+                    console.log({stores})
                 }
             });
             localAllFilters.push(...localContinents, ...localCountries, ...localStores);
@@ -296,33 +322,40 @@ export default function EnterpriseOverview() {
                 localAllFilters.forEach((filter) => {
                     if (filter.type === 'store') {
                         let retailer = allRetailers.find((x) => x.retailer_id === filter.retailer);
-                        filter.str = `${filter.str} ${retailer.description} ${filter.name}`;
+                        if (retailer) {
+                            filter.str = `${filter.str} ${retailer.description} ${filter.name}`;
+                        } else {
+                            filter.str = `${filter.str} ${context.selectedRetailerDescription} ${filter.name}`
+                        }
                     }
                 });
             }
             setStoresOnline({ 'online': onlineCounter, 'total': counter, 'percentUp': ((onlineCounter / counter) * 100) });
             setLanesUp({ 'online': upLanes, 'total': totalLanes, 'percentUp': ((upLanes / totalLanes) * 100) });
-            setPlaces(stores);
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
-            setFilteredFilters(localAllFilters);
-            // setSelectedContinent(null);
-            // setSelectedCountry(null);
-            // setSelectedStore(null);
-            // setFiltersApplied([]);
+            if (!isRefresh) {
+                setPlaces(stores);
+                setFilteredFilters(localAllFilters);
+            }
         });
     }
 
     useEffect(() => {
         if (selectedRetailer && allRetailers.length > 0) {
-            fetchStore()
+            fetchStore();
+            setSelectedContinent(null);
+            setSelectedCountry(null);
+            setSelectedStore(null);
+            setFiltersApplied([]);
         }
     }, [selectedRetailer, allRetailers]);
 
     useEffect(() => {
         if (selectedRetailer && pullStorePeriodically > 0) {
             const interval = setInterval(() => {
-                fetchStore()
+                setIsRefetch(Math.random());
+                fetchStore(true)
             }, pullStorePeriodically);
             return () => clearInterval(interval);
         }
@@ -345,7 +378,7 @@ export default function EnterpriseOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores]);
+    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         let temp = [...filtersApplied];
@@ -432,8 +465,8 @@ export default function EnterpriseOverview() {
         }
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-    }, [filtersApplied]);
 
+    }, [allPlaces, filtersApplied, isRefetch]);
 
     return (
         <Root className={classes.content}>
@@ -555,7 +588,7 @@ export default function EnterpriseOverview() {
                     >
                         <SnackbarContent
                             message={message}
-                            style={{ backgroundColor: message === 'Default map view saved successfully' ? 'green' : 'red' }}
+                            style={{ backgroundColor: message === 'Default map view saved successfully' ? '#5BA52E' : 'red' }}
                         />
                     </Snackbar>
                 </Box>

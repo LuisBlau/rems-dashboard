@@ -4,7 +4,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -40,9 +39,6 @@ import 'rsuite/dist/rsuite.min.css';
 import { TreePicker } from 'rsuite';
 import _ from 'lodash';
 import UserContext from '../../pages/UserContext'
-// import mockAxios from '../../mocks/mock';
-
-// mockAxios(axios);
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second before to clear it.
 // TODO: move these to top-level of app so it's consistent throughout?
@@ -99,7 +95,9 @@ export default function ScheduleDeployment() {
     const [openSuccess, setOpenSuccess] = useState(false);
     const [toastSuccess, setToastSuccess] = useState('');
     const [openMissingMaster, setOpenMissingMaster] = useState(false);
+    const [openFileMissingPackages, setOpenFileMissingPackages] = useState(false);
     const [toastMissingMaster, setToastMissingMaster] = useState('');
+    const [toastMissingPackages, setToastMissingPackages] = useState('')
     const [openFailure, setOpenFailure] = useState(false);
     const [toastFailure, setToastFailure] = useState('');
     const [storeFilterNames, setStoreFilterNames] = React.useState([]);
@@ -118,34 +116,33 @@ export default function ScheduleDeployment() {
     const [selectedRetailer, setSelectedRetailer] = useState('')
 
     useEffect(() => {
-        if (context) {
-            setSelectedRetailer(context.selectedRetailer)
+        if (context.selectedRetailer) {
+            setSelectedRetailer(context.selectedRetailer);
+        }
+        if (context.selectedRetailer && context.userRetailers?.length > 0) {
+            axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
+                const data = [];
+                const response = _.groupBy(res.data, 'retailer_id');
+                for (const soft of Object.keys(response)) {
+                    const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                    const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                    for (const v of response[soft]) {
+                        entry.children.push({
+                            label: v.name,
+                            value: v.id,
+                        });
+                    }
+                    data.push(entry);
+                }
+                setDeployConfigs(res.data);
+                setOptions(data)
+            });
         }
     }, [context])
 
     useEffect(() => {
         setStoreNames([]);
         if (selectedRetailer !== '') {
-            axios.get(`/api/REMS/deploy-configs?retailerId=common`).then(function (res) {
-                const commonData = { label: 'Common Deployments', value: 'common', children: [] };
-                const deployConfigsTemp1 = [];
-                res.data.forEach((v) => {
-                    deployConfigsTemp1.push(v);
-                    commonData.children.push({ label: v.name, value: v.id });
-                });
-
-                axios.get(`/api/REMS/deploy-configs?retailerId=${selectedRetailer}`).then(function (res) {
-                    const selectedData = { label: `${selectedRetailer} Deployments`, value: 'selectedRetailer', children: [] };
-                    const deployConfigsTemp2 = [];
-                    res.data.forEach((v) => {
-                        deployConfigsTemp2.push(v);
-                        selectedData.children.push({ label: v.name, value: v.id });
-                    });
-                    setDeployConfigs([...deployConfigsTemp1, ...deployConfigsTemp2]);
-                    setOptions([commonData, selectedData]);
-                });
-            });
-
             // TODO:
             // this won't be performant when we have a large number of uploads
             // we should do this later in the workflow, once a deploy-config is
@@ -195,18 +192,27 @@ export default function ScheduleDeployment() {
 
     useEffect(() => {
         const miffedStoreAgentPackageVersions = [];
+        const missingPackages = [];
         if (selectedUploadedFiles.length > 0 && agentVersions.length > 0) {
             const packages = [];
             if (selectedUploadedFiles.length > 0) {
                 selectedUploadedFiles.forEach((file) => {
                     if (file) {
-                        const filePacks = [];
-                        file.packages.forEach((pack) => {
-                            filePacks.push(pack);
-                        });
-                        packages.push(filePacks);
+                        if (file.packages) {
+                            const filePacks = [];
+                            file.packages.forEach((pack) => {
+                                filePacks.push(pack);
+                            });
+                            packages.push(filePacks);
+                        } else {
+                            missingPackages.push(file.description)
+                        }
                     }
                 });
+            }
+            if (missingPackages.length > 0) {
+                setToastMissingPackages(missingPackages)
+                setOpenFileMissingPackages(true)
             }
             agentVersions.forEach((agent) => {
                 if (agent && agent.versions) {
@@ -344,7 +350,7 @@ export default function ScheduleDeployment() {
         setFormValues(formValues);
 
         axios
-            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, formValues)
+            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
             .then(function (response) {
                 if (response.data.message !== 'Success') {
                     setToastFailure(response.data);
@@ -401,24 +407,6 @@ export default function ScheduleDeployment() {
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={2} sx={{ alignItems: 'center' }}>
-                        {/* <Autocomplete
-                            id="select-deploy-config"
-                            value={selectedDeployConfig}
-                            onChange={(event, selectedConfig) => {
-                                handleSelectDeployConfig(selectedConfig);
-                            }}
-                            options={_options}
-                            noOptionsText="Error Loading Package List"
-                            renderInput={(params) => (
-                                <TextField
-                                    sx={{ width: uiWidth }}
-                                    {...params}
-                                    label="Deploy-Config to Schedule"
-                                    InputProps={{ ...params.InputProps, type: 'search' }}
-                                    required={true}
-                                />
-                            )}
-                        /> */}
                         <TreePicker
                             placement="bottomEnd"
                             onChange={(selectedConfig, e) => {
@@ -426,11 +414,10 @@ export default function ScheduleDeployment() {
                             }}
                             data={_options}
                             style={{
-                                width: uiWidth,
+                                width: uiWidth
                             }}
-                            // expandItemValues={['common', 'selectedRetailer']}
                             value={selectedDeployConfig}
-                            placeholder="Deploy-Config to Schedule"
+                            placeholder="Deployment Configuration to Schedule"
                         />
                         <FormControl sx={{ minWidth: 120 }}>
                             <InputLabel sx={{ width: 200 }} id="distro-list-label">
@@ -490,6 +477,19 @@ export default function ScheduleDeployment() {
                 <Box pt={4}>
                     <Copyright />
                 </Box>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openFileMissingPackages}
+                    autoHideDuration={missingMasterToastDuration}
+                    onClose={(event) => {
+                        setOpenFileMissingPackages(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="error">
+                        <AlertTitle>File(s) Missing Packages!</AlertTitle>
+                        {toastMissingPackages}
+                    </Alert>
+                </Snackbar>
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openMissingMaster}

@@ -80,25 +80,36 @@ export default function CommandCenterOverview() {
     const [autocompleteKey, setAutocompleteKey] = useState('');
     const [configItems, setConfigItems] = useState([])
     const context = useContext(UserContext)
-    const [selectedRetailer, setSelectedRetailer] = useState('')
+    const [isRefetch, setIsRefetch] = useState(null);
     const { accounts } = useMsal();
     const username = accounts.length > 0 ? accounts[0].username : '';
     const SuccessToastDuration = 4000;
 
     useEffect(() => {
-        if (context?.selectedRetailer) setSelectedRetailer(context.selectedRetailer)
-        if (context?.userDetails?.userDefinedMapConfig) {
-            setMapParams(context?.userDetails?.userDefinedMapConfig);
-        } else {
-            setMapParams({
-                userMapZoom: 3,
-                userMapCenter: {
-                    lat: 38.8097343,
-                    lng: -90.5556199,
+        if (!isRefetch) {
+            if (context?.userDetails?.userDefinedMapConfig) {
+                setMapParams(context?.userDetails?.userDefinedMapConfig);
+            } else {
+                if (places.length > 0) {
+                    setMapParams({
+                        userMapZoom: places.length === 0 ? 8 : 3,
+                        userMapCenter: {
+                            lat: places[0].geometry.location.lat,
+                            lng: places[0].geometry.location.lon,
+                        }
+                    })
+                } else {
+                    setMapParams({
+                        userMapZoom: 3,
+                        userMapCenter: {
+                            lat: 38.8097343,
+                            lng: -90.5556199,
+                        }
+                    })
                 }
-            })
+            }
         }
-    }, [context?.selectedRetailer, context?.userDetails?.userDefinedMapConfig])
+    }, [context?.userDetails?.userDefinedMapConfig, places])
 
     const handleFilterSelected = (e, selectedValue) => {
         if (selectedValue !== null) {
@@ -139,7 +150,7 @@ export default function CommandCenterOverview() {
         // this is a little hack to place the map to the selected filter
         setIsFilterSelect(true)
         setMapParams({
-            ...mapParams.userMapCenter,
+            userMapCenter: { ...mapParams.userMapCenter },
             userMapZoom: 3,
         })
         setTimeout(() => {
@@ -149,21 +160,20 @@ export default function CommandCenterOverview() {
 
     const applyAllPreviouslyAppliedFilters = () => {
         if (filtersApplied.length !== 0) {
+            let filteredPlaces = allPlaces
             filtersApplied.forEach((filter) => {
                 if (Object.keys(filter)[0] === 'Retailer') {
-                    const filteredPlaces = allPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
                 } else if (Object.keys(filter)[0] === 'Store') {
-                    const filteredPlaces = allPlaces.filter((x) => x._id === selectedStore.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x._id === selectedStore.id);
                 } else if (Object.keys(filter)[0] === 'Country') {
-                    const filteredPlaces = allPlaces.filter((x) => x.country === selectedCountry.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
                 } else if (Object.keys(filter)[0] === 'Continent') {
-                    const filteredPlaces = allPlaces.filter((x) => x.continent === selectedContinent.id);
-                    setPlaces(filteredPlaces);
+                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
                 }
             });
+            setPlaces(filteredPlaces);
+
         } else {
             setPlaces(allPlaces);
         }
@@ -178,8 +188,8 @@ export default function CommandCenterOverview() {
     })
 
     useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
+        if (context.selectedRetailer) {
+            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
                 // fetch configuration info
                 const configurationArray = res.data.configuration;
                 const configurationInfo = [];
@@ -195,7 +205,7 @@ export default function CommandCenterOverview() {
                 setShowAttendedLanesWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewAttendedLanesUpWidget').configValue);
             })
         }
-    }, [selectedRetailer]);
+    }, [context.selectedRetailer]);
 
     useEffect(() => {
         if (configItems.length > 0) {
@@ -212,7 +222,7 @@ export default function CommandCenterOverview() {
         }
     }, [configItems, storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage,])
 
-    async function fetchData() {
+    async function fetchData(isRefresh = false) {
         const stores = [];
         const localAllFilters = [];
 
@@ -281,26 +291,52 @@ export default function CommandCenterOverview() {
                         });
                     }
                     if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
-                        localRetailers.push({
-                            id: `${store.retailer_id}`,
-                            type: 'Retailer',
-                            name: '',
-                            display: '',
+                        if (store.tenant_id === undefined) {
+                            localRetailers.push({
+                                id: `${store.retailer_id}`,
+                                type: 'Retailer',
+                                name: '',
+                                display: '',
+                                continent: `${store.continent}`,
+                                country: `${store.country}`,
+                                str: `${store.continent} ${store.country}`
+                            });
+                        }
+                        else {
+                            localRetailers.push({
+                                id: `${store.tenant_id}`,
+                                type: 'Retailer',
+                                name: '',
+                                display: '',
+                                continent: `${store.continent}`,
+                                country: `${store.country}`,
+                                str: `${store.continent} ${store.country}`
+                            });
+                        }
+                    }
+                    if (store.tenant_id === undefined) {
+                        localStores.push({
+                            id: `${store._id}`,
+                            type: 'Store',
+                            name: `${store.storeName}`,
+                            display: `${store.storeName}`,
                             continent: `${store.continent}`,
                             country: `${store.country}`,
+                            retailer: `${store.retailer_id}`,
+                            str: `${store.continent} ${store.country}`
+                        });
+                    } else {
+                        localStores.push({
+                            id: `${store._id}`,
+                            type: 'Store',
+                            name: `${store.storeName}`,
+                            display: `${store.storeName}`,
+                            continent: `${store.continent}`,
+                            country: `${store.country}`,
+                            retailer: `${store.tenant_id}`,
                             str: `${store.continent} ${store.country}`
                         });
                     }
-                    localStores.push({
-                        id: `${store._id}`,
-                        type: 'Store',
-                        name: `${store.storeName}`,
-                        display: `${store.storeName}`,
-                        continent: `${store.continent}`,
-                        country: `${store.country}`,
-                        retailer: `${store.retailer_id}`,
-                        str: `${store.continent} ${store.country}`
-                    });
                     stores.push(store);
                 }
             });
@@ -308,10 +344,12 @@ export default function CommandCenterOverview() {
             localAllFilters.push(...localContinents, ...localCountries, ...localRetailers, ...localStores);
             setStoresOnline({ 'online': onlineStoreCount, 'total': totalStoreCount, 'percentUp': ((onlineStoreCount / totalStoreCount) * 100) });
             setLanesUp({ 'online': onlineLanesCount, 'total': totalLanesCount, 'percentUp': ((onlineLanesCount / totalLanesCount) * 100) });
-            setPlaces(stores);
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
-            setFilteredFilters(localAllFilters);
+            if (!isRefresh) {
+                setPlaces(stores);
+                setFilteredFilters(localAllFilters);
+            }
         });
     }
 
@@ -322,7 +360,8 @@ export default function CommandCenterOverview() {
     useEffect(() => {
         if (allRetailers && pullStorePeriodically > 0) {
             const interval = setInterval(() => {
-                fetchData()
+                setIsRefetch(Math.random());
+                fetchData(true)
             }, pullStorePeriodically);
             return () => clearInterval(interval);
         }
@@ -374,7 +413,7 @@ export default function CommandCenterOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores]);
+    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         if (selectedContinent !== null && selectedCountry !== null && selectedFilterRetailer !== null) {
@@ -508,7 +547,7 @@ export default function CommandCenterOverview() {
         }
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-    }, [filtersApplied]);
+    }, [allPlaces, filtersApplied]);
 
     useEffect(() => {
         if (places.length > 0 && allPlaces.length > 0 && allRetailers.length > 0) {
@@ -589,7 +628,7 @@ export default function CommandCenterOverview() {
                         >
                             <SnackbarContent
                                 message={message}
-                                style={{ backgroundColor: message === 'Default map view saved successfully' ? 'green' : 'red' }}
+                                style={{ backgroundColor: message === 'Default map view saved successfully' ? '#5BA52E' : 'red' }}
                             />
                         </Snackbar>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignContent: 'center', height: '100%', justifyContent: 'space-around' }}>

@@ -39,17 +39,8 @@ export default function DumpGrid({ store, height }) {
     useEffect(() => {
         if (context) {
             if (store) {
-                axios.get(`/api/registers/dumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}`).then(function (res) {
-                    const dumps = [];
-                    res.data.forEach((v) => {
-                        dumps.push(v);
-                    });
-                    setLoading(false)
-                    setStoreDumps(dumps);
-                });
-            } else {
-                if (context.selectedRetailer) {
-                    axios.get('/api/registers/dumps?retailerId=' + context.selectedRetailer).then(function (res) {
+                if (store.tenantId !== null) {
+                    axios.get(`/api/registers/dumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}`).then(function (res) {
                         const dumps = [];
                         res.data.forEach((v) => {
                             dumps.push(v);
@@ -57,6 +48,38 @@ export default function DumpGrid({ store, height }) {
                         setLoading(false)
                         setStoreDumps(dumps);
                     });
+                } else {
+                    axios.get(`/api/registers/dumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}`).then(function (res) {
+                        const dumps = [];
+                        res.data.forEach((v) => {
+                            dumps.push(v);
+                        });
+                        setLoading(false)
+                        setStoreDumps(dumps);
+                    });
+                }
+            } else {
+                if (context.selectedRetailer) {
+                    // need to check for tenant
+                    if (context.selectedRetailerIsTenant === false) {
+                        axios.get('/api/registers/dumps?retailerId=' + context.selectedRetailer).then(function (res) {
+                            const dumps = [];
+                            res.data.forEach((v) => {
+                                dumps.push(v);
+                            });
+                            setLoading(false)
+                            setStoreDumps(dumps);
+                        });
+                    } else if (context.selectedRetailerParentRemsServerId) {
+                        axios.get('/api/registers/dumps?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
+                            const dumps = [];
+                            res.data.forEach((v) => {
+                                dumps.push(v);
+                            });
+                            setLoading(false)
+                            setStoreDumps(dumps);
+                        });
+                    }
                 }
             }
         }
