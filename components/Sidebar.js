@@ -365,7 +365,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                     name: 'Version Overview',
                                     route: '/administration/versionOverview',
                                     icon: null,
-                                    enabled: roles.includes('toshibaAdmin')
                                 },
                                 {
                                     name: 'Retailer Settings',
