@@ -365,6 +365,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                     name: 'Version Overview',
                                     route: '/administration/versionOverview',
                                     icon: null,
+                                    enabled: pasSubscriptionTier === 'advanced'
                                 },
                                 {
                                     name: 'Retailer Settings',
