@@ -133,7 +133,7 @@ function DisplayOnOffStatus(props) {
                     <Typography color="#5BA52E">Online</Typography>
                 </Grid>
             );
-        } else if (props.data.authState === "unauthenticated") {
+        } else {
             return (
                 <Grid item xs={4}>
                     <Typography color="red">Unauthenticated</Typography>
