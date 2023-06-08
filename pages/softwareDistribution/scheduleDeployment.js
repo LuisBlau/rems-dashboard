@@ -399,9 +399,11 @@ export default function ScheduleDeployment() {
                     // we can access that array from:
                     // selectedUploadedFiles[index].packages
                 }
-                for (var v of Object.values(step)) {
-                    let varMatch = v.match(/(?<!^\\)\$[A-Z0-9_]+/)
-                    if (varMatch) newVars[varMatch] = null;
+                if (Object.keys(newVars).length > 0) {
+                    for (var v of Object.values(step)) {
+                        let varMatch = v.match(/(?<!^\\)\$[A-Z0-9_]+/)
+                        if (varMatch) newVars[varMatch] = null;
+                    }
                 }
             });
             if (Object.keys(newVars).length > 0) {
