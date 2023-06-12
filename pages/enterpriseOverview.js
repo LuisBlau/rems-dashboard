@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import { DataGrid } from '@mui/x-data-grid';
 import GoogleMap from '../components/Maps/GoogleMap';
 import {
     Card,
@@ -16,7 +17,8 @@ import {
     Button,
     CircularProgress,
     Snackbar, SnackbarContent,
-    Grid
+    Grid,
+    LinearProgress
 } from '@mui/material';
 import axios from 'axios';
 import { now } from 'lodash';
@@ -25,6 +27,9 @@ import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
 import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
+import moment from 'moment';
+// import mockAxios from '../mocks/mock';
+// mockAxios(axios);
 
 const PREFIX = 'enterpriseOverview';
 
@@ -101,6 +106,49 @@ export default function EnterpriseOverview() {
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [mapParams, setMapParams] = useState(null);
     const [isRefetch, setIsRefetch] = useState(null);
+    const [viewMode, setViewMode] = useState(true);
+
+    const renderLinkStoreView = (value) => {
+      return <a href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</a>
+    }
+    const renderUpdateTime = (value) => {
+      return moment.duration((new Date(value.row.last_updated).getTime() - new Date().getTime()) / 60000, "minutes").humanize(true);
+    }
+    const renderStatus = (value) => {
+      let onlineStatus = value.row.online ? 'Online' : 'Offline';
+      let val = parseFloat(parseInt(value.row.onlineAgents) / parseInt(value.row.totalAgents) * 100.0);
+      let color = 'success';
+      let txtColor = 'green';
+      let status = 'Good';
+      let confForGood = configInfo.find(o => o.configName === 'GoodStoreStatusPercentage');
+      let confForPoor = configInfo.find(o => o.configName === 'PoorStoreStatusPercentage');
+      if (val < parseInt(confForGood?.configValue)??0.66) {
+        color = 'warning';
+        status = 'Fair';
+        txtColor = 'orange';
+      }
+      if (val < parseInt(confForGood?.configValue)??0.33) {
+        color = 'error';
+        status = 'Poor';
+        txtColor = 'error';
+      }
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', margin: 1 }}>
+          <Typography color={txtColor}>{status}</Typography>
+          <Typography sx={{mx: 3}}>{onlineStatus}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', margin: 1 }}>
+            <LinearProgress sx={{ borderRadius: 1, height: 10, width: 150 }} color={color} variant="determinate" value={val} />
+            <Typography color={txtColor}>{value.row.onlineAgents} / {value.row.totalAgents}</Typography>
+          </Box>
+        </Box>
+        // <LinearProgress sx={{ borderRadius: 1, height: 10, width: 200 }} color={color} variant="determinate" value={val} />
+      );
+    }
+    const columns = [
+      { field: 'storeName', headerName: 'Store', sortable: true, flex: 1, renderCell: renderLinkStoreView },
+      { field: 'last_updated', headerName: 'Update', flex: 1, renderCell: renderUpdateTime },
+      { field: 'online', headerName: 'Status', flex: 1, renderCell: renderStatus },
+    ];
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -258,6 +306,7 @@ export default function EnterpriseOverview() {
 
             res.data.forEach((store) => {
                 store["label"] = store.storeName;
+                store["id"] = store._id;
                 const storeRetailer = allRetailers.find(x => x.retailer_id === store.retailer_id)
                 if (storeRetailer !== undefined) {
                     store["description"] = storeRetailer.description
@@ -511,6 +560,15 @@ export default function EnterpriseOverview() {
                     </Box>
                     <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                            <Typography sx={{ alignSelf: 'center' }}>Map/List</Typography>
+                            <Switch
+                                sx={{ alignSelf: 'center' }}
+                                onChange={() => setViewMode(!viewMode)}
+                                checked={viewMode}
+                                color='success'
+                            />
+                          </Box>
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
@@ -553,21 +611,39 @@ export default function EnterpriseOverview() {
                             filtersApplied={filtersApplied}
                             handleFilterDelete={handleFilterDelete}
                         />
-                        <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
-                            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
-                            >{places?.length > 0 && mapParams ?
-                                <GoogleMap
-                                    places={places}
-                                    setMapParams={setMapParams}
-                                    mapParams={mapParams}
-                                    isFilterSelect={isFilterSelect}
-                                /> : <CircularProgress />}
-                            </Box>
-                        </Card>
+                        {!viewMode && (
+                          <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
+                              <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+                              >{places?.length > 0 && mapParams ?
+                                  <GoogleMap
+                                      places={places}
+                                      setMapParams={setMapParams}
+                                      mapParams={mapParams}
+                                      isFilterSelect={isFilterSelect}
+                                  /> : <CircularProgress />}
+                              </Box>
+                          </Card>
+                        )}
+                        {viewMode && (
+                          <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
+                            <DataGrid
+                              initialState={{
+                                  pagination: { paginationModel: { pageSize: 10 } },
+                                  sorting: {
+                                    sortModel: [{ field: 'storeName', sort: 'asc' }],
+                                  },
+                              }}
+                              rows={places}
+                              columns={columns}
+                              pageSizeOptions={[5, 10, 15]}
+                            />
+                          </Box>
+                        )}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>
                 </Box>
+                {!viewMode && (
                 <Box sx={{ display: 'flex', justifyContent: 'end', paddingRight: 8 }}>
                     <Button
                         color='info'
@@ -592,6 +668,7 @@ export default function EnterpriseOverview() {
                         />
                     </Snackbar>
                 </Box>
+                )}
                 <Box sx={{ alignItems: 'center' }}>
                     <Copyright />
                 </Box>
