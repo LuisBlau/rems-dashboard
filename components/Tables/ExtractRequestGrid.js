@@ -91,8 +91,8 @@ export default function ExtractRequestGrid(props) {
             // Probably not right so should check with Brent
             if (x.versions !== undefined) {
                 for (let i = 0; i < x.versions.length; i++) {
-                    const objKeys = Object.keys(x.versions[i]);
-                    if (objKeys[0] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
+                    const objKeys = Object.values(x.versions[i]);
+                    if (objKeys[1] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
                         obj.hasChec = true;
                         break;
                     }
@@ -242,6 +242,31 @@ export default function ExtractRequestGrid(props) {
         }
     };
 
+    const checLogsButtonRenderer = function (params) {
+        if (params.data.hasChec && context?.selectedRetailer) {
+            return (
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        params.data.dataCapture = 'ChecInstall';
+                        axios
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .then((res) => {
+                                processSuccessfulResponse(res, params.data.dataCapture);
+                            })
+                            .catch((res) => {
+                                processFailedResponse(res, params.data.dataCapture);
+                            });
+                    }}
+                >
+                    Request
+                </Button>
+            );
+        } else {
+            return null;
+        }
+    };
+
     return (
         <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
             <AgGridReact rowData={agentsList} onGridReady={sortGrid}>
@@ -290,6 +315,12 @@ export default function ExtractRequestGrid(props) {
                     resizable={true}
                     field="Chec Capture"
                     headerName={'CHEC'}
+                ></AgGridColumn>
+                <AgGridColumn
+                    cellRenderer={checLogsButtonRenderer}
+                    resizable={true}
+                    field="Chec Install"
+                    headerName={'Chec Install Logs'}
                 ></AgGridColumn>
             </AgGridReact>
 

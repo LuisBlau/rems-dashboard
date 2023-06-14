@@ -139,6 +139,12 @@ function DisplayOnOffStatus(props) {
                     <Typography color="red">Unauthenticated</Typography>
                 </Grid>
             );
+        } else {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="#5BA52E">Online</Typography>
+                </Grid>
+            )
         }
     }
 

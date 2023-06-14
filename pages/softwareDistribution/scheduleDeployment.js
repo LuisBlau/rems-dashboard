@@ -83,6 +83,7 @@ export default function ScheduleDeployment() {
     const [deployConfigs, setDeployConfigs] = useState([]);
     const [selectedDeployConfig, setSelectedDeployConfig] = useState(null);
     const [allStoresDetails, setAllStoresDetails] = useState([]);
+    const [variables, setVariables] = useState({});
     const [_storeList, setStoreList] = useState('');
     const [_dateTime, setDateTime] = useState(_.now);
     const [_options, setOptions] = useState([]);
@@ -93,6 +94,8 @@ export default function ScheduleDeployment() {
     const collisionDialogTitleString = 'Existing Version Collision';
     const [collisionDialogData, setCollisionDialogData] = useState([]);
     const [openSuccess, setOpenSuccess] = useState(false);
+    const [canDeploy, setCanDeploy] = useState(true);
+
     const [toastSuccess, setToastSuccess] = useState('');
     const [openMissingMaster, setOpenMissingMaster] = useState(false);
     const [openFileMissingPackages, setOpenFileMissingPackages] = useState(false);
@@ -338,6 +341,10 @@ export default function ScheduleDeployment() {
         formValues.name = config.name;
         formValues.id = config.id;
         formValues.retailerId = config.retailer_id;
+        formValues.variables = variables;
+        if (context.selectedRetailerIsTenant === true) {
+            formValues.tenantId = config.tenant_id;
+        }
         formValues.storeList = _storeList;
         // formValues.listNames = _listNames,
         // Don't adjust for users time zone i.e we are always in store time.
@@ -372,8 +379,8 @@ export default function ScheduleDeployment() {
 
     function handleSelectDeployConfig(selectedConfig, e) {
         if (selectedConfig) {
-            if (selectedConfig === 'common' || selectedConfig === 'selectedRetailer') {
-                e.preventDefault();
+            if (selectedConfig["children"]) {
+                setOptions(selectedConfig["children"])
                 return;
             }
             setSelectedDeployConfig(selectedConfig);
@@ -383,6 +390,7 @@ export default function ScheduleDeployment() {
             // get file name from there
             const selectedConfigDetailSteps = deployConfigs.find((x) => x.id === selectedConfig)?.steps ?? [];
             const newSelectedUploadedFiles = [];
+            let newVars = {}
             selectedConfigDetailSteps.forEach((step) => {
                 if (step.type === 'upload') {
                     // store the uploaded files in an array, filtered down to the ones that have matches :)
@@ -391,14 +399,41 @@ export default function ScheduleDeployment() {
                     // we can access that array from:
                     // selectedUploadedFiles[index].packages
                 }
+                if (Object.keys(newVars).length > 0) {
+                    for (var v of Object.values(step)) {
+                        let varMatch = v.match(/(?<!^\\)\$[A-Z0-9_]+/)
+                        if (varMatch) newVars[varMatch] = null;
+                    }
+                }
             });
+            if (Object.keys(newVars).length > 0) {
+                setCanDeploy(false)
+            } else {
+                setCanDeploy(true)
+            }
+            setVariables(newVars);
             setSelectedUploadedFiles(newSelectedUploadedFiles);
         } else {
             setSelectedDeployConfig(null);
             setSelectedUploadedFiles([]);
+            setVariables({});
         }
     }
-
+    function varentry(name) {
+        return function changever(event) {
+            let newVars = Object.assign({}, variables)
+            newVars[name] = event.target.value
+            setVariables(newVars)
+            if (canDeploy && event.target.value) return
+            var nowCanDeploy = true
+            Object.values(newVars).forEach(variable => {
+                if (variable === null || variable === '' || nowCanDeploy === false) {
+                    nowCanDeploy = false
+                }
+            });
+            setCanDeploy(nowCanDeploy)
+        }
+    }
     return (
         <Root className={classes.content}>
             <Container maxWidth="lg" className={classes.container}>
@@ -459,6 +494,10 @@ export default function ScheduleDeployment() {
                             // disabled={storeSelected}
                             helperText="example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC"
                         />
+                        {Object.keys(variables).map(function (name, index) {
+                            return <TextField key={index} onChange={varentry(name)} label={name} />
+                        })
+                        }
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateTimePicker
                                 id="date-time-local"
@@ -469,7 +508,7 @@ export default function ScheduleDeployment() {
                                 }}
                             />
                         </LocalizationProvider>
-                        <Button variant="contained" color="primary" type="submit">
+                        <Button variant="contained" color="primary" type="submit" disabled={!canDeploy}>
                             Submit
                         </Button>
                     </Stack>
