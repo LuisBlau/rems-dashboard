@@ -131,6 +131,7 @@ export default function EnterpriseOverview() {
                 width: 300,
                 sortable: true,
                 type: 'datetime',
+                sortingOrder:['asc','desc'],
                 valueGetter: (params) => params.value,
                 renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
             },
@@ -160,13 +161,13 @@ export default function EnterpriseOverview() {
 
                         }
                     }
-                    return <Box sx={{ display: 'flex', justifyContent: 'start', width: '80%', height: '100%', padding: 2 }}>
-                        <Typography variant='body2' sx={{ color: status.color, marginRight: 4 }}>{status.label}</Typography>
-                        <Typography variant='body2' sx={{ marginRight: 4 }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
+                    return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
+                        <Typography variant='body2' sx={{ color: status.color, marginRight: 4, width:'20%' }}>{status.label}</Typography>
+                        <Typography variant='body2' sx={{ marginRight: 4, width:'20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
                             <LinearProgress sx={{
                                 borderRadius: 2, height: 10,
-                                backgroundColor: '#FAFAFA'
+                                backgroundColor: '#ddd'
                             }} color={status.variant}
                                 variant="determinate" value={signal} />
                             <Typography variant='body2'>{`${params.row?.onlineAgents}/${params.row?.totalAgents}`}</Typography>
