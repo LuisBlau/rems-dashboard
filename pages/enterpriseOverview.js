@@ -207,7 +207,7 @@ export default function EnterpriseOverview() {
                 }
             }
         }
-    }, [context?.userDetails?.userDefinedMapConfig, places])
+    }, [context?.userDetails?.userDefinedMapConfig])
 
     useEffect(() => {
         if (selectedRetailer && selectedRetailer !== '') {
@@ -451,7 +451,7 @@ export default function EnterpriseOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores, places]);
+    }, [showOnlyDownStores]);
 
     useEffect(() => {
         let temp = [...filtersApplied];
