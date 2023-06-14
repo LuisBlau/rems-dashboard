@@ -16,7 +16,6 @@ import {
     Button,
     CircularProgress,
     Snackbar, SnackbarContent,
-    Grid,
     LinearProgress,
     Link,
 } from '@mui/material';
@@ -30,7 +29,6 @@ import { useMsal } from '@azure/msal-react';
 import { DataGrid } from '@mui/x-data-grid';
 import moment from 'moment';
 const PREFIX = 'enterpriseOverview';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const classes = {
     content: `${PREFIX}-content`,
@@ -131,7 +129,7 @@ export default function EnterpriseOverview() {
                 width: 300,
                 sortable: true,
                 type: 'datetime',
-                sortingOrder:['asc','desc'],
+                sortingOrder: ['asc', 'desc'],
                 valueGetter: (params) => params.value,
                 renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
             },
@@ -146,14 +144,14 @@ export default function EnterpriseOverview() {
                         color: '#E7431F',
                         variant: 'error'
                     }
-                    if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage) {
+                    if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && params.row?.online) {
                         status = {
                             label: 'Fair',
                             color: '#F8C45d',
                             variant: 'warning'
 
                         };
-                    } else if (signal > goodStoreStatusPercentage) {
+                    } else if (signal > goodStoreStatusPercentage && params.row?.online) {
                         status = {
                             label: 'Good',
                             color: '#5BA52E',
@@ -162,15 +160,15 @@ export default function EnterpriseOverview() {
                         }
                     }
                     return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
-                        <Typography variant='body2' sx={{ color: status.color, marginRight: 4, width:'20%' }}>{status.label}</Typography>
-                        <Typography variant='body2' sx={{ marginRight: 4, width:'20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
+                        <Typography variant='body2' sx={{ color: status.color, marginRight: 4, width: '20%' }}>{status.label}</Typography>
+                        <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
                             <LinearProgress sx={{
                                 borderRadius: 2, height: 10,
                                 backgroundColor: '#ddd'
                             }} color={status.variant}
                                 variant="determinate" value={signal} />
-                            <Typography variant='body2'>{`${params.row?.onlineAgents}/${params.row?.totalAgents}`}</Typography>
+                            <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
                         </Box>
                     </Box>
                 },
@@ -650,7 +648,7 @@ export default function EnterpriseOverview() {
                         }
                         {isListView &&
                             <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
-                                <Box sx={{ display: 'flex', width: '80%',flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                <Box sx={{ display: 'flex', width: '80%', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
                                     <DataGrid rowHeight={60}
                                         initialState={{
                                             sorting: {
