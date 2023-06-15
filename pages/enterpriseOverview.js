@@ -16,7 +16,8 @@ import {
     Button,
     CircularProgress,
     Snackbar, SnackbarContent,
-    Grid
+    LinearProgress,
+    Link,
 } from '@mui/material';
 import axios from 'axios';
 import { now } from 'lodash';
@@ -25,7 +26,8 @@ import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
 import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
-
+import { DataGrid } from '@mui/x-data-grid';
+import moment from 'moment';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -80,6 +82,7 @@ export default function EnterpriseOverview() {
     const [pullStorePeriodically, setPullStorePeriodically] = useState(0);
     const [isFilterSelect, setIsFilterSelect] = useState(false);
     const [showStoreOnlineWidget, setShowStoreOnlineWidget] = useState(false);
+    const [isListView, setIsListView] = useState(false);
     const [showAttendedLanesWidget, setShowAttendedLanesWidget] = useState(false);
     const [storesOnlineWidgetErrorPercentage, setStoresOnlineWidgetErrorPercentage] = useState(0)
     const [attendedLanesOnlineWidgetErrorPercentage, setAttendedLanesOnlineWidgetErrorPercentage] = useState(0)
@@ -101,6 +104,59 @@ export default function EnterpriseOverview() {
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [mapParams, setMapParams] = useState(null);
     const [isRefetch, setIsRefetch] = useState(null);
+    const [goodStoreStatusPercentage, setGoodStoreStatusPercentage] = useState(0);
+    const [poorStoreStatusPercentage, setPoorStoreStatusPercentage] = useState(0);
+    const [columns, setColumns] = useState([]);
+
+
+    //this is the little comment to link the store in the store overview
+    const renderLinkStoreView = (value) => {
+        return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
+    }
+    useEffect(() => {
+        setColumns([
+            {
+                field: 'storeName',
+                headerName: 'Store',
+                width: 300,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+                renderCell: renderLinkStoreView
+            },
+            {
+                field: 'last_updated',
+                headerName: 'Update',
+                width: 300,
+                sortable: true,
+                type: 'datetime',
+                sortingOrder: ['asc', 'desc'],
+                valueGetter: (params) => params.value,
+                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
+            },
+            {
+                field: 'statusId',
+                headerName: 'Status',
+                width: 400,
+                sortingOrder: ['asc', 'desc'],
+                sortable: true,
+                renderCell: (params) => {
+                    return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
+                        <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
+                        <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
+                            <LinearProgress sx={{
+                                borderRadius: 2, height: 10,
+                                backgroundColor: '#ddd'
+                            }} color={params.row.status.variant}
+                                variant="determinate" value={params.row?.signal} />
+                            <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
+                        </Box>
+                    </Box>
+                },
+            }
+        ])
+    }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
+
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -132,8 +188,7 @@ export default function EnterpriseOverview() {
                 }
             }
         }
-
-    }, [context?.userDetails?.userDefinedMapConfig, places])
+    }, [context?.userDetails?.userDefinedMapConfig])
 
     useEffect(() => {
         if (selectedRetailer && selectedRetailer !== '') {
@@ -151,7 +206,8 @@ export default function EnterpriseOverview() {
                 setStoresOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue)
                 setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue)
                 setPullStorePeriodically(configurationInfo.find(item => item.configName === 'pullStorePeriodically').configValue)
-
+                setPoorStoreStatusPercentage(configurationInfo.find(item => item.configName === 'PoorStoreStatusPercentage').configValue)
+                setGoodStoreStatusPercentage(configurationInfo.find(item => item.configName === 'GoodStoreStatusPercentage').configValue)
             })
         }
     }, [selectedRetailer])
@@ -376,7 +432,7 @@ export default function EnterpriseOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores, places]);
+    }, [showOnlyDownStores]);
 
     useEffect(() => {
         let temp = [...filtersApplied];
@@ -463,7 +519,6 @@ export default function EnterpriseOverview() {
         }
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-
     }, [allPlaces, filtersApplied, isRefetch]);
 
     return (
@@ -476,7 +531,7 @@ export default function EnterpriseOverview() {
             }}>
             </div>
             <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', height: '90vh', width: '100%', flexDirection: 'row' }}>
+                <Box sx={{ display: 'flex', width: '100%', height: '90Vh', flexDirection: 'row' }}>
                     <Box sx={{
                         display: 'flex',
                         height: '100%',
@@ -487,7 +542,7 @@ export default function EnterpriseOverview() {
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper sx={{ width: '90%', marginTop: 1 }} elevation={10} >
+                            <Paper onClick={() => setIsListView(pre => !pre)} sx={[isListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
                                 <CustomLinearProgress
                                     title="Stores Online"
                                     subTitle={widget.onlineStoreText}
@@ -509,6 +564,7 @@ export default function EnterpriseOverview() {
                     </Box>
                     <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                            <Typography sx={{ alignSelf: 'center', display: 'flex' }}>List View</Typography>
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
@@ -551,33 +607,83 @@ export default function EnterpriseOverview() {
                             filtersApplied={filtersApplied}
                             handleFilterDelete={handleFilterDelete}
                         />
-                        <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
-                            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
-                            >{places?.length > 0 && mapParams ?
-                                <GoogleMap
-                                    places={places}
-                                    setMapParams={setMapParams}
-                                    mapParams={mapParams}
-                                    isFilterSelect={isFilterSelect}
-                                /> : <CircularProgress />}
-                            </Box>
-                        </Card>
+                        {!isListView &&
+                            <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                    {places?.length > 0 && mapParams ?
+                                        <GoogleMap
+                                            places={places}
+                                            setMapParams={setMapParams}
+                                            mapParams={mapParams}
+                                            isFilterSelect={isFilterSelect}
+                                        /> : <CircularProgress />}
+                                </Box>
+                            </Card>
+
+                        }
+                        {isListView &&
+                            <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', width: '80%', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                    <DataGrid rowHeight={60}
+                                        initialState={{
+                                            sorting: {
+                                                sortModel: [{ field: 'last_updated', sort: 'desc' }]
+                                            },
+                                            pagination: { paginationModel: { pageSize: 10 } },
+                                        }}
+                                        rows={places.length > 0 ? places?.map((item, key) => {
+                                            const signal = item?.onlineAgents / item?.totalAgents * 100;
+                                            let status = {
+                                                id: 2,
+                                                label: 'Poor',
+                                                color: '#E7431F',
+                                                variant: 'error'
+                                            }
+                                            if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && item?.online) {
+                                                status = {
+                                                    id: 1,
+                                                    label: 'Fair',
+                                                    color: '#F8C45d',
+                                                    variant: 'warning'
+
+                                                };
+                                            } else if (signal > goodStoreStatusPercentage && item?.online) {
+                                                status = {
+                                                    id: 0,
+                                                    label: 'Good',
+                                                    color: '#5BA52E',
+                                                    variant: 'success'
+
+                                                }
+                                            }
+                                            return { ...item, id: key, statusId: status.id, status, signal }
+                                        }) : []}
+                                        columns={columns}
+                                        pageSizeOptions={[5, 10, 15]}
+                                        checkboxSelection={false}
+                                        rowSelection={false}
+                                    />
+                                </Box>
+                            </Card>
+                        }
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'end', paddingRight: 8 }}>
-                    <Button
-                        color='info'
-                        variant='contained'
-                        onClick={handleSubmitMap}
-                        sx={{
-                            width: '200px',
-                            height: '40px',
-                        }}
-                    >
-                        Save Current View
-                    </Button>
+                    {!isListView &&
+                        <Button
+                            color='info'
+                            variant='contained'
+                            onClick={handleSubmitMap}
+                            sx={{
+                                width: '200px',
+                                height: '40px',
+                            }}
+                        >
+                            Save Current View
+                        </Button>
+                    }
                     <Snackbar
                         open={open}
                         autoHideDuration={SuccessToastDuration}

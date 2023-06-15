@@ -399,7 +399,7 @@ export default function ScheduleDeployment() {
                     // we can access that array from:
                     // selectedUploadedFiles[index].packages
                 }
-                if (Object.keys(newVars).length > 0) {
+                if (step.type === 'shell') {
                     for (var v of Object.values(step)) {
                         let varMatch = v.match(/(?<!^\\)\$[A-Z0-9_]+/)
                         if (varMatch) newVars[varMatch] = null;
