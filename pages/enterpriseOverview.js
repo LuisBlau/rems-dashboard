@@ -119,6 +119,8 @@ export default function EnterpriseOverview() {
                 field: 'storeName',
                 headerName: 'Store',
                 width: 300,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
                 renderCell: renderLinkStoreView
             },
             {
@@ -540,7 +542,7 @@ export default function EnterpriseOverview() {
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper sx={{ width: '90%', marginTop: 1 }} elevation={10} >
+                            <Paper onClick={() => setIsListView(pre => !pre)} sx={[isListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
                                 <CustomLinearProgress
                                     title="Stores Online"
                                     subTitle={widget.onlineStoreText}
@@ -563,12 +565,6 @@ export default function EnterpriseOverview() {
                     <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <Typography sx={{ alignSelf: 'center', display: 'flex' }}>List View</Typography>
-                            <Switch
-                                sx={{ alignSelf: 'center' }}
-                                onChange={() => setIsListView(pre => !pre)}
-                                checked={isListView}
-                                color='success'
-                            />
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
@@ -631,7 +627,7 @@ export default function EnterpriseOverview() {
                                     <DataGrid rowHeight={60}
                                         initialState={{
                                             sorting: {
-                                                sortModel: [{ field: 'last_updated', sort: 'desc' },{ field: 'statusId', sort: 'asc' }]
+                                                sortModel: [{ field: 'last_updated', sort: 'desc' }]
                                             },
                                             pagination: { paginationModel: { pageSize: 10 } },
                                         }}
