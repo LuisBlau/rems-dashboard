@@ -120,8 +120,6 @@ export default function EnterpriseOverview() {
                 headerName: 'Store',
                 width: 300,
                 renderCell: renderLinkStoreView
-
-
             },
             {
                 field: 'last_updated',
@@ -134,40 +132,21 @@ export default function EnterpriseOverview() {
                 renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
             },
             {
-                field: 'retailer_id',
+                field: 'statusId',
                 headerName: 'Status',
                 width: 400,
+                sortingOrder: ['asc', 'desc'],
+                sortable: true,
                 renderCell: (params) => {
-                    const signal = params.row?.onlineAgents / params.row?.totalAgents * 100;
-                    let status = {
-                        label: 'Poor',
-                        color: '#E7431F',
-                        variant: 'error'
-                    }
-                    if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && params.row?.online) {
-                        status = {
-                            label: 'Fair',
-                            color: '#F8C45d',
-                            variant: 'warning'
-
-                        };
-                    } else if (signal > goodStoreStatusPercentage && params.row?.online) {
-                        status = {
-                            label: 'Good',
-                            color: '#5BA52E',
-                            variant: 'success'
-
-                        }
-                    }
                     return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
-                        <Typography variant='body2' sx={{ color: status.color, marginRight: 4, width: '20%' }}>{status.label}</Typography>
+                        <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
                         <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
                             <LinearProgress sx={{
                                 borderRadius: 2, height: 10,
                                 backgroundColor: '#ddd'
-                            }} color={status.variant}
-                                variant="determinate" value={signal} />
+                            }} color={params.row.status.variant}
+                                variant="determinate" value={params.row?.signal} />
                             <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
                         </Box>
                     </Box>
@@ -652,11 +631,37 @@ export default function EnterpriseOverview() {
                                     <DataGrid rowHeight={60}
                                         initialState={{
                                             sorting: {
-                                                sortModel: [{ field: 'last_updated', sort: 'desc' }]
+                                                sortModel: [{ field: 'last_updated', sort: 'desc' },{ field: 'statusId', sort: 'asc' }]
                                             },
                                             pagination: { paginationModel: { pageSize: 10 } },
                                         }}
-                                        rows={places.length > 0 ? places?.map((item, key) => ({ ...item, id: key })) : []}
+                                        rows={places.length > 0 ? places?.map((item, key) => {
+                                            const signal = item?.onlineAgents / item?.totalAgents * 100;
+                                            let status = {
+                                                id: 2,
+                                                label: 'Poor',
+                                                color: '#E7431F',
+                                                variant: 'error'
+                                            }
+                                            if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && item?.online) {
+                                                status = {
+                                                    id: 1,
+                                                    label: 'Fair',
+                                                    color: '#F8C45d',
+                                                    variant: 'warning'
+
+                                                };
+                                            } else if (signal > goodStoreStatusPercentage && item?.online) {
+                                                status = {
+                                                    id: 0,
+                                                    label: 'Good',
+                                                    color: '#5BA52E',
+                                                    variant: 'success'
+
+                                                }
+                                            }
+                                            return { ...item, id: key, statusId: status.id, status, signal }
+                                        }) : []}
                                         columns={columns}
                                         pageSizeOptions={[5, 10, 15]}
                                         checkboxSelection={false}
