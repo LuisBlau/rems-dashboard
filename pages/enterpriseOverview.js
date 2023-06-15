@@ -564,7 +564,6 @@ export default function EnterpriseOverview() {
                     </Box>
                     <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                            <Typography sx={{ alignSelf: 'center', display: 'flex' }}>List View</Typography>
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
