@@ -302,13 +302,13 @@ export default function ExtractRequestGrid(props) {
                     cellRenderer={eleraButtonRenderer}
                     resizable={true}
                     field="EleraClient Capture"
-                    headerName={'Elera Client'}
+                    headerName={'ELERA Client'}
                 ></AgGridColumn>
                 <AgGridColumn
                     cellRenderer={eleraServicesButtonRenderer}
                     resizable={true}
                     field="EleraServices Capture"
-                    headerName={'Elera Services'}
+                    headerName={'ELERA Services'}
                 ></AgGridColumn>
                 <AgGridColumn
                     cellRenderer={checButtonRenderer}
@@ -320,7 +320,7 @@ export default function ExtractRequestGrid(props) {
                     cellRenderer={checLogsButtonRenderer}
                     resizable={true}
                     field="Chec Install"
-                    headerName={'Chec Install Logs'}
+                    headerName={'CHEC Install Logs'}
                 ></AgGridColumn>
             </AgGridReact>
 

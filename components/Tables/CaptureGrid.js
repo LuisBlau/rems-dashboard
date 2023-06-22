@@ -1,3 +1,4 @@
+
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -30,7 +31,8 @@ export default function CaptureGrid() {
     const [captures, setCaptures] = useState([])
 
     useEffect(() => {
-        if (context.selectedRetailer !== '') {
+        
+        if (context.selectedRetailerIsTenant !== null) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
                     const captures = []
@@ -113,6 +115,7 @@ export default function CaptureGrid() {
             },
         }
     ];
+  
 
     return (
         <Box sx={{ height: '80vh', width: '100%' }}>

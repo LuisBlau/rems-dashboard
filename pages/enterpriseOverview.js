@@ -26,7 +26,7 @@ import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
 import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
 const PREFIX = 'enterpriseOverview';
 
@@ -60,6 +60,15 @@ function AppliedFilterDisplay({ filtersApplied, handleFilterDelete }) {
         </Stack>
     );
 };
+function CustomToolbar() {
+    return (
+        <GridToolbarContainer>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                <GridToolbarExport />
+            </Box>
+        </GridToolbarContainer>
+    );
+}
 
 export default function EnterpriseOverview() {
     let par = '';
@@ -125,8 +134,8 @@ export default function EnterpriseOverview() {
             },
             {
                 field: 'last_updated',
-                headerName: 'Update',
-                width: 300,
+                headerName: 'Last Updated',
+                width: 200,
                 sortable: true,
                 type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
@@ -135,24 +144,34 @@ export default function EnterpriseOverview() {
             },
             {
                 field: 'statusId',
-                headerName: 'Status',
-                width: 400,
-                sortingOrder: ['asc', 'desc'],
+                headerName: 'Store Health',
+                width: 100,
                 sortable: true,
-                renderCell: (params) => {
-                    return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
-                        <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
-                        <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
-                            <LinearProgress sx={{
-                                borderRadius: 2, height: 10,
-                                backgroundColor: '#ddd'
-                            }} color={params.row.status.variant}
-                                variant="determinate" value={params.row?.signal} />
-                            <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
-                        </Box>
-                    </Box>
-                },
+                sortingOrder: ['asc', 'desc'],
+                valueGetter: (params) => params.row?.status?.label,
+                renderCell: (params) => <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
+            },
+            {
+                field: 'status',
+                headerName: 'Status',
+                width: 100,
+                sortable: false,
+                valueGetter: (params) => params.row?.online ? 'Online' : 'Offline',
+
+            },
+            {
+                field: 'lanesUp',
+                headerName: 'Lanes up',
+                width: 200,
+                sortable: false,
+                renderCell: (params) => <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
+                    <LinearProgress sx={{
+                        borderRadius: 2, height: 10,
+                        backgroundColor: '#ddd'
+                    }} color={params.row.status.variant}
+                        variant="determinate" value={params.row?.signal} />
+                    <Typography variant='body2'>{params.row?.lanesUp}</Typography>
+                </Box>
             }
         ])
     }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
@@ -623,7 +642,9 @@ export default function EnterpriseOverview() {
                         {isListView &&
                             <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
                                 <Box sx={{ display: 'flex', width: '80%', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                    <DataGrid rowHeight={60}
+                                    <DataGrid
+                                        rowHeight={60}
+                                        slots={{ toolbar: CustomToolbar }}
                                         initialState={{
                                             sorting: {
                                                 sortModel: [{ field: 'last_updated', sort: 'desc' }]
@@ -632,6 +653,7 @@ export default function EnterpriseOverview() {
                                         }}
                                         rows={places.length > 0 ? places?.map((item, key) => {
                                             const signal = item?.onlineAgents / item?.totalAgents * 100;
+                                            const lanesUp = ` ${item?.onlineAgents}/${item?.totalAgents}`;
                                             let status = {
                                                 id: 2,
                                                 label: 'Poor',
@@ -655,7 +677,7 @@ export default function EnterpriseOverview() {
 
                                                 }
                                             }
-                                            return { ...item, id: key, statusId: status.id, status, signal }
+                                            return { ...item, id: key, statusId: status.id, status, signal, lanesUp }
                                         }) : []}
                                         columns={columns}
                                         pageSizeOptions={[5, 10, 15]}

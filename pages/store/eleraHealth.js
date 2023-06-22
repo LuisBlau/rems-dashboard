@@ -103,7 +103,7 @@ export default function EleraHealth() {
 
         return (
             <Box sx={{ display: 'flex', flexGrow: 1, height: '100vh', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-                <Typography variant="h3">Elera - {params.get('storeName')} - {params.get('agentName')}</Typography>
+                <Typography variant="h3">ELERA - {params.get('storeName')} - {params.get('agentName')}</Typography>
                 <Box sx={{ height: 200, width: '90%' }}>
                     <DataGrid
                         rows={rows}

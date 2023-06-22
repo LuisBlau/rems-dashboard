@@ -66,7 +66,7 @@ export default function EleraInfoModal({ modalData, eleraModalOpen, handleEleraM
                 <Modal open={eleraModalOpen} onClose={handleEleraModalClose} aria-labelledby="modal-modal-title">
                     <Box sx={style}>
                         <Typography marginBottom={3} fontWeight={'Bold'} fontSize={'h6.fontSize'}>
-                            Elera Services -{' '}
+                            ELERA Services -{' '}
                             {JSON.parse(Object.values(modalData.EleraServices)[0]).containers[0].status} - Last Updated:{' '}
                             {new Date(
                                 JSON.parse(

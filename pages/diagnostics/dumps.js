@@ -28,7 +28,7 @@ export default function Dumps() {
     return (
         <Root className={classes.content}>
             <Typography align="center" variant="h3">
-                TCxSky Dumps
+                TCx Sky Dumps
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
                 <DumpGrid height={400} />
