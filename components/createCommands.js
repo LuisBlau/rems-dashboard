@@ -20,7 +20,7 @@ export default function Command(props) {
     const [state, setArgs] = useState({ ...props.st, downloads: [] });
     const context = useContext(UserContext)
     const setProp = props.setst;
-    
+
 
     const handlechange = (event) => {
         state.type = event.target.value;
@@ -62,6 +62,7 @@ export default function Command(props) {
                             labelId="demo-simple-select-label"
                             onChange={setval('cmd')}
                         >
+                            <MenuItem value="python">python</MenuItem>
                             <MenuItem value="shell">shell</MenuItem>
                         </Select>
                     </FormControl>
