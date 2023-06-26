@@ -2,16 +2,12 @@
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import React, { useContext, useState, useEffect } from 'react';
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
-import useSWR from 'swr';
-import fetcher from '../../lib/fetcherWithHeader';
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
+import { DataGrid } from '@mui/x-data-grid';
 
 const PREFIX = 'DumpGrid';
 
@@ -74,16 +70,17 @@ export default function ExtractRequestGrid(props) {
     useEffect(() => {
         const list = [];
 
-        for (const x of agents) {
+        for (let i = 0; i < agents.length; i++) {
+            const x = agents[i];
             const obj = {
-                retailerId: x.retailer_id,
-                storeName: x.storeName,
-                agent: x.agentName,
-                os: x.os,
-                isRMA: x.deviceType !== 3,
-                hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
-                hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
-                hasChec: false,
+              id: i + 1, // Assigning a unique id based on the index
+              storeName: x.storeName,
+              agent: x.agentName,
+              os: x.os,
+              isRMA: x.deviceType !== 3,
+              hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
+              hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
+              hasChec: false,
             };
 
             // Checking to see if 'CHEC' is mentioned in the versions list.
@@ -121,7 +118,7 @@ export default function ExtractRequestGrid(props) {
     };
 
     const skyButtonRenderer = function (params) {
-        if (params.data.os === 'Sky' && context?.selectedRetailer) {
+        if (params.row && params.row.os === 'Sky' && context?.selectedRetailer){
             return (
                 <Button
                     variant="contained"
@@ -146,7 +143,7 @@ export default function ExtractRequestGrid(props) {
     };
 
     const rmaButtonRenderer = function (params) {
-        if (params.data.isRMA && context?.selectedRetailer) {
+        if (params.row && params.row.isRMA && context?.selectedRetailer){
             return (
                 <Button
                     variant="contained"
@@ -170,7 +167,7 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraButtonRenderer = function (params) {
-        if (params.data.hasEleraClient && context?.selectedRetailer) {
+       if (params.row && params.row.hasEleraClient && context?.selectedRetailer){
             return (
                 <Button
                     variant="contained"
@@ -194,7 +191,7 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraServicesButtonRenderer = function (params) {
-        if (params.data.hasEleraServices && context?.selectedRetailer) {
+        if (params.row && params.row.hasEleraServices && context?.selectedRetailer){
             return (
                 <Button
                     variant="contained"
@@ -218,7 +215,7 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const checButtonRenderer = function (params) {
-        if (params.data.hasChec && context?.selectedRetailer) {
+        if (params.row && params.row.hasChec && context?.selectedRetailer){
             return (
                 <Button
                     variant="contained"
@@ -243,7 +240,7 @@ export default function ExtractRequestGrid(props) {
     };
 
     const checLogsButtonRenderer = function (params) {
-        if (params.data.hasChec && context?.selectedRetailer) {
+        if (params.row && params.row.hasChec && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
@@ -269,60 +266,58 @@ export default function ExtractRequestGrid(props) {
 
     return (
         <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
-            <AgGridReact rowData={agentsList} onGridReady={sortGrid}>
-                <AgGridColumn
-                    sortable={true}
-                    filter={true}
-                    floatingFilter={true}
-                    suppressMenu={true}
-                    resizable={true}
-                    field="storeName"
-                ></AgGridColumn>
-                <AgGridColumn
-                    sortable={true}
-                    filter={true}
-                    floatingFilter={true}
-                    suppressMenu={true}
-                    resizable={true}
-                    field="agent"
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={skyButtonRenderer}
-                    resizable={true}
-                    field="SKY Logs Capture"
-                    headerName={'SKY Logs'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={rmaButtonRenderer}
-                    resizable={true}
-                    field="RMA Capture"
-                    headerName={'RMA'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={eleraButtonRenderer}
-                    resizable={true}
-                    field="EleraClient Capture"
-                    headerName={'ELERA Client'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={eleraServicesButtonRenderer}
-                    resizable={true}
-                    field="EleraServices Capture"
-                    headerName={'ELERA Services'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={checButtonRenderer}
-                    resizable={true}
-                    field="Chec Capture"
-                    headerName={'CHEC'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={checLogsButtonRenderer}
-                    resizable={true}
-                    field="Chec Install"
-                    headerName={'CHEC Install Logs'}
-                ></AgGridColumn>
-            </AgGridReact>
+            <DataGrid
+                    rows={agentsList}
+                    columns={[
+                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },
+                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true, width: 200 },
+                    {
+                        field: 'skyButtonRenderer',
+                        headerName: 'SKY Logs',
+                        renderCell: skyButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'rmaButtonRenderer',
+                        headerName: 'RMA',
+                        renderCell: rmaButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'eleraButtonRenderer',
+                        headerName: 'Elera Client',
+                        renderCell: eleraButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'eleraServicesButtonRenderer',
+                        headerName: 'Elera Services',
+                        renderCell: eleraServicesButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'checButtonRenderer',
+                        headerName: 'CHEC',
+                        renderCell: checButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'checLogsButtonRenderer',
+                        headerName: 'Chec Install Logs',
+                        renderCell: checLogsButtonRenderer,
+                        width: 150,
+                    },
+                    ]}
+                    initialState={{
+                        pagination: { paginationModel: { pageSize: 10 } },
+                    }}
+                    pageSizeOptions={[5, 10, 15]}
+                    checkboxSelection={false}
+                    disableSelectionOnClick
+                    autoHeight
+                    onGridReady={sortGrid}
+                />
+
 
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

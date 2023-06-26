@@ -31,7 +31,7 @@ export default function CaptureGrid() {
     const [captures, setCaptures] = useState([])
 
     useEffect(() => {
-        
+
         if (context.selectedRetailerIsTenant !== null) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
@@ -92,7 +92,7 @@ export default function CaptureGrid() {
             flex: 1,
             type: 'dateTime',
             sortable: true,
-            valueGetter: (params) => new Date(params.value),
+            valueGetter: (params) => new Date(params.value)
         },
         {
             field: 'SBreqLink',
@@ -115,7 +115,6 @@ export default function CaptureGrid() {
             },
         }
     ];
-  
 
     return (
         <Box sx={{ height: '80vh', width: '100%' }}>
@@ -123,11 +122,15 @@ export default function CaptureGrid() {
                 rows={captures}
                 columns={columns}
                 initialState={{
+                    sorting: {
+                        sortModel: [{ field: 'Timestamp', sort: 'desc' }]
+                    },
                     pagination: { paginationModel: { pageSize: 10 } },
                 }}
                 pageSizeOptions={[5, 10, 15]}
                 checkboxSelection={false}
                 disableSelectionOnClick
+                autoHeight
             />
         </Box>
     );
