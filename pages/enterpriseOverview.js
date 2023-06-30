@@ -16,8 +16,6 @@ import {
     Button,
     CircularProgress,
     Snackbar, SnackbarContent,
-    LinearProgress,
-    Link,
 } from '@mui/material';
 import axios from 'axios';
 import { now } from 'lodash';
@@ -26,8 +24,8 @@ import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
 import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
-import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import moment from 'moment';
+import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
+import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -64,7 +62,7 @@ function CustomToolbar() {
     return (
         <GridToolbarContainer>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <GridToolbarExport />
+                <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
             </Box>
         </GridToolbarContainer>
     );
@@ -115,67 +113,8 @@ export default function EnterpriseOverview() {
     const [isRefetch, setIsRefetch] = useState(null);
     const [goodStoreStatusPercentage, setGoodStoreStatusPercentage] = useState(0);
     const [poorStoreStatusPercentage, setPoorStoreStatusPercentage] = useState(0);
-    const [columns, setColumns] = useState([]);
-
-
-    //this is the little comment to link the store in the store overview
-    const renderLinkStoreView = (value) => {
-        return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
-    }
-    useEffect(() => {
-        setColumns([
-            {
-                field: 'storeName',
-                headerName: 'Store',
-                width: 300,
-                sortable: true,
-                sortingOrder: ['asc', 'desc'],
-                renderCell: renderLinkStoreView
-            },
-            {
-                field: 'last_updated',
-                headerName: 'Last Updated',
-                width: 200,
-                sortable: true,
-                type: 'datetime',
-                sortingOrder: ['asc', 'desc'],
-                valueGetter: (params) => params.value,
-                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
-            },
-            {
-                field: 'statusId',
-                headerName: 'Store Health',
-                width: 100,
-                sortable: true,
-                sortingOrder: ['asc', 'desc'],
-                valueGetter: (params) => params.row?.status?.label,
-                renderCell: (params) => <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
-            },
-            {
-                field: 'status',
-                headerName: 'Status',
-                width: 100,
-                sortable: false,
-                valueGetter: (params) => params.row?.online ? 'Online' : 'Offline',
-
-            },
-            {
-                field: 'lanesUp',
-                headerName: 'Lanes up',
-                width: 200,
-                sortable: false,
-                renderCell: (params) => <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
-                    <LinearProgress sx={{
-                        borderRadius: 2, height: 10,
-                        backgroundColor: '#ddd'
-                    }} color={params.row.status.variant}
-                        variant="determinate" value={params.row?.signal} />
-                    <Typography variant='body2'>{params.row?.lanesUp}</Typography>
-                </Box>
-            }
-        ])
-    }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
-
+    const [isStoresOnlineListView, setIsStoresOnlineListView] = useState(false)
+    const [isAttendedLanesListView, setIsAttendedLanesListView] = useState(false)
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -540,6 +479,22 @@ export default function EnterpriseOverview() {
         setPlaces(filteredPlaces);
     }, [allPlaces, filtersApplied, isRefetch]);
 
+    function handleListViewPaperClicked(value, setter) {
+        if (value === false) {
+            setIsListView(true)
+        } else {
+            setIsListView(false)
+        }
+
+        if (isAttendedLanesListView === true) {
+            setIsAttendedLanesListView(false)
+        }
+        if (isStoresOnlineListView === true) {
+            setIsStoresOnlineListView(false)
+        }
+        setter(!value)
+    }
+
     return (
         <Root className={classes.content}>
             <div style={{
@@ -561,7 +516,7 @@ export default function EnterpriseOverview() {
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper onClick={() => setIsListView(pre => !pre)} sx={[isListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
+                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView)} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
                                 <CustomLinearProgress
                                     title="Stores Online"
                                     subTitle={widget.onlineStoreText}
@@ -571,7 +526,7 @@ export default function EnterpriseOverview() {
                             </Paper>
                         )}
                         {showAttendedLanesWidget === true && (
-                            <Paper sx={{ width: '90%', marginTop: 1 }} elevation={10}>
+                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView)} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
                                 <CustomLinearProgress
                                     title="Attended Lanes Up"
                                     subTitle={widget.laneUpText}
@@ -639,54 +594,8 @@ export default function EnterpriseOverview() {
                             </Card>
 
                         }
-                        {isListView &&
-                            <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
-                                <Box sx={{ display: 'flex', width: '80%', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                    <DataGrid
-                                        rowHeight={60}
-                                        slots={{ toolbar: CustomToolbar }}
-                                        initialState={{
-                                            sorting: {
-                                                sortModel: [{ field: 'last_updated', sort: 'desc' }]
-                                            },
-                                            pagination: { paginationModel: { pageSize: 10 } },
-                                        }}
-                                        rows={places.length > 0 ? places?.map((item, key) => {
-                                            const signal = item?.onlineAgents / item?.totalAgents * 100;
-                                            const lanesUp = ` ${item?.onlineAgents}/${item?.totalAgents}`;
-                                            let status = {
-                                                id: 2,
-                                                label: 'Poor',
-                                                color: '#E7431F',
-                                                variant: 'error'
-                                            }
-                                            if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && item?.online) {
-                                                status = {
-                                                    id: 1,
-                                                    label: 'Fair',
-                                                    color: '#F8C45d',
-                                                    variant: 'warning'
-
-                                                };
-                                            } else if (signal > goodStoreStatusPercentage && item?.online) {
-                                                status = {
-                                                    id: 0,
-                                                    label: 'Good',
-                                                    color: '#5BA52E',
-                                                    variant: 'success'
-
-                                                }
-                                            }
-                                            return { ...item, id: key, statusId: status.id, status, signal, lanesUp }
-                                        }) : []}
-                                        columns={columns}
-                                        pageSizeOptions={[5, 10, 15]}
-                                        checkboxSelection={false}
-                                        rowSelection={false}
-                                    />
-                                </Box>
-                            </Card>
-                        }
+                        {isStoresOnlineListView && <StoresOnlineList places={places} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
+                        {isAttendedLanesListView && <AttendedLanesList places={places} selectedRetailer={context.selectedRetailer} />}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>

@@ -16,6 +16,7 @@ import Image from 'next/image';
 import UserContext from '../pages/UserContext';
 import Cookies from 'universal-cookie';
 import { Box } from '@mui/system';
+import axios from 'axios';
 
 function AppNameplate({ open }) {
     if (open === true) {
@@ -84,6 +85,22 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
     const [userInitials, setUserInitials] = useState('')
     const [userDisplayName, setUserDisplayName] = useState('')
     const context = useContext(UserContext);
+    const [alertsEnabled, setAlertsEnabled] = useState(false)
+
+    useEffect(() => {
+        if (context) {
+            if (context.selectedRetailer) {
+                axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&ccv=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+                    let configs = res.data.configuration
+                    Object.values(configs).forEach(config => {
+                        if (Object.keys(config)[0] === 'alertsEnabled') {
+                            setAlertsEnabled(config.alertsEnabled.configValue)
+                        }
+                    });
+                })
+            }
+        }
+    }, [context])
 
     const handleSelectedRetailerChanged = (e) => {
         if (e.target) {
@@ -211,7 +228,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
         instance.loginRedirect({ scopes: ['openid', 'email', 'profile'] });
     }
 
-    const drawerWidth = 240;
+    const drawerWidth = 270;
 
     const Drawer = styled(MuiDrawer, {
         shouldForwardProp: (prop) => prop !== 'open',
@@ -290,7 +307,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                         style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginTop: 8, marginLeft: 3 }}
                     >
                         <Link key={'enterpriseOverview'} href={'/enterpriseOverview'} style={{ display: 'flex' }}>
-                            <div style={{ display: 'flex', cursor: 'pointer' }}>
+                            <div style={{ display: 'flex', cursor: 'pointer', marginRight: 15 }}>
                                 <div style={{ maxWidth: '32px', maxHeight: '32px', paddingTop: 8 }}>
                                     <Image src={ToshibaLogo} alt="ToshibaLogo" />
                                 </div>
@@ -310,13 +327,14 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                             availableRetailers={availableRetailers}
                         />
                     )}
-
                     <Sidebar
+                        alertsEnabled={alertsEnabled}
                         handleDisabledFeatureClicked={handleDisabledFeatureClicked}
                         handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked}
                         pasSubscriptionTier={pasSubscriptionTier}
                         sidebarOpen={open}
                     />
+
                     {open &&
                         <div
                             style={{

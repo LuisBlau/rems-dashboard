@@ -47,6 +47,7 @@ export default function UserSettings() {
             setUsers(response.data)
             setFilteredUsers(response.data)
             const roles = []
+            roles.push({ name: 'Administration', isChecked: false })
             response.data.forEach(user => {
                 if ((user.role).length > 0) {
                     (user.role).forEach(role => {

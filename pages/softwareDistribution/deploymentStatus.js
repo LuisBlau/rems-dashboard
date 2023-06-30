@@ -6,7 +6,6 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -17,6 +16,8 @@ import { DeployTable } from '../../components/Tables/DeployTable';
 import { useState } from 'react';
 import { useContext } from 'react';
 import UserContext from '../../pages/UserContext'
+import { FormControl, IconButton, InputLabel, OutlinedInput } from '@mui/material';
+import { Clear } from '@mui/icons-material';
 
 const PREFIX = 'deploymentStatus';
 
@@ -44,23 +45,30 @@ function PackageFilterItemsDisplay({ selectedRetailer, packageFilterItems, setPa
         setPackageFilter(e.target.value);
     };
 
+    const handleClearClick = () => {
+        setPackageFilter('');
+    };
+
     if (selectedRetailer !== '') {
         return (
-            <Grid item xs={4}>
+            <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel sx={{ width: 200 }} id="package-input-label">Package Filter</InputLabel>
                 <Select
+                    endAdornment={<IconButton sx={{ visibility: packageFilter ? "visible" : "hidden" }} onClick={handleClearClick}><Clear /></IconButton>}
                     value={packageFilter}
-                    labelId="demo-simple-select-label-type"
-                    id="demo-simple-select-type"
-                    label="Type"
+                    labelId="Package-input-label"
+                    id="select-type"
+                    label="Package Filter"
                     onChange={changePackageFilter}
+                    input={<OutlinedInput label="Package Filter" />}
                 >
                     {packageFilterItems.map((i, index) => (
-                        <MenuItem key={'mi-' + index} value={i.id}>
+                        <MenuItem key={'mi-' + index} value={i.name}>
                             {i.name}
                         </MenuItem>
                     ))}
                 </Select>
-            </Grid>
+            </FormControl>
         )
     } else {
         return null
@@ -70,22 +78,22 @@ function PackageFilterItemsDisplay({ selectedRetailer, packageFilterItems, setPa
 
 export default function DeploymentStatus() {
     // Max number of records to pull from database. 0 = all records.
-    const maxRecords = 20;
+    // we need to paginate this page at some point, but not today.
+    const maxRecords = 0;
 
     const [storeFilter, setStoreFilter] = useState('');
-    const [packageFilterItems, setPackageFilterItems] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('All');
-    const [statusFilterItems, setStatusFilterItems] = useState(null);
+    const [packageFilterItems, setPackageFilterItems] = useState([]);
+    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilterItems, setStatusFilterItems] = useState([]);
     const context = useContext(UserContext)
-    const [packageFilter, setPackageFilter] = useState(0);
+    const [packageFilter, setPackageFilter] = useState('');
 
     useEffect(() => {
         if (context.selectedRetailer) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailer)
-                    .then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)));
+                    .then((resp) => setPackageFilterItems(resp.data));
                 setStatusFilterItems([
-                    { id: 'All', name: 'All Status' },
                     { id: 'Pending', name: 'Pending' },
                     { id: 'Failed', name: 'Failed' },
                     { id: 'Success', name: 'Success' },
@@ -93,9 +101,8 @@ export default function DeploymentStatus() {
                 ]);
             } else if (context.selectedRetailerParentRemsServerId) {
                 axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer)
-                    .then((resp) => setPackageFilterItems([{ id: 0, name: 'All Configs' }].concat(resp.data)));
+                    .then((resp) => setPackageFilterItems(resp.data));
                 setStatusFilterItems([
-                    { id: 'All', name: 'All Status' },
                     { id: 'Pending', name: 'Pending' },
                     { id: 'Failed', name: 'Failed' },
                     { id: 'Success', name: 'Success' },
@@ -116,39 +123,41 @@ export default function DeploymentStatus() {
         setStatusFilter(e.target.value);
     };
 
+    const handleClearClick = () => {
+        setStatusFilter('');
+    };
+
     return (
         <Root className={classes.content}>
             <Container maxWidth="lg" className={classes.container}>
                 <Typography align="center" variant="h3">
                     Deployment Status
                 </Typography>
-                <Box pt={2}>
-                    <Grid container spacing={4}>
-                        <Grid item xs={1}></Grid>
-                        <Grid item xs={3}>
-                            <TextField value={storeFilter} onChange={changeStoreFilter} label="store" />
-                        </Grid>
-                        <Grid item xs={2}>
-                            <Select
-                                value={statusFilter}
-                                labelId="demo-simple-select-label-status"
-                                id="demo-simple-select-status"
-                                label="Type"
-                                onChange={changeStatusFilter}
-                            >
-                                {statusFilterItems.map((i, index) => (
-                                    <MenuItem key={index} value={i.id}>
-                                        {i.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Grid>
-                        <PackageFilterItemsDisplay
-                            selectedRetailer={context.selectedRetailer}
-                            packageFilterItems={packageFilterItems}
-                            packageFilter={packageFilter}
-                            setPackageFilter={setPackageFilter} />
-                    </Grid>
+                <Box sx={{ display: 'flex', flexDirection: 'row', paddingTop: 2, justifyContent: 'space-around' }}>
+                    <TextField value={storeFilter} onChange={changeStoreFilter} label="Store/Agent Filter" />
+                    <FormControl sx={{ minWidth: 120 }}>
+                        <InputLabel sx={{ width: 200 }} id="status-input-label">Status Filter</InputLabel>
+                        <Select
+                            endAdornment={<IconButton sx={{ visibility: statusFilter ? "visible" : "hidden" }} onClick={handleClearClick}><Clear /></IconButton>}
+                            value={statusFilter}
+                            labelId="status-input-label"
+                            id="simple-select-status"
+                            label="Status Filter"
+                            input={<OutlinedInput label="Status Filter" />}
+                            onChange={changeStatusFilter}
+                        >
+                            {statusFilterItems.map((i, index) => (
+                                <MenuItem key={index} value={i.id}>
+                                    {i.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <PackageFilterItemsDisplay
+                        selectedRetailer={context.selectedRetailer}
+                        packageFilterItems={packageFilterItems}
+                        packageFilter={packageFilter}
+                        setPackageFilter={setPackageFilter} />
                 </Box>
                 <DeployTable
                     selectedRetailer={context.selectedRetailer}

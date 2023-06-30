@@ -254,14 +254,23 @@ export default function DistributionLists() {
                 });
 
                 const importListAgents = [];
+                const missingStores = []
                 storeList.forEach((val) => {
                     const filteredAgents = _.filter(availableAgents, { storeName: val });
-                    filteredAgents.forEach((agent) => {
-                        if (agent !== undefined) {
-                            importListAgents.push(agent);
-                        }
-                    });
+                    if (filteredAgents.length > 0) {
+                        filteredAgents.forEach((agent) => {
+                            if (agent !== undefined) {
+                                importListAgents.push(agent);
+                            }
+                        });
+                    } else {
+                        missingStores.push(val)
+                    }
                 });
+                if (missingStores.length > 0) {
+                    setToast('Missing stores: ' + missingStores);
+                    setOpenErrorSnack(true)
+                }
                 setSelectedAgents(
                     _.concat(
                         selectedAgents,
@@ -275,12 +284,19 @@ export default function DistributionLists() {
                 storeList = text.split(/\r?\n/);
 
                 const importListAgents = [];
+                const missingStores = []
                 storeList.forEach((val) => {
                     const foundAgent = _.find(availableAgents, { storeName: val });
                     if (foundAgent !== undefined) {
                         importListAgents.push(foundAgent);
+                    } else {
+                        missingStores.push(val)
                     }
                 });
+                if (missingStores.length > 0) {
+                    setToast('Missing stores: ' + missingStores);
+                    setOpenErrorSnack(true)
+                }
                 setSelectedAgents(
                     _.concat(
                         selectedAgents,

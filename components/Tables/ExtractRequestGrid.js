@@ -73,26 +73,31 @@ export default function ExtractRequestGrid(props) {
         for (let i = 0; i < agents.length; i++) {
             const x = agents[i];
             const obj = {
-              id: i + 1, // Assigning a unique id based on the index
-              storeName: x.storeName,
-              agent: x.agentName,
-              os: x.os,
-              isRMA: x.deviceType !== 3,
-              hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
-              hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
-              hasChec: false,
+                id: i + 1, // Assigning a unique id based on the index
+                storeName: x.storeName,
+                agent: x.agentName,
+                os: x.os,
+                isRMA: x.deviceType !== 3,
+                hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
+                hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
+                hasChec: false,
             };
 
             // Checking to see if 'CHEC' is mentioned in the versions list.
             // If it is, I assume that we can request a chec capture
             // Probably not right so should check with Brent
-            if (x.versions !== undefined) {
-                for (let i = 0; i < x.versions.length; i++) {
-                    const objKeys = Object.values(x.versions[i]);
-                    if (objKeys[1] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
-                        obj.hasChec = true;
-                        break;
-                    }
+            // if (x.versions !== undefined) {
+            //     for (let i = 0; i < x.versions.length; i++) {
+            //         const objKeys = Object.values(x.status[i]);
+            //         if (objKeys[1] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
+            //             obj.hasChec = true;
+            //             break;
+            //         }
+            //     }
+            // }
+            if (x.status !== undefined) {
+                if (x.status.hasChec !== undefined) {
+                    obj.hasChec = x.status.hasChec.configured
                 }
             }
 
@@ -118,19 +123,19 @@ export default function ExtractRequestGrid(props) {
     };
 
     const skyButtonRenderer = function (params) {
-        if (params.row && params.row.os === 'Sky' && context?.selectedRetailer){
+        if (params.row && params.row.os === 'Sky' && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'SkyLogs';
+                        params.row.dataCapture = 'SkyLogs';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -143,19 +148,19 @@ export default function ExtractRequestGrid(props) {
     };
 
     const rmaButtonRenderer = function (params) {
-        if (params.row && params.row.isRMA && context?.selectedRetailer){
+        if (params.row && params.row.isRMA && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'RMA';
+                        params.row.dataCapture = 'RMA';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -167,19 +172,19 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraButtonRenderer = function (params) {
-       if (params.row && params.row.hasEleraClient && context?.selectedRetailer){
+        if (params.row && params.row.hasEleraClient && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'EleraClient';
+                        params.row.dataCapture = 'EleraClient';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -191,19 +196,19 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraServicesButtonRenderer = function (params) {
-        if (params.row && params.row.hasEleraServices && context?.selectedRetailer){
+        if (params.row && params.row.hasEleraServices && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'EleraServices';
+                        params.row.dataCapture = 'EleraServices';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -215,19 +220,19 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const checButtonRenderer = function (params) {
-        if (params.row && params.row.hasChec && context?.selectedRetailer){
+        if (params.row && params.row.hasChec && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'Chec';
+                        params.row.dataCapture = 'Chec';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -245,14 +250,14 @@ export default function ExtractRequestGrid(props) {
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'ChecInstall';
+                        params.row.dataCapture = 'ChecInstall';
                         axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
+                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
                             .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
+                                processSuccessfulResponse(res, params.row.dataCapture);
                             })
                             .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
+                                processFailedResponse(res, params.row.dataCapture);
                             });
                     }}
                 >
@@ -267,8 +272,8 @@ export default function ExtractRequestGrid(props) {
     return (
         <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
             <DataGrid
-                    rows={agentsList}
-                    columns={[
+                rows={agentsList}
+                columns={[
                     { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },
                     { field: 'agent', headerName: 'Agent', sortable: true, filterable: true, width: 200 },
                     {
@@ -279,44 +284,44 @@ export default function ExtractRequestGrid(props) {
                     },
                     {
                         field: 'rmaButtonRenderer',
-                        headerName: 'RMA',
+                        headerName: 'RMA Logs',
                         renderCell: rmaButtonRenderer,
                         width: 150,
                     },
                     {
                         field: 'eleraButtonRenderer',
-                        headerName: 'Elera Client',
+                        headerName: 'Elera Client Logs',
                         renderCell: eleraButtonRenderer,
                         width: 150,
                     },
                     {
                         field: 'eleraServicesButtonRenderer',
-                        headerName: 'Elera Services',
+                        headerName: 'Elera Services Logs',
                         renderCell: eleraServicesButtonRenderer,
                         width: 150,
                     },
                     {
                         field: 'checButtonRenderer',
-                        headerName: 'CHEC',
+                        headerName: 'CHEC Extract',
                         renderCell: checButtonRenderer,
                         width: 150,
                     },
                     {
                         field: 'checLogsButtonRenderer',
-                        headerName: 'Chec Install Logs',
+                        headerName: 'CHEC Install Logs',
                         renderCell: checLogsButtonRenderer,
                         width: 150,
                     },
-                    ]}
-                    initialState={{
-                        pagination: { paginationModel: { pageSize: 10 } },
-                    }}
-                    pageSizeOptions={[5, 10, 15]}
-                    checkboxSelection={false}
-                    disableSelectionOnClick
-                    autoHeight
-                    onGridReady={sortGrid}
-                />
+                ]}
+                initialState={{
+                    pagination: { paginationModel: { pageSize: 10 } },
+                }}
+                pageSizeOptions={[5, 10, 15]}
+                checkboxSelection={false}
+                disableSelectionOnClick
+                autoHeight
+                onGridReady={sortGrid}
+            />
 
 
             <Snackbar

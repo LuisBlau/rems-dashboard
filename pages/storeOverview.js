@@ -49,6 +49,7 @@ export default function StoreOverview() {
     const [storeAlerts, setStoreAlerts] = useState([]);
     const [storeAlertDescriptions, setStoreAlertDescriptions] = useState([]);
     const [storeAgents, setStoreAgents] = useState([]);
+    const [storeHasNoAgents, setStoreHasNoAgents] = useState(null)
     const [agentCount, setAgentCount] = useState([]);
     const [alertsConfirmationOpen, setAlertsConfirmationOpen] = useState(false);
     const [scoCount, setScoCount] = useState(0);
@@ -79,8 +80,8 @@ export default function StoreOverview() {
         setScreenshotView(!screenshotView);
     }
     useEffect(() => {
-        const fetchStoreInfo = async () => {
-            async function getStoreAgents() {
+        const fetchStoreInfo = () => {
+            function getStoreAgents() {
                 // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
                 // for now, I'll do this: 
                 let userHasRetailer = true
@@ -93,7 +94,7 @@ export default function StoreOverview() {
                     });
                     setUserHasAccess(userHasRetailer)
                     if (userHasRetailer) {
-                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
+                        axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
                             let scoCounter = 0;
                             let downCounter = 0;
                             const controllers = [];
@@ -133,11 +134,16 @@ export default function StoreOverview() {
                                     }
                                 });
 
-                                setStoreAgents(_.concat(controllers, agents));
+                                if (controllers.length > 0 || agents.length > 0) {
+                                    setStoreAgents(_.concat(controllers, agents));
+                                    setStoreHasNoAgents(false)
+                                }
                                 setAgentCount(agents.length);
                                 setScoCount(scoCounter);
                                 setDownAgentCount(downCounter);
                                 setElera(newElera);
+                            } else {
+                                console.log('no data')
                             }
                         });
                     }
@@ -151,13 +157,13 @@ export default function StoreOverview() {
                     setUserHasAccess(userHasRetailer)
 
                     if (userHasRetailer) {
-                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                        axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
                             let scoCounter = 0;
                             let downCounter = 0;
                             const controllers = [];
                             const agents = [];
                             let newElera = {}
-                            if (resp.data) {
+                            if (resp.data.length > 0) {
                                 const response = resp.data;
                                 response.forEach((agent) => {
                                     if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
@@ -195,6 +201,11 @@ export default function StoreOverview() {
                                 setScoCount(scoCounter);
                                 setElera(newElera);
                                 setDownAgentCount(downCounter);
+                            } else {
+                                setStoreHasNoAgents(true)
+                                setAgentCount(0)
+                                setScoCount(0)
+                                setDownAgentCount(0)
                             }
                         });
                     }
@@ -202,7 +213,7 @@ export default function StoreOverview() {
             }
 
             if (storeAlerts.length === 0) {
-                await getStoreAgents();
+                getStoreAgents();
             }
         };
         fetchStoreInfo();
@@ -373,12 +384,12 @@ export default function StoreOverview() {
                     </Box>
                     {Object.keys(elera).length > 0 ?
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} />
+                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                             <EleraInfoRegion elera={elera} eleraContainers={eleraContainers} />
                         </Box>
                         :
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} />
+                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                         </Box>
                     }
                     <Box sx={{ height: '23%', width: '100%' }}>
@@ -396,8 +407,8 @@ export default function StoreOverview() {
                                 <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                         </TabContext>
-                        <Box pt={1} pb={1}>
-                            <Copyright />
+                <Box pt={1} pb={1}>
+                    <Copyright />
                         </Box>
                     </Box>
                 </Box>

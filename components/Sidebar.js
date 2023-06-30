@@ -26,6 +26,7 @@ import { Collapse, Divider, ListItemButton, Typography } from '@mui/material';
 import Link from 'next/link';
 import _ from 'lodash';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import axios from 'axios';
 
 const ListItemIcon = styled(MuiListItemIcon, {})(({ theme }) => ({
     minWidth: '30px'
@@ -56,7 +57,7 @@ function SidebarItem({ opened, sidebarOpen, handleOpened, name, id, icon, route,
                     <Collapse sx={{ backgroundColor: '#373839' }} in={open} timeout="auto" unmountOnExit>
                         <List disablePadding dense>
                             {items.map((subItem) => (
-                                <SidebarItem sidebarOpen={sidebarOpen} key={subItem.name} {...subItem} sub={true} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} context={context} />
+                                <SidebarItem opened={context.openedMenuItems.indexOf(subItem.id) > -1} handleOpened={handleOpened} sidebarOpen={sidebarOpen} key={subItem.name} {...subItem} sub={true} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} context={context} />
                             ))}
                         </List>
                     </Collapse>
@@ -174,10 +175,12 @@ function SidebarItem({ opened, sidebarOpen, handleOpened, name, id, icon, route,
     }
 }
 
-export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelopedFeatureClicked, pasSubscriptionTier, sidebarOpen }) {
+export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelopedFeatureClicked, pasSubscriptionTier, sidebarOpen, alertsEnabled }) {
     const context = useContext(UserContext);
     const { pathname } = useRouter();
     const [menu, setMenu] = useState([]);
+
+
     useEffect(() => {
         function getSidebarItems() {
             const MenuItems = [];
@@ -209,8 +212,8 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             {
                                 id: 'alerts',
                                 name: 'Alerts',
-                                route: '/',
-                                enabled: false
+                                route: '/systemReporting/alerts',
+                                enabled: alertsEnabled
                             },
                             {
                                 id: 'systemEvents',
@@ -269,81 +272,86 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             enabled: pasSubscriptionTier === 'advanced'
                         }]
                     };
-                    MenuItems.push(tmp)
-                    tmp = {
-                        id: 'diagnostics',
-                        name: 'Diagnostics',
-                        icon: <Image src={DiagnosticsIcon} alt="DiagnosticsIcon" />,
-                        enabled: pasSubscriptionTier === 'advanced',
-                        items: [
-                            {
-                                id: 'Doc Collection',
-                                name: 'Doc Collection',
-                                route: '/diagnostics/docCollection',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'dumps',
-                                name: 'Dumps',
-                                route: '/diagnostics/dumps',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'extracts',
-                                name: 'CHEC Extracts',
-                                route: '/diagnostics/checExtracts',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'dataCapture',
-                                name: 'Data Capture',
-                                route: '/diagnostics/dataCapture',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                        ],
-                    };
                     MenuItems.push(tmp);
                     tmp = {
-                        id: 'remote-diagnostics',
-                        name: 'Remote Diagnostics',
+                        id: 'remote-software-maintenance',
+                        name: 'Remote Software Maintenance',
                         icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
                         enabled: pasSubscriptionTier === 'advanced',
                         items: [
                             {
-                                id: 'softwareDeploy',
-                                name: 'Deployment Status',
-                                icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
-                                route: '/softwareDistribution/deploymentStatus',
-                                enabled: pasSubscriptionTier === 'advanced'
+                                id: 'remote-deployment',
+                                name: 'Remote Deployment',
+                                enabled: pasSubscriptionTier === 'advanced',
+                                items: [
+                                    {
+                                        id: 'softwareDeploy',
+                                        name: 'Deployment Status',
+                                        icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
+                                        route: '/softwareDistribution/deploymentStatus',
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'deploymentFileUpload',
+                                        name: 'Upload a File',
+                                        route: '/softwareDistribution/deploymentFileUpload',
+                                        icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'createDeploymentConfig',
+                                        name: 'Create Deploy Config',
+                                        route: '/softwareDistribution/createDeploymentConfig',
+                                        icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'scheduleDeployment',
+                                        name: 'Schedule a Deployment',
+                                        route: '/softwareDistribution/scheduleDeployment',
+                                        icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'distributionLists',
+                                        name: 'Distribution Lists',
+                                        route: '/softwareDistribution/distributionLists',
+                                        icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                ]
                             },
                             {
-                                id: 'deploymentFileUpload',
-                                name: 'Upload a File',
-                                route: '/softwareDistribution/deploymentFileUpload',
-                                icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'createDeploymentConfig',
-                                name: 'Create Deploy Config',
-                                route: '/softwareDistribution/createDeploymentConfig',
-                                icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'scheduleDeployment',
-                                name: 'Schedule a Deployment',
-                                route: '/softwareDistribution/scheduleDeployment',
-                                icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'distributionLists',
-                                name: 'Distribution Lists',
-                                route: '/softwareDistribution/distributionLists',
-                                icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
+                                id: 'remote-diagnostic',
+                                name: 'Remote Diagnostic',
+                                enabled: pasSubscriptionTier === 'advanced',
+                                items: [
+                                    {
+                                        id: 'Doc Collection',
+                                        name: 'Doc Collection',
+                                        route: '/diagnostics/docCollection',
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'dumps',
+                                        name: 'Dumps',
+                                        route: '/diagnostics/dumps',
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'extracts',
+                                        name: 'Chec Extracts',
+                                        route: '/diagnostics/checExtracts',
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                    {
+                                        id: 'dataCapture',
+                                        name: 'Data Capture',
+                                        route: '/diagnostics/dataCapture',
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    },
+                                ]
+                            }
                         ],
                     };
                     MenuItems.push(tmp);
