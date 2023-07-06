@@ -9,6 +9,7 @@ import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-g
 import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
 import UserContext from '../../pages/UserContext'
 import _ from 'lodash';
+import Copyright from '../../components/Copyright';
 
 const PREFIX = 'versionOverview';
 
@@ -114,21 +115,43 @@ export default function versionOverview() {
     }, [context])
 
     useEffect(() => {
-        if (selectedRetailer && selectedRetailer !== '') {
-            let url = `/api/REMS/versionsData?retailer_id=${selectedRetailer}`;
-            axios.get(url).then((x) => {
-                setRem(x.data.rem);
-                setAgents(x.data.agents.map((agent) => ({
-                    ...agent,
-                    id: agent._id
-                })));
-                setAllAgents(x.data.agents.map((agent) => ({
-                    ...agent,
-                    id: agent._id
-                })));
-            });
+        if (context.selectedRetailerIsTenant !== null) {
+            if (context.selectedRetailerIsTenant === false) {
+                if (selectedRetailer && selectedRetailer !== '') {
+                    let url = `/api/REMS/versionsData?retailer_id=${selectedRetailer}`;
+                    axios.get(url).then((x) => {
+                        setRem(x.data.rem);
+                        setAgents(x.data.agents.map((agent) => ({
+                            ...agent,
+                            id: agent._id
+                        })));
+                        setAllAgents(x.data.agents.map((agent) => ({
+                            ...agent,
+                            id: agent._id
+                        })));
+                    });
+                }
+            } else {
+                if (context.selectedRetailerParentRemsServerId) {
+                    if (selectedRetailer && selectedRetailer !== '') {
+                        let url = `/api/REMS/versionsData?retailer_id=${context.selectedRetailerParentRemsServerId}&tenant_id=${selectedRetailer}`;
+                        axios.get(url).then((x) => {
+                            setRem(x.data.rem);
+                            setAgents(x.data.agents.map((agent) => ({
+                                ...agent,
+                                id: agent._id
+                            })));
+                            setAllAgents(x.data.agents.map((agent) => ({
+                                ...agent,
+                                id: agent._id
+                            })));
+                        });
+                    }
+                }
+            }
         }
-    }, [selectedRetailer]);
+
+    }, [selectedRetailer, context.selectedRetailerParentRemsServerId]);
 
     function CustomToolbar() {
         return (
@@ -208,6 +231,7 @@ export default function versionOverview() {
                     />
                 </Snackbar>
             </TabPanel>
+            <Copyright />
         </Root>
     );
 }

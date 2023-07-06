@@ -127,7 +127,7 @@ export default function DistributionLists() {
                     });
 
                     // gets all agents for the selected retailer
-                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
                         const data = [];
                         res.data.forEach((item) => {
                             // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)

@@ -4,6 +4,7 @@ import React from 'react';
 import Container from '@mui/material/Container';
 import ExtractGrid from '../../components/Tables/ExtractGrid';
 import Typography from '@mui/material/Typography';
+import Copyright from '../../components/Copyright';
 
 const PREFIX = 'checExtracts';
 
@@ -36,6 +37,7 @@ export default function ChecExtracts() {
             <Container maxWidth="xl" className={classes.container}>
                 <ExtractGrid height={400} />
             </Container>
+            <Copyright />
         </Root>
     );
 }

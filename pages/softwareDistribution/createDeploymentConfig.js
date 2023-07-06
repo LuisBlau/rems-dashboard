@@ -85,10 +85,13 @@ export default function CreateDeploymentConfig() {
 
     useEffect(() => {
         if (deploys?.length > 0) {
-
             const localDeploys = structuredClone(deploys)
             const dep = _.find(localDeploys, (d) => {
-                return d.name === selectedDeployConfig && d.retailer_id === (isCommon ? 'common' : context.selectedRetailer);
+                if (context.selectedRetailerIsTenant === false) {
+                    return d.name === selectedDeployConfig && d.retailer_id === (isCommon ? 'common' : context.selectedRetailer);
+                } else {
+                    return d.name === selectedDeployConfig && d.tenant_id === (isCommon ? 'common' : context.selectedRetailer)
+                }
             })
             if (dep) {
                 setConfigId(dep.id);

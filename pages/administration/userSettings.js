@@ -6,6 +6,7 @@ import _ from 'lodash';
 import UserContext from '../UserContext';
 import { Alert, AlertTitle, Button, Snackbar } from '@mui/material';
 import axios from 'axios';
+import Copyright from '../../components/Copyright';
 
 export default function UserSettings() {
     /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
@@ -112,6 +113,7 @@ export default function UserSettings() {
 
 
             </Box>
+            <Copyright />
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={openSuccess}

@@ -13,6 +13,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import _ from 'lodash';
 import UserContext from '../UserContext';
 import { Tabs, Tab } from '@mui/material';
+import Copyright from '../../components/Copyright';
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
 const SuccessToastDuration = 4000;
@@ -161,6 +162,7 @@ export default function RetailerSettings() {
                 <Button onClick={handleSubmit} variant="contained">
                     Submit
                 </Button>
+                <Copyright />
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     open={openSuccess}
@@ -196,6 +198,7 @@ export default function RetailerSettings() {
                     Retailer Configuration
                 </Typography>
                 <Typography sx={{ marginTop: 10 }} variant="h4"> No configurations found, contact an administrator</Typography>
+                <Copyright />
             </Box>
         )
     } else {

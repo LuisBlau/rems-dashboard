@@ -4,6 +4,7 @@ import React from 'react';
 import Container from '@mui/material/Container';
 import DumpGrid from '../../components/Tables/DumpGrid';
 import Typography from '@mui/material/Typography';
+import Copyright from '../../components/Copyright';
 const PREFIX = 'dumps';
 
 const classes = {
@@ -33,6 +34,7 @@ export default function Dumps() {
             <Container maxWidth="xl" className={classes.container}>
                 <DumpGrid height={400} />
             </Container>
+            <Copyright />
         </Root>
     );
 }
