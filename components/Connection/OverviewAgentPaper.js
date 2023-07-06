@@ -257,7 +257,7 @@ function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScr
         justifyContent: 'center',
         alignItems: 'center',
         width: 625,
-        height: 625,
+        height: 640,
         bgcolor: '#ffffff',
         border: '2px solid #000',
         outline: '#7c70b3',

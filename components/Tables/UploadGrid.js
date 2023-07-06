@@ -150,11 +150,11 @@ export default function UploadGrid() {
                         sorting: {
                             sortModel: [{ field: 'timestamp', sort: 'desc' }]
                         },
-                        pagination: { paginationModel: { pageSize: 10 } },
+                        pagination: { paginationModel: { pageSize: 25 } },
                     }}
                     rows={uploadData?.map((item, key) => ({ ...item, id: key }))}
                     columns={columns}
-                    pageSizeOptions={[5, 10, 15]}
+                    pageSizeOptions={[25, 50, 100]}
                     checkboxSelection={false}
                     rowSelection={false}
                 />
