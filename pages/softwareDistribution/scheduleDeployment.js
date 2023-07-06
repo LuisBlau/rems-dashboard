@@ -122,24 +122,51 @@ export default function ScheduleDeployment() {
         if (context.selectedRetailer) {
             setSelectedRetailer(context.selectedRetailer);
         }
-        if (context.selectedRetailer && context.userRetailers?.length > 0) {
-            axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
-                const data = [];
-                const response = _.groupBy(res.data, 'retailer_id');
-                for (const soft of Object.keys(response)) {
-                    const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                    const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
-                    for (const v of response[soft]) {
-                        entry.children.push({
-                            label: v.name,
-                            value: v.id,
-                        });
+        if (context.selectedRetailer && context.userRetailers?.length > 0 && context.selectedRetailerIsTenant !== null) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
+                    const data = [];
+                    const response = _.groupBy(res.data, 'retailer_id');
+                    for (const soft of Object.keys(response)) {
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.id,
+                            });
+                        }
+                        data.push(entry);
                     }
-                    data.push(entry);
-                }
-                setDeployConfigs(res.data);
-                setOptions(data)
-            });
+                    setDeployConfigs(res.data);
+                    setOptions(data)
+                });
+            } else {
+                axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                    const data = [];
+                    const response = _.groupBy(res.data, 'retailer_id');
+                    for (let soft of Object.keys(response)) {
+                        if (soft !== 'common') {
+                            const oldKey = soft
+                            soft = response[soft][0].tenant_id
+                            Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
+                            delete response[oldKey];
+
+                        }
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.id,
+                            });
+                        }
+                        data.push(entry);
+                    }
+                    setDeployConfigs(res.data);
+                    setOptions(data)
+                });
+            }
         }
     }, [context])
 

@@ -113,18 +113,44 @@ export default function CreateDeploymentConfig() {
 
     const handleOptions = response => {
         let data = []
-        if (Object.keys(response).length > 0) {
-            for (const soft of Object.keys(response)) {
-                const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
-                for (const v of response[soft]) {
-                    entry.children.push({
-                        label: v.name,
-                        value: v.name,
-                        type: context.selectedRetailer === soft ? 'retailer' : 'common'
-                    });
+        if (context.selectedRetailerIsTenant !== null) {
+            if (context.selectedRetailerIsTenant === false) {
+                if (Object.keys(response).length > 0) {
+                    for (const soft of Object.keys(response)) {
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.name,
+                                type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                            });
+                        }
+                        data.push(entry);
+                    }
                 }
-                data.push(entry);
+            } else {
+                if (Object.keys(response.length > 0)) {
+                    for (let soft of Object.keys(response)) {
+                        if (soft !== 'common') {
+                            const oldKey = soft
+                            soft = response[soft][0].tenant_id
+                            Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
+                            delete response[oldKey];
+
+                        }
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.name,
+                                type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                            });
+                        }
+                        data.push(entry);
+                    }
+                }
             }
         }
         setOptions(data)
