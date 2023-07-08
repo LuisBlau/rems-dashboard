@@ -144,7 +144,7 @@ export default function UploadGrid() {
 
     if (uploadData.length > 0) {
         return (
-            <Box sx={{ height: 550, width: '100%' }}>
+            <Box sx={{ height: 550, width: '100%', marginTop:2 }}>
                 <DataGrid
                     initialState={{
                         sorting: {

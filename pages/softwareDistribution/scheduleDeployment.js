@@ -129,7 +129,7 @@ export default function ScheduleDeployment() {
                     const response = _.groupBy(res.data, 'retailer_id');
                     for (const soft of Object.keys(response)) {
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,

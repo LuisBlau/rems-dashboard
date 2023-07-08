@@ -121,7 +121,7 @@ export default function CreateDeploymentConfig() {
                 if (Object.keys(response).length > 0) {
                     for (const soft of Object.keys(response)) {
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
@@ -143,7 +143,7 @@ export default function CreateDeploymentConfig() {
 
                         }
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,

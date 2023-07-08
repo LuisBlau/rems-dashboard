@@ -174,7 +174,7 @@ export default function Command(props) {
                         response = _.groupBy(res.data, 'retailer_id');
                         for (const soft of Object.keys(response)) {
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
                                 entry.children.push({
                                     label: v.description,
@@ -193,9 +193,16 @@ export default function Command(props) {
                     axios.get(`/api/REMS/uploads?retailerId=${props.parentRemsServer}&tenantId=${props.selectedRetailer}`).then(function (res) {
                         setConfigs(res.data)
                         response = _.groupBy(res.data, 'retailer_id');
-                        for (const soft of Object.keys(response)) {
+                        for (let soft of Object.keys(response)) {
+                            if (soft !== 'common') {
+                                const oldKey = soft
+                                soft = response[soft][0].tenant_id
+                                Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
+                                delete response[oldKey];
+
+                            }
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
                                 entry.children.push({
                                     label: v.description,
@@ -221,7 +228,7 @@ export default function Command(props) {
                             onChange={(selectedConfig, e) => {
                                 setValue({ ...value, [props.id]: selectedConfig })
                                 const findConfig = configs?.find(item => item._id == selectedConfig);
-                                if (selectedConfig === 'COMMON' || selectedConfig === context?.selectedRetailer) {
+                                if (selectedConfig === 'Common' || selectedConfig === context?.selectedRetailer) {
                                     e.preventDefault();
                                     setArgs({ ...state, arguments: '' });
                                     setProp(props.id, { ...state, arguments: '' });

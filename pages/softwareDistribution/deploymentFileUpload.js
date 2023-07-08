@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import { FormControl, InputLabel, Stack } from '@mui/material';
+import { FormControl, Grid, InputLabel, Stack } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
 import MenuItem from '@mui/material/MenuItem';
@@ -18,6 +18,7 @@ import ProgressIndicator from '../../components/ProgressIndicator';
 import Copyright from '../../components/Copyright';
 import { useContext } from 'react';
 import UserContext from '../UserContext';
+import { width } from '@mui/system';
 
 const PREFIX = 'deploymentFileUpload';
 const classes = {
@@ -64,8 +65,11 @@ export default function DeploymentFileUpload() {
         if (progress === 100) {
             setUploadSuccess(true);
             setUploading(false);
-            alert('Upload successful and will be visible once the server has processed it.  Page will now refresh...');
-            window.location.reload(false);
+            setTimeout(() => {
+                alert('Upload successful and will be visible once the server has processed it.  Page will now refresh...');
+                window.location.reload(false);
+            }, 1000);
+
         }
     }, [progress]);
 
@@ -150,63 +154,82 @@ export default function DeploymentFileUpload() {
     return (
         <Root className={classes.content}>
             <Container maxWidth="lg" className={classes.container}>
-                <Typography marginLeft={34} variant="h3">
+                <Typography marginLeft={50} marginBottom={3} variant="h3">
                     Upload a File
                 </Typography>
-                <Stack direction="row" spacing={1} marginTop={2} marginBottom={2}>
-                    <Box>
-                        <label htmlFor="contained-button-file">
-                            <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+                <Grid container spacing={1} sx={{ marginBottom: 1 }}>
+                    <Grid item xs={2}>
+                        <Box sx={{ width: '100%', height: '100%' }}>
+                            <label htmlFor="contained-button-file">
+                                <Input accept="*" id="contained-button-file" multiple type="file" onChange={onFileChange} />
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    component="span"
+                                    endIcon={<FindInPageIcon />}
+                                    size="large"
+                                    sx={{ width: '100%', height: '100%' }}
+                                // sx={{ width: 175, height: '100%', marginRight: 0.5 }}
+                                >
+                                    Choose File
+                                </Button>
+                            </label>
+                        </Box>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <TextField disabled label="File Name" value={fileName}
+                            sx={{ width: '100%' }}
+                        />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <TextField
+                            label="Description"
+                            value={description}
+                            sx={{ width: '100%' }}
+                            onChange={updateDescription}
+                        // sx={{ width: 275 }}
+                        />
+                    </Grid>
+                    <Grid item xs={3}>
+                        {context?.userRoles?.includes('toshibaAdmin') &&
+                            <FormControl sx={{ width: '100%' }}>
+                                <InputLabel id="select-file-type-label">Upload Type</InputLabel>
+                                <Select
+                                    id="fileType"
+                                    value={fileType}
+                                    labelId='select-file-type-label'
+                                    label="Upload Type  -"
+                                    onChange={(e) => setFileType(e.target.value)}
+                                    sx={{ width: '100%', fontFamily: 'Arial', fontSize: '12px ', fontWeight: 200 }}
+                                >
+                                    <MenuItem value={'RETAILER'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS RETAILER DEPLOYMENT</MenuItem>
+                                    <MenuItem value={'COMMON'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS COMMON DEPLOYMENT</MenuItem>
+                                </Select>
+                            </FormControl>
+                        }
+                    </Grid>
+                    <Grid item xs={2}>
+                        <div style={{ display: 'flex', height: '100%', width: '100%', justifyContent: 'space-between' }}>
                             <Button
                                 variant="contained"
-                                color="secondary"
-                                component="span"
-                                endIcon={<FindInPageIcon />}
-                                sx={{ width: 175, height: '100%', marginRight: 0.5 }}
+                                color="primary"
+                                disabled={description === '' || selectedFile == null || uploading}
+                                onClick={onFileUpload}
+                                endIcon={<CloudUploadIcon />}
+                                size="large"
+                                style={{ width: '90%' }}
+                                sx={
+                                    uploadSuccess
+                                        ? { bgcolor: green[500], '&:hover': { bgcolor: green[700] } }
+                                        : {}
+                                }
                             >
-                                Choose File
+                                Upload
                             </Button>
-                        </label>
-                        <TextField disabled label="File Name" value={fileName} />
-                    </Box>
-                    <TextField
-                        label="Description"
-                        value={description}
-                        onChange={updateDescription}
-                        sx={{ width: 275 }}
-                    />
-                    {context?.userRoles?.includes('toshibaAdmin') &&
-                        <FormControl>
-                            <InputLabel id="select-file-type-label">Upload Type</InputLabel>
-                            <Select
-                                id="fileType"
-                                value={fileType}
-                                labelId='select-file-type-label'
-                                label="Upload Type  -"
-                                onChange={(e) => setFileType(e.target.value)}
-                                sx={{ width: 300, fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}
-                            >
-                                <MenuItem value={'RETAILER'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS RETAILER DEPLOYMENT</MenuItem>
-                                <MenuItem value={'COMMON'} style={{ fontFamily: 'Arial', fontSize: '12px', fontWeight: 200 }}>UPLOAD AS COMMON DEPLOYMENT</MenuItem>
-                            </Select>
-                        </FormControl>
-                    }
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        disabled={description === '' || selectedFile == null || uploading}
-                        onClick={onFileUpload}
-                        endIcon={<CloudUploadIcon />}
-                        sx={
-                            uploadSuccess
-                                ? { width: 175, bgcolor: green[500], '&:hover': { bgcolor: green[700] } }
-                                : { width: 175 }
-                        }
-                    >
-                        Upload
-                    </Button>
-                    <ProgressIndicator progress={progress} inProgress={uploading} />
-                </Stack>
+                            <ProgressIndicator progress={progress} inProgress={uploading} />
+                        </div>
+                    </Grid>
+                </Grid>
                 <UploadGrid selectedRetailer={context?.selectedRetailer} />
                 <Box pt={4}>
                     <Copyright />
