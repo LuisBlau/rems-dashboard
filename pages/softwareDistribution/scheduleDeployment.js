@@ -137,7 +137,7 @@ export default function ScheduleDeployment() {
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
-                                value: v.id,
+                                value: v.uuid,
                             });
                         }
                         data.push(entry);
@@ -191,7 +191,7 @@ export default function ScheduleDeployment() {
                         const uploads = [];
                         res.data.forEach((upload) => {
                             uploads.push({
-                                fileId: upload.id,
+                                fileId: upload.uuid,
                                 fileName: upload.filename,
                                 description: upload.description,
                                 packages: upload.packages,
@@ -419,9 +419,9 @@ export default function ScheduleDeployment() {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        let config = deployConfigs.find((x) => x.id === selectedDeployConfig);
+        let config = deployConfigs.find((x) => x.uuid === selectedDeployConfig);
         formValues.name = config.name;
-        formValues.id = config.id;
+        formValues.id = config.uuid;
         formValues.retailerId = config.retailer_id;
         formValues.variables = variables;
         if (context.selectedRetailerIsTenant === true) {
@@ -470,7 +470,7 @@ export default function ScheduleDeployment() {
             // traverse the 'steps' array
             // retrieve any that have 'upload'
             // get file name from there
-            const selectedConfigDetailSteps = deployConfigs.find((x) => x.id === selectedConfig)?.steps ?? [];
+            const selectedConfigDetailSteps = deployConfigs.find((x) => x.uuid === selectedConfig)?.steps ?? [];
             const newSelectedUploadedFiles = [];
             let newVars = {}
             selectedConfigDetailSteps.forEach((step) => {

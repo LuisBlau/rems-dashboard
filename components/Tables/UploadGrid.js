@@ -89,7 +89,7 @@ export default function UploadGrid() {
             renderCell: (params) => (
                 <Switch
                     onChange={(e) => {
-                        changeArchiveStatus(e, params.row._id);
+                        changeArchiveStatus(e, params.row?.uuid);
                     }}
                     checked={params.value == "true" ? true : false}
                     disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
@@ -124,14 +124,14 @@ export default function UploadGrid() {
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     const changeArchiveStatus = (e, id) => {
-        axios.get('/api/REMS/setArchive?id=' + id.toString() + '&archived=' + (e.target.checked).toString())
+        axios.get('/api/REMS/setArchive?uuid=' + id + '&archived=' + (e.target.checked).toString())
             .then((response) => {
                 if (response.status !== 200) {
                     setToastFailure('Error changing archive info!');
                     setOpenFailure(true);
                     return;
                 }
-                fetchUploadData()
+                fetchUploadData();
                 setToastSuccess('Archive Info Successfully Saved.');
                 setOpenSuccess(true);
             })
@@ -141,7 +141,6 @@ export default function UploadGrid() {
                 setOpenFailure(true);
             });
     };
-
     if (uploadData.length > 0) {
         return (
             <Box sx={{ height: 550, width: '100%', marginTop:2 }}>
