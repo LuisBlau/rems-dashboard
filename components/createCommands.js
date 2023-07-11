@@ -174,12 +174,12 @@ export default function Command(props) {
                         response = _.groupBy(res.data, 'retailer_id');
                         for (const soft of Object.keys(response)) {
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft?.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
                                 entry.children.push({
                                     label: v.description,
                                     value: v._id,
-                                    type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                                    type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
                                 });
                             }
                             data.push(entry);
@@ -194,7 +194,7 @@ export default function Command(props) {
                         setConfigs(res.data)
                         response = _.groupBy(res.data, 'retailer_id');
                         for (let soft of Object.keys(response)) {
-                            if (soft !== 'common') {
+                            if (soft.toLowerCase() !== 'common') {
                                 const oldKey = soft
                                 soft = response[soft][0].tenant_id
                                 Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
@@ -202,12 +202,12 @@ export default function Command(props) {
 
                             }
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                            const entry = { children: [], label: (findRetailer ? findRetailer.description : soft?.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
                                 entry.children.push({
                                     label: v.description,
                                     value: v._id,
-                                    type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                                    type: context.selectedRetailer === soft?.toLowerCase() ? 'retailer' : 'common'
                                 });
                             }
                             data.push(entry);
@@ -228,8 +228,9 @@ export default function Command(props) {
                             onChange={(selectedConfig, e) => {
                                 setValue({ ...value, [props.id]: selectedConfig })
                                 const findConfig = configs?.find(item => item._id == selectedConfig);
-                                if (selectedConfig === 'Common' || selectedConfig === context?.selectedRetailer) {
+                                if (selectedConfig?.toLowerCase() === 'common' || selectedConfig?.toLowerCase() === context?.selectedRetailer?.toLowerCase()) {
                                     e.preventDefault();
+                                    setValue({ [props.id] : null })
                                     setArgs({ ...state, arguments: '' });
                                     setProp(props.id, { ...state, arguments: '' });
                                     return;

@@ -128,8 +128,12 @@ export default function ScheduleDeployment() {
                     const data = [];
                     const response = _.groupBy(res.data, 'retailer_id');
                     for (const soft of Object.keys(response)) {
+                        if (soft.toLowerCase() === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
+
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
@@ -146,15 +150,19 @@ export default function ScheduleDeployment() {
                     const data = [];
                     const response = _.groupBy(res.data, 'retailer_id');
                     for (let soft of Object.keys(response)) {
-                        if (soft !== 'common') {
+                        if (soft.toLowerCase() === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
+
+                        if (soft.toLowerCase() !== 'common') {
                             const oldKey = soft
                             soft = response[soft][0].tenant_id
                             Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
                             delete response[oldKey];
-
                         }
+
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
@@ -177,31 +185,60 @@ export default function ScheduleDeployment() {
             // this won't be performant when we have a large number of uploads
             // we should do this later in the workflow, once a deploy-config is
             // selected, and filter the request
-            axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
-                const uploads = [];
-                res.data.forEach((upload) => {
-                    uploads.push({
-                        fileId: upload.id,
-                        fileName: upload.filename,
-                        description: upload.description,
-                        packages: upload.packages,
+            if (context.selectedRetailerIsTenant !== null) {
+                if (context.selectedRetailerIsTenant === false) {
+                    axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
+                        const uploads = [];
+                        res.data.forEach((upload) => {
+                            uploads.push({
+                                fileId: upload.id,
+                                fileName: upload.filename,
+                                description: upload.description,
+                                packages: upload.packages,
+                            });
+                        });
+                        setAllUploads(uploads);
                     });
-                });
-                setAllUploads(uploads);
-            });
 
-            axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
-                const sNames = [];
-                const stores = [];
-                resp.data.forEach((v) => {
-                    stores.push(v);
-                    sNames.push(v.list_name);
-                });
-                setAllStoresDetails(stores);
-                setStoreNames(sNames);
-            });
+                    axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
+                        const sNames = [];
+                        const stores = [];
+                        resp.data.forEach((v) => {
+                            stores.push(v);
+                            sNames.push(v.list_name);
+                        });
+                        setAllStoresDetails(stores);
+                        setStoreNames(sNames);
+                    });
+                } else {
+                    axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                        const uploads = [];
+                        res.data.forEach((upload) => {
+                            uploads.push({
+                                fileId: upload.id,
+                                fileName: upload.filename,
+                                description: upload.description,
+                                packages: upload.packages,
+                            });
+                        });
+                        setAllUploads(uploads);
+                    });
+
+                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then((resp) => {
+                        const sNames = [];
+                        const stores = [];
+                        resp.data.forEach((v) => {
+                            stores.push(v);
+                            sNames.push(v.list_name);
+                        });
+                        setAllStoresDetails(stores);
+                        setStoreNames(sNames);
+                    });
+                }
+            }
+
         }
-    }, [selectedRetailer]);
+    }, [selectedRetailer, context.selectedRetailerIsTenant, context.selectedRetailerParentRemsServerId]);
 
     function getUsefulInformation(agents, useful) {
         const arr = [];
@@ -288,17 +325,33 @@ export default function ScheduleDeployment() {
         );
         const usefulInformation = [];
         // gets useful agent/store info for the selected retailer
-        await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
-            res.data.forEach((element) => {
-                usefulInformation.push({
-                    storeAgentCombo: element.storeName + ':' + element.agentName,
-                    versions: element.versions,
-                    isMaster: element.is_master,
-                    store: element.storeName,
-                    agent: element.agentName,
+        if (context.selectedRetailerIsTenant === false) {
+            await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
+                res.data.forEach((element) => {
+                    usefulInformation.push({
+                        storeAgentCombo: element.storeName + ':' + element.agentName,
+                        versions: element.versions,
+                        isMaster: element.is_master,
+                        store: element.storeName,
+                        agent: element.agentName,
+                    });
                 });
             });
-        });
+        } else {
+            await axios.get('/api/REMS/agents?retailer=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + selectedRetailer).then(function (res) {
+                res.data.forEach((element) => {
+                    usefulInformation.push({
+                        storeAgentCombo: element.storeName + ':' + element.agentName,
+                        versions: element.versions,
+                        isMaster: element.is_master,
+                        store: element.storeName,
+                        agent: element.agentName,
+                    });
+                });
+            });
+        }
+        console.log(value)
+
         if (value.length === 1) {
             // I want to store all the stores/agents in the distribution list
             // in the store list :)
@@ -313,7 +366,9 @@ export default function ScheduleDeployment() {
             // set store list to storeAgentCombo
             let newStoreList = '';
             newAgentVersions.forEach((agent) => {
+                console.log(agent)
                 if (agent) {
+                    console.log(newStoreList)
                     if (!newStoreList.includes(agent.storeAgentCombo)) {
                         if (newStoreList.length > 0 && newStoreList.charAt(newStoreList.length - 2) !== ',') {
                             newStoreList += ', ';

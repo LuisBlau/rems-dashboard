@@ -6,6 +6,8 @@ import UserContext from '../../pages/UserContext';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import RequestLinkButton from '../Buttons/RequestLinkButton';
+import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 const PREFIX = 'CaptureGrid';
 
 const classes = {
@@ -25,6 +27,7 @@ const Root = styled('div')(({ theme }) => ({
         paddingBottom: theme.spacing(4),
     },
 }));
+
 
 export default function CaptureGrid() {
     const context = useContext(UserContext)
@@ -97,22 +100,24 @@ export default function CaptureGrid() {
         {
             field: 'SBreqLink',
             headerName: 'Request from Store',
+            headerAlign: 'center',
             flex: 1,
-            renderCell: (params) => (
-                <a href={'javascript:fetch("' + params.value + '")'}>Request File</a>
-            ),
+            renderCell: (params) => {
+                return (
+                    <RequestLinkButton link={params.value} />
+                )
+            },
         },
         {
             field: 'Download',
             headerName: 'Pushed to Cloud',
+            headerAlign: 'center',
             flex: 1,
             renderCell: (params) => {
-                if (params.value !== undefined) {
-                    return (
-                        <a href={params.value}> Download</a >
-                    )
-                }
-            },
+                return (
+                    params.value !== undefined && <DownloadAzureFileButton link={params.value} />
+                )
+            }
         }
     ];
 
@@ -130,7 +135,6 @@ export default function CaptureGrid() {
                 pageSizeOptions={[5, 10, 15]}
                 checkboxSelection={false}
                 disableSelectionOnClick
-                autoHeight
             />
         </Box>
     );

@@ -6,6 +6,8 @@ import { useContext } from 'react';
 import UserContext from '../../pages/UserContext';
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
+import RequestLinkButton from '../Buttons/RequestLinkButton';
 const PREFIX = 'ExtractGrid';
 
 const classes = {
@@ -25,15 +27,6 @@ const Root = styled('div')(({ theme }) => ({
         paddingBottom: theme.spacing(4),
     },
 }));
-
-const azureRenderer = function (params) {
-    return <a href={'javascript:fetch("' + params.value + '")'}>Request File</a>;
-};
-
-const linkRenderer = function (params) {
-    if (params.value === undefined) return '';
-    return <a href={params.value}>Download</a>;
-};
 
 export default function ExtractGrid({ store, height }) {
     const [storeExtracts, setStoreExtracts] = useState([]);
@@ -62,7 +55,6 @@ export default function ExtractGrid({ store, height }) {
                         axios.get('/api/registers/extracts?retailerId=' + context.selectedRetailer).then(function (res) {
                             const extracts = res.data.map((v, index) => {
                                 return { ...v, id: index }
-
                             });
                             setStoreExtracts(extracts);
                         });
@@ -94,16 +86,33 @@ export default function ExtractGrid({ store, height }) {
         {
             field: 'SBreqLink',
             headerName: 'Azure',
+            headerAlign: 'center',
             sortable: true,
             filter: true,
             flex: 1,
-            renderCell: azureRenderer
+            renderCell: (params) => {
+                return (
+                    <RequestLinkButton link={params.value} />
+                )
+            }
         },
-        { field: 'Download', headerName: 'Download', sortable: true, filter: true, flex: 1, renderCell: linkRenderer },
+        {
+            field: 'Download',
+            headerName: 'Download',
+            headerAlign: 'center',
+            sortable: true,
+            filter: true,
+            flex: 1,
+            renderCell: (params) => {
+                return (
+                    <DownloadAzureFileButton link={params.value} />
+                )
+            }
+        },
     ];
 
     return (
-        <Box sx={{ height: '80vh', width: '100%' }}>
+        <Box sx={{ height: height, width: '100%' }}>
             <DataGrid
                 columns={columns}
                 rows={storeExtracts}
@@ -115,7 +124,6 @@ export default function ExtractGrid({ store, height }) {
                 }}
                 pageSizeOptions={[5, 10, 15]}
                 disableSelectionOnClick
-                autoHeight
             />
         </Box>
     );

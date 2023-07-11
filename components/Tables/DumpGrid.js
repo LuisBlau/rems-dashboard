@@ -4,13 +4,14 @@ import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import UserContext from '../../pages/UserContext';
 import { Box } from '@mui/material';
-
-
+import RequestLinkButton from '../Buttons/RequestLinkButton';
+import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 
 export default function DumpGrid({ store, height }) {
     const [storeDumps, setStoreDumps] = useState([]);
     const [loading, setLoading] = useState(true)
     const context = useContext(UserContext)
+
     useEffect(() => {
         if (context) {
             if (store) {
@@ -92,18 +93,29 @@ export default function DumpGrid({ store, height }) {
                 field: "SBreqLink",
                 headerName: "Azure",
                 flex: 2,
-                renderCell: (params) => (<a href={'javascript:fetch("' + params.value + '")'}>Request File</a>)
+                headerAlign: 'center',
+                renderCell: (params) => {
+                    return (
+                        <RequestLinkButton link={params.value} />
+                    )
+                }
             },
             {
                 field: "Download",
+                headerName: "Download",
+                headerAlign: 'center',
                 flex: 2,
                 sortable: true,
-                renderCell: (params) => (params.value ? <a href={params.value}>Download</a> : '')
+                renderCell: (params) => {
+                    return (
+                        <DownloadAzureFileButton link={params.value} />
+                    )
+                }
             }
         ];
 
         return (
-            <Box sx={{ height: '80vh', width: '100%' }}>
+            <Box sx={{ height: '100%', width: '100%' }}>
 
                 <DataGrid
                     rows={storeDumps}
@@ -117,9 +129,10 @@ export default function DumpGrid({ store, height }) {
                     pageSizeOptions={[5, 10, 15]}
                     checkboxSelection={false}
                     disableSelectionOnClick
-                    autoHeight
+                    sx={{ height: height }}
                 />
             </Box>
+
         );
     }
 }

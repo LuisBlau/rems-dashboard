@@ -35,7 +35,7 @@ export default function ChecExtracts() {
                 CHEC Extracts
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
-                <ExtractGrid height={400} />
+                <ExtractGrid height={'80vh'} />
             </Container>
             <Copyright />
         </Root>

@@ -40,6 +40,7 @@ export default function DataCapture() {
     const [toastSuccess, setToastSuccess] = useState('');
     const [openFailure, setOpenFailure] = useState(false);
     const [toastFailure, setToastFailure] = useState('');
+    const [remsDataCaptureEnabled, setRemsDataCaptureEnabled] = useState(false)
 
     const processSuccessfulResponse = function (res, type) {
         if (res.status !== 200) {
@@ -67,12 +68,18 @@ export default function DataCapture() {
         }
     }, [context])
 
+    useEffect(() => {
+        if (selectedRetailerIsNotTenant === true || _.includes(context.userRoles, 'toshibaAdmin')) {
+            setRemsDataCaptureEnabled(true)
+        }
+    }, [selectedRetailerIsNotTenant, context.userRoles])
+
     return (
         <Root className={classes.content}>
             <Typography align="center" variant="h3">
                 Trigger Data Capture
             </Typography>
-            {selectedRetailerIsNotTenant && <Button
+            {remsDataCaptureEnabled && <Button
                 style={{ float: 'right', marginRight: 10, padding: 10 }}
                 variant="contained"
                 onClick={() => {

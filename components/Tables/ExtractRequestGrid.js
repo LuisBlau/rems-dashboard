@@ -8,6 +8,7 @@ import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
 import { DataGrid } from '@mui/x-data-grid';
+import { Box } from '@mui/material';
 
 const PREFIX = 'DumpGrid';
 
@@ -129,14 +130,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'SkyLogs';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -154,14 +166,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'RMA';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -178,14 +201,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'EleraClient';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -202,14 +236,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'EleraServices';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -226,14 +271,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'Chec';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -251,14 +307,25 @@ export default function ExtractRequestGrid(props) {
                     variant="contained"
                     onClick={() => {
                         params.row.dataCapture = 'ChecInstall';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.row.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.row.dataCapture);
-                            });
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -270,7 +337,7 @@ export default function ExtractRequestGrid(props) {
     };
 
     return (
-        <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
+        <Box sx={{ height: '80vh', width: '100%' }}>
             <DataGrid
                 rows={agentsList}
                 columns={[
@@ -319,7 +386,6 @@ export default function ExtractRequestGrid(props) {
                 pageSizeOptions={[5, 10, 15]}
                 checkboxSelection={false}
                 disableSelectionOnClick
-                autoHeight
                 onGridReady={sortGrid}
             />
 
@@ -351,6 +417,6 @@ export default function ExtractRequestGrid(props) {
                     {toastFailure}
                 </Alert>
             </Snackbar>
-        </div>
+        </Box>
     );
 }

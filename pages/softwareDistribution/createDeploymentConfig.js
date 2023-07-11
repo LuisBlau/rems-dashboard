@@ -23,6 +23,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useContext } from 'react';
 import { Controller, useForm } from "react-hook-form";
+import { Checkbox, FormControlLabel } from '@mui/material';
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
 const successToastDuration = 4000;
@@ -62,6 +63,7 @@ export default function CreateDeploymentConfig() {
     const [selectedDeployConfig, setSelectedDeployConfig] = useState(null);
     const [isCommon, setIsCommon] = useState(false);
     const [retailerType, setRetailerType] = useState('');
+    const [forProdChecked, setForProdChecked] = useState(false)
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm({
         mode: 'all'
@@ -71,13 +73,33 @@ export default function CreateDeploymentConfig() {
         if (context.selectedRetailer) {
             if (!context.selectedRetailerIsTenant) {
                 axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
-                    handleOptions(_.groupBy(res.data, 'retailer_id'));
-                    setDeploys(res.data);
+                    let deploys = []
+                    res.data.forEach(element => {
+                        if (element.retailer !== 'common') {
+                            deploys.push(element)
+                        } else {
+                            if (element.forProd !== undefined && element.forProd === true) {
+                                deploys.push(element)
+                            }
+                        }
+                    });
+                    handleOptions(_.groupBy(deploys, 'retailer_id'));
+                    setDeploys(deploys);
                 });
             } else if (context.selectedRetailerParentRemsServerId) {
                 axios.get(`/api/REMS/deploy-configs?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
-                    handleOptions(_.groupBy(res.data, 'retailer_id'));
-                    setDeploys(res.data);
+                    let deploys = []
+                    res.data.forEach(element => {
+                        if (element.retailer !== 'common') {
+                            deploys.push(element)
+                        } else {
+                            if (element.forProd !== undefined && element.forProd === true) {
+                                deploys.push(element)
+                            }
+                        }
+                    });
+                    handleOptions(_.groupBy(deploys, 'retailer_id'));
+                    setDeploys(deploys);
                 });
             }
         }
@@ -87,7 +109,7 @@ export default function CreateDeploymentConfig() {
         if (deploys?.length > 0) {
             const localDeploys = structuredClone(deploys)
             const dep = _.find(localDeploys, (d) => {
-                if (context.selectedRetailerIsTenant === false) {
+                if (context.selectedRetailerIsTenant === false || isCommon === true) {
                     return d.name === selectedDeployConfig && d.retailer_id === (isCommon ? 'common' : context.selectedRetailer);
                 } else {
                     return d.name === selectedDeployConfig && d.tenant_id === (isCommon ? 'common' : context.selectedRetailer)
@@ -107,6 +129,9 @@ export default function CreateDeploymentConfig() {
                 for (const v of steps) {
                     stepsobj[v.id] = v;
                 }
+                if (dep.forProd !== null) {
+                    setForProdChecked(dep.forProd)
+                }
                 setValue('configName', selectedDeployConfig);
                 setCommands(stepsobj);
             }
@@ -120,6 +145,9 @@ export default function CreateDeploymentConfig() {
             if (context.selectedRetailerIsTenant === false) {
                 if (Object.keys(response).length > 0) {
                     for (const soft of Object.keys(response)) {
+                        if (soft === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
                         const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
@@ -135,6 +163,9 @@ export default function CreateDeploymentConfig() {
             } else {
                 if (Object.keys(response.length > 0)) {
                     for (let soft of Object.keys(response)) {
+                        if (soft === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
                         if (soft !== 'common') {
                             const oldKey = soft
                             soft = response[soft][0].tenant_id
@@ -143,12 +174,12 @@ export default function CreateDeploymentConfig() {
 
                         }
                         const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft?.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
                                 value: v.name,
-                                type: context.selectedRetailer === soft ? 'retailer' : 'common'
+                                type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
                             });
                         }
                         data.push(entry);
@@ -210,13 +241,22 @@ export default function CreateDeploymentConfig() {
             commandList.push(y);
         }
 
-        const commandObj = {
-            name: data.configName,
-            steps: commandList,
-        };
+        let commandObj
+        if (retailerType === 'common') {
+            commandObj = {
+                name: data.configName,
+                steps: commandList,
+                forProd: forProdChecked
+            }
+        } else {
+            commandObj = {
+                name: data.configName,
+                steps: commandList,
+            };
+        }
 
         let varString = `retailerId=${retailerType}`
-        if (context.selectedRetailerIsTenant === true) {
+        if (context.selectedRetailerIsTenant === true && retailerType !== 'common') {
             varString = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerType}`
         }
 
@@ -282,11 +322,17 @@ export default function CreateDeploymentConfig() {
         }
         setSelectedDeployConfig(selectedValue)
         setCommands({})
-        setValue('configName', '');
+        setValue('configName', selectedValue);
     };
 
+    const handleForProdChanged = (e, val) => {
+        setForProdChecked(val)
+    }
+
     const onSelectDeploy = i => {
-        setIsCommon(i.type === 'common')
+        if (i.type !== undefined) {
+            setIsCommon(i.type.toLowerCase() === 'common')
+        }
     }
 
     return (
@@ -376,16 +422,25 @@ export default function CreateDeploymentConfig() {
                         Save Deployment Configuration
                     </Button>
                     {context?.userRoles?.includes('toshibaAdmin') && (
-                        <Button
-                            type='submit'
-                            variant="contained"
-                            color="primary"
-                            sx={{ marginTop: 1, marginLeft: '16%', width: '50%' }}
-                            endIcon={<SaveIcon />}
-                            onClick={e => setRetailerType('common')}
-                        >
-                            Save Common Deployment Configuration
-                        </Button>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: '16%' }}>
+                            <FormControlLabel sx={{ marginLeft: '20%' }} control={
+                                <Checkbox
+                                    checked={forProdChecked}
+                                    onChange={handleForProdChanged} />
+                            }
+                                label="FOR PRODUCTION" />
+                            <Button
+                                type='submit'
+                                variant="contained"
+                                color="primary"
+                                sx={{ marginTop: 1, width: '60%' }}
+                                endIcon={<SaveIcon />}
+                                onClick={e => setRetailerType('common')}
+                            >
+                                Save Common Deployment Configuration
+                            </Button>
+                        </Box>
+
                     )}
                 </form>
                 <Box pt={4}>

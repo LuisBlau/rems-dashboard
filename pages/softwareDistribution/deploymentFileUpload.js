@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import { FormControl, Grid, InputLabel, Stack } from '@mui/material';
+import { FormControl, Grid, InputLabel } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
 import MenuItem from '@mui/material/MenuItem';
@@ -18,7 +18,6 @@ import ProgressIndicator from '../../components/ProgressIndicator';
 import Copyright from '../../components/Copyright';
 import { useContext } from 'react';
 import UserContext from '../UserContext';
-import { width } from '@mui/system';
 
 const PREFIX = 'deploymentFileUpload';
 const classes = {
@@ -115,6 +114,8 @@ export default function DeploymentFileUpload() {
                     // }
                 });
         } else if (!uploading && retailerId && context.selectedRetailerParentRemsServerId) {
+            const retailerIdServer = fileType === 'RETAILER' ? context.selectedRetailerParentRemsServerId : fileType;
+
             setUploading(true);
             // Create an object of formData
             const formData = new FormData();
@@ -123,7 +124,7 @@ export default function DeploymentFileUpload() {
             formData.append('file', selectedFile);
             formData.append('description', description);
             // Send formData object
-            axios.post(`/api/REMS/uploadfile?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${retailerId}`, formData, {
+            axios.post(`/api/REMS/uploadfile?retailerId=${retailerIdServer}&tenantId=${context.selectedRetailer}`, formData, {
                 onUploadProgress: function (e) {
                     const totalLength = e.lengthComputable
                         ? e.total

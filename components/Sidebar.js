@@ -340,7 +340,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                     },
                                     {
                                         id: 'extracts',
-                                        name: 'Chec Extracts',
+                                        name: 'CHEC Extracts',
                                         route: '/diagnostics/checExtracts',
                                         enabled: pasSubscriptionTier === 'advanced'
                                     },

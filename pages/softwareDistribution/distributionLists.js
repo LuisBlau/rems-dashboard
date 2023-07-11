@@ -449,11 +449,12 @@ export default function DistributionLists() {
                     agentsText += ', ' + agent.agent.agentName;
                 }
             });
+            agentsText += ' copied!'
             navigator.clipboard.writeText(agentsText);
         }
 
         setToast(agentsText);
-        if (agentsText !== 'No Agents Selected!!') {
+        if (agentsText === 'No Agents Selected!!') {
             setOpenErrorSnack(true)
         } else {
             setOpen(true);

@@ -294,6 +294,7 @@ function ScreenCaptureDisplay({ agentData, refreshInterval, width, height }) {
     };
     const screenCaptureCommand = {
         Retailer: agentData.retailer_id,
+        Tenant: agentData.tenant_id,
         Store: agentData.storeName,
         Agent: agentData.agentName,
         Command: 'ScreenCapture',
@@ -503,7 +504,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
     const handleRmqModalOpen = () => setRmqModalOpen(true);
     const handleRmqModalClose = () => setRmqModalOpen(false);
 
-    const jsonCommand = { Retailer: data.retailer_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' };
+    const jsonCommand = { Retailer: data.retailer_id, Tenant: data.tenant_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' };
     const reload_link =
         'javascript:fetch("/api/registers/commands/' +
         btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/sg', '')))) +
