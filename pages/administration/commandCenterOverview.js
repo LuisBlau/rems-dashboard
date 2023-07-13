@@ -273,7 +273,7 @@ export default function CommandCenterOverview() {
                     }
                     if (localContinents.findIndex((x) => x.name === store.continent) === -1) {
                         localContinents.push({
-                            id: `${store.continent}`,
+                            id: `continent-${store.continent}`,
                             name: `${store.continent}`,
                             display: `${store.continent}`,
                             type: 'Continent',
@@ -290,8 +290,8 @@ export default function CommandCenterOverview() {
                             str: `${store.continent} ${store.country}`
                         });
                     }
-                    if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
-                        if (store.tenant_id === undefined) {
+                    if (store.tenant_id === undefined) {
+                        if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
                             localRetailers.push({
                                 id: `${store.retailer_id}`,
                                 type: 'Retailer',
@@ -302,10 +302,12 @@ export default function CommandCenterOverview() {
                                 str: `${store.continent} ${store.country}`
                             });
                         }
-                        else {
+                    } else {
+                        if (localRetailers.findIndex((x) => x.id === store.tenant_id) === -1) {
                             localRetailers.push({
                                 id: `${store.tenant_id}`,
                                 type: 'Retailer',
+                                subtype: 'Tenant',
                                 name: '',
                                 display: '',
                                 continent: `${store.continent}`,
@@ -373,24 +375,28 @@ export default function CommandCenterOverview() {
                 let detail;
                 if (filter.type === 'Retailer' && filter.name === '') {
                     detail = allRetailers.find((x) => x.retailer_id === filter.id);
-                    filter.name = detail.description;
-                    filter.display = `${filter.name}${filter.display}`;
-                    filter.str = `${filter.str} ${filter.name}`;
-                    if (detail?.configuration?.isB2B === 'true') {
-                        filter.isB2B = true;
-                    } else {
-                        filter.isB2B = false;
+                    if (detail !== undefined) {
+                        filter.name = detail.description;
+                        filter.display = `${filter.name}${filter.display}`;
+                        filter.str = `${filter.str} ${filter.name}`;
+                        if (detail?.configuration?.isB2B === 'true') {
+                            filter.isB2B = true;
+                        } else {
+                            filter.isB2B = false;
+                        }
+                        filter.tier = detail?.configuration?.pas_subscription_tier;
                     }
-                    filter.tier = detail?.configuration?.pas_subscription_tier;
                 } else if (filter.type === 'Store') {
                     detail = allRetailers.find((x) => x.retailer_id === filter.retailer);
-                    filter.str = `${filter.str} ${detail.description} ${filter.name}`;
-                    if (detail?.configuration?.isB2B === 'true') {
-                        filter.isB2B = true;
-                    } else {
-                        filter.isB2B = false;
+                    if (detail !== undefined) {
+                        filter.str = `${filter.str} ${detail.description} ${filter.name}`;
+                        if (detail?.configuration?.isB2B === 'true') {
+                            filter.isB2B = true;
+                        } else {
+                            filter.isB2B = false;
+                        }
+                        filter.tier = detail?.configuration?.pas_subscription_tier;
                     }
-                    filter.tier = detail?.configuration?.pas_subscription_tier;
                 }
             });
         }
@@ -413,7 +419,7 @@ export default function CommandCenterOverview() {
         } else {
             applyAllPreviouslyAppliedFilters();
         }
-    }, [showOnlyDownStores, places]);
+    }, [showOnlyDownStores]);
 
     useEffect(() => {
         if (selectedContinent !== null && selectedCountry !== null && selectedFilterRetailer !== null) {
@@ -528,7 +534,7 @@ export default function CommandCenterOverview() {
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.type !== 'Country' && x.country === selectedCountry.id);
         }
         if (selectedFilterRetailer) {
-            filteredPlaces = filteredPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
+            filteredPlaces = filteredPlaces.filter((x) => (x?.retailer_id === selectedFilterRetailer.id || x?.tenant_id === selectedFilterRetailer.id));
 
             if (selectedCountry) {
                 tempFiltersFiltered = allFilters.filter((x) => (x.type === 'Store' && x.retailer === selectedFilterRetailer.id));
@@ -552,7 +558,7 @@ export default function CommandCenterOverview() {
     useEffect(() => {
         if (places.length > 0 && allPlaces.length > 0 && allRetailers.length > 0) {
             places.forEach((place) => {
-                const storeRetailer = allRetailers.find((x) => x.retailer_id === place.retailer_id);
+                const storeRetailer = allRetailers.find((x) => x.retailer_id === place.retailer_id || x.retailer_id === place?.tenant_id);
                 if (storeRetailer !== undefined) {
                     place.description = storeRetailer.description;
                     if (storeRetailer?.configuration?.isB2B === 'true') {
@@ -582,7 +588,6 @@ export default function CommandCenterOverview() {
                 console.log('Error:', err);
             });
     }
-
     return (
         <Root className={classes.content}>
             <div style={{

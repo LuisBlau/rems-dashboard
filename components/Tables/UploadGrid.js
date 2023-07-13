@@ -70,7 +70,7 @@ export default function UploadGrid() {
         {
             field: 'timestamp',
             headerName: 'Timestamp',
-            width: 300,
+            width: 200,
             type: 'dateTime',
             sortable: true,
             valueGetter: (params) => new Date(params.row.timestamp),
@@ -99,16 +99,43 @@ export default function UploadGrid() {
         },
     ];
 
+    if (context?.userRoles?.includes('toshibaAdmin')) {
+        columns.push({
+            field: 'forProd',
+            headerName: 'For Production',
+            width: 125,
+            renderCell: (params) => {
+                return (
+                    params.row.retailer_id === 'COMMON' && <Switch
+                        onChange={(e) => {
+                            changeForProdStatus(e, params.row?.uuid);
+                        }}
+                        checked={params.value === "true" ? true : false}
+                        disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
+                        color="success"
+                    />
+                )
+            }
+
+
+        })
+    }
+
     function fetchUploadData() {
-        if (context.selectedRetailer && context.selectedRetailerIsTenant === false) {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
-                .then((response) => {
-                    setUploadData(response.data)
-                })
-        } else if (context.selectedRetailerParentRemsServerId) {
+        if (context.selectedRetailerParentRemsServerId) {
             axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`)
                 .then((response) => {
-                    setUploadData(response.data)
+                    if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                        const prodList = []
+                        response.data.forEach(element => {
+                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
+                                prodList.push(element)
+                            }
+                        });
+                        setUploadData(prodList)
+                    } else {
+                        setUploadData(response.data)
+                    }
                 })
         } else {
             axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
@@ -141,9 +168,29 @@ export default function UploadGrid() {
                 setOpenFailure(true);
             });
     };
+
+    const changeForProdStatus = (e, id) => {
+        axios.get('/api/REMS/setForProd?uuid=' + id + '&forProd=' + (e.target.checked).toString())
+            .then((response) => {
+                if (response.status !== 200) {
+                    setToastFailure('Error changing production enablement!');
+                    setOpenFailure(true);
+                    return;
+                }
+                fetchUploadData();
+                setToastSuccess('Production Enablement Successfully Saved.');
+                setOpenSuccess(true);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setToastFailure('Error connecting to server!!');
+                setOpenFailure(true);
+            });
+    }
+
     if (uploadData.length > 0) {
         return (
-            <Box sx={{ height: 550, width: '100%', marginTop:2 }}>
+            <Box sx={{ height: 550, width: '100%', marginTop: 2 }}>
                 <DataGrid
                     initialState={{
                         sorting: {

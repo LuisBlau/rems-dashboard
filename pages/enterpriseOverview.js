@@ -271,12 +271,9 @@ export default function EnterpriseOverview() {
 
             res.data.forEach((store) => {
                 store["label"] = store.storeName;
-                const storeRetailer = allRetailers.find(x => x.retailer_id === store.retailer_id)
+                const storeRetailer = allRetailers.find((x) => x.retailer_id === store.retailer_id || x?.retailer_id === store?.tenant_id);
                 if (storeRetailer !== undefined) {
                     store["description"] = storeRetailer.description
-                }
-                if (context.selectedRetailerIsTenant === true) {
-                    store["description"] = context.selectedRetailerDescription
                 }
                 // only able to map stores we have the lat/lng for
                 if (store.geometry && store.continent && store.retailer_id) {
@@ -594,8 +591,8 @@ export default function EnterpriseOverview() {
                             </Card>
 
                         }
-                        {isStoresOnlineListView && <StoresOnlineList places={places} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
-                        {isAttendedLanesListView && <AttendedLanesList places={places} selectedRetailer={context.selectedRetailer} />}
+                        {isStoresOnlineListView && <StoresOnlineList context={context} places={places} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
+                        {isAttendedLanesListView && <AttendedLanesList context={context} places={places} selectedRetailer={context.selectedRetailer} />}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>

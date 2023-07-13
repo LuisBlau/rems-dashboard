@@ -137,6 +137,8 @@ export default function StoreOverview() {
                                 if (controllers.length > 0 || agents.length > 0) {
                                     setStoreAgents(_.concat(controllers, agents));
                                     setStoreHasNoAgents(false)
+                                } else {
+                                    setStoreHasNoAgents(true)
                                 }
                                 setAgentCount(agents.length);
                                 setScoCount(scoCounter);
@@ -407,8 +409,8 @@ export default function StoreOverview() {
                                 <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
                             </TabPanel>
                         </TabContext>
-                <Box pt={1} pb={1}>
-                    <Copyright />
+                        <Box pt={1} pb={1}>
+                            <Copyright />
                         </Box>
                     </Box>
                 </Box>

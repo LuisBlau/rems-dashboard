@@ -166,7 +166,7 @@ export default function ScheduleDeployment() {
                         for (const v of response[soft]) {
                             entry.children.push({
                                 label: v.name,
-                                value: v.id,
+                                value: v.uuid,
                             });
                         }
                         data.push(entry);
@@ -350,7 +350,6 @@ export default function ScheduleDeployment() {
                 });
             });
         }
-        console.log(value)
 
         if (value.length === 1) {
             // I want to store all the stores/agents in the distribution list
@@ -366,9 +365,7 @@ export default function ScheduleDeployment() {
             // set store list to storeAgentCombo
             let newStoreList = '';
             newAgentVersions.forEach((agent) => {
-                console.log(agent)
                 if (agent) {
-                    console.log(newStoreList)
                     if (!newStoreList.includes(agent.storeAgentCombo)) {
                         if (newStoreList.length > 0 && newStoreList.charAt(newStoreList.length - 2) !== ',') {
                             newStoreList += ', ';
@@ -418,7 +415,6 @@ export default function ScheduleDeployment() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
         let config = deployConfigs.find((x) => x.uuid === selectedDeployConfig);
         formValues.name = config.name;
         formValues.id = config.uuid;
@@ -438,21 +434,40 @@ export default function ScheduleDeployment() {
 
         setFormValues(formValues);
 
-        axios
-            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
-            .then(function (response) {
-                if (response.data.message !== 'Success') {
-                    setToastFailure(response.data);
+        if (context.selectedRetailerIsTenant === false) {
+            axios
+                .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
+                .then(function (response) {
+                    if (response.data.message !== 'Success') {
+                        setToastFailure(response.data);
+                        setOpenFailure(true);
+                    } else {
+                        setToastSuccess('Deploy-Config Scheduled');
+                        setOpenSuccess(true);
+                    }
+                })
+                .catch(function (error) {
+                    setToastFailure(error.message);
                     setOpenFailure(true);
-                } else {
-                    setToastSuccess('Deploy-Config Scheduled');
-                    setOpenSuccess(true);
-                }
-            })
-            .catch(function (error) {
-                setToastFailure(error.message);
-                setOpenFailure(true);
-            });
+                });
+        } else {
+            axios
+                .post(`/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`, _formValues)
+                .then(function (response) {
+                    if (response.data.message !== 'Success') {
+                        setToastFailure(response.data);
+                        setOpenFailure(true);
+                    } else {
+                        setToastSuccess('Deploy-Config Scheduled');
+                        setOpenSuccess(true);
+                    }
+                })
+                .catch(function (error) {
+                    setToastFailure(error.message);
+                    setOpenFailure(true);
+                });
+        }
+
     };
 
     function handleVersionCollisionDialogClose() {

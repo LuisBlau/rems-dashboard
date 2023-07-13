@@ -3,12 +3,16 @@ import { Box, Card, LinearProgress, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
 
-export default function StoresOnlineList({ places, poorStoreStatusPercentage, goodStoreStatusPercentage, selectedRetailer }) {
+export default function StoresOnlineList({ context, places, poorStoreStatusPercentage, goodStoreStatusPercentage, selectedRetailer }) {
     const [columns, setColumns] = useState([])
 
     //this is the little comment to link the store in the store overview
     const renderLinkStoreView = (value) => {
-        return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
+        if (context.selectedRetailerIsTenant === false) {
+            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
+        } else {
+            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + context.selectedRetailerParentRemsServerId + '&tenant_id=' + context.selectedRetailer}>{value.row.storeName}</Link>
+        }
     }
 
     useEffect(() => {

@@ -46,8 +46,8 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
-function timeSince(date) {
-    const seconds = (new Date() - new Date(date)) / 1000;
+function timeSince(dateTimestamp) {
+    const seconds = (new Date() - new Date(dateTimestamp * 1000)) / 1000;
     return prettifyTime(seconds) + ' ago';
 }
 
@@ -588,12 +588,12 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                     </Grid>
                     {/* <Grid container spacing={1}>
             <Grid item xs={12}>
-              <DisplaySalesApplication data={data} />
+            <DisplaySalesApplication data={data} />
             </Grid>
           </Grid> */}
                     <Grid container spacing={1}>
                         <Grid className={classes.barHeight} item xs={12}>
-                            <Typography>Last Update: {timeSince(data.last_updated)}</Typography>
+                            <Typography>Last Update: {timeSince(data.last_updated_sec)}</Typography>
                         </Grid>
                     </Grid>
                     {/*

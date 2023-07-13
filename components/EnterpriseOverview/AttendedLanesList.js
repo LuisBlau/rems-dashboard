@@ -4,18 +4,29 @@ import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-g
 import moment from 'moment';
 import axios from 'axios';
 
-export default function AttendedLanesList({ selectedRetailer }) {
+export default function AttendedLanesList({ context, selectedRetailer }) {
     const [columns, setColumns] = useState([])
     const [agents, setAgents] = useState([])
     //this is the little comment to link the store in the store overview
     const renderLinkStoreView = (value) => {
-        return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
+        if (context.selectedRetailerIsTenant === false) {
+            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
+        } else {
+            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + context.selectedRetailerParentRemsServerId + '&tenant_id=' + context.selectedRetailer}>{value.row.storeName}</Link>
+        }
     }
 
     useEffect(() => {
-        axios.get(`/api/REMS/getAttendedLanes?retailerId=${selectedRetailer}`).then(function (res) {
-            setAgents(res.data)
-        })
+        if (context.selectedRetailerIsTenant === false) {
+            axios.get(`/api/REMS/getAttendedLanes?retailerId=${selectedRetailer}`).then(function (res) {
+                setAgents(res.data)
+            })
+        } else {
+            axios.get(`/api/REMS/getAttendedLanes?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                setAgents(res.data)
+            })
+        }
+
 
         setColumns([
             {
