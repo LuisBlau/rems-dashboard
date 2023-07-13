@@ -79,7 +79,7 @@ export default function ExtractRequestGrid(props) {
                 agent: x.agentName,
                 os: x.os,
                 isRMA: x.deviceType !== 3,
-                hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
+                hasEleraServices: x.status !== undefined && x.status.EleraServer !== undefined,
                 hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
                 hasChec: false,
             };
