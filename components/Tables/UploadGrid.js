@@ -140,7 +140,17 @@ export default function UploadGrid() {
         } else {
             axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
                 .then((response) => {
-                    setUploadData(response.data)
+                    if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                        const prodList = []
+                        response.data.forEach(element => {
+                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
+                                prodList.push(element)
+                            }
+                        });
+                        setUploadData(prodList)
+                    } else {
+                        setUploadData(response.data)
+                    }
                 })
         }
     }

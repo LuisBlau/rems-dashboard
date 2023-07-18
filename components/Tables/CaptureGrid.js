@@ -8,6 +8,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
+import _ from 'lodash';
 const PREFIX = 'CaptureGrid';
 
 const classes = {
@@ -48,7 +49,7 @@ export default function CaptureGrid() {
                     setCaptures(captures)
                 })
             } else {
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (response) {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
                     const captures = []
                     response.data.forEach(element => {
                         captures.push({

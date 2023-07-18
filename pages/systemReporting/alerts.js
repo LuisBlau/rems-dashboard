@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import UserContext from '../UserContext';
 import axios from 'axios';
 import { Box, CircularProgress, Paper, Typography } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import Copyright from '../../components/Copyright';
 
 export default function alerts() {
@@ -14,6 +14,7 @@ export default function alerts() {
     const [isLoaded, setIsLoaded] = useState(false)
     const [alertsEnabled, setAlertsEnabled] = useState(false)
     const [retailerIsLab, setRetailerIsLab] = useState(null)
+    const [selectedRetailer, setSelectedRetailer] = useState(null)
 
     const columns = [
         {
@@ -124,18 +125,6 @@ export default function alerts() {
 
     useEffect(() => {
         if (context.selectedRetailer && context.selectedRetailerIsTenant !== null) {
-            if (context.selectedRetailerIsTenant === false) {
-                if (retailerIsLab !== null) {
-                    fetchAlerts()
-                }
-            } else {
-                if (context.selectedRetailerParentRemsServerId) {
-                    if (retailerIsLab !== null) {
-                        fetchAlerts()
-                    }
-                }
-            }
-
             axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
                 // fetch configuration info
                 const configurationArray = res.data.configuration;
@@ -148,12 +137,35 @@ export default function alerts() {
                 setAlertsEnabled(configurationInfo.find(item => item.configName === 'alertsEnabled').configValue)
                 setPullAlertsPeriodically(configurationInfo.find(item => item.configName === 'alertsRefreshRate').configValue)
             })
-
         }
-    }, [context, retailerIsLab])
+    }, [context.selectedRetailerIsTenant])
 
-    if (isLoaded === true && alertsEnabled === true) {
-        if (alerts.length > 0 && alertTypes.length > 0) {
+    useEffect(() => {
+        if (selectedRetailer === null || context.selectedRetailer !== selectedRetailer) {
+            setSelectedRetailer(context.selectedRetailer)
+        } else {
+            if (retailerIsLab !== null) {
+                if (context.selectedRetailerIsTenant === false) {
+                    fetchAlerts()
+                } else if (context.selectedRetailerParentRemsServerId) {
+                    fetchAlerts()
+                }
+            }
+        }
+    }, [context.selectedRetailer, selectedRetailer, retailerIsLab])
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                    <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+                </Box>
+            </GridToolbarContainer>
+        );
+    }
+
+    if (isLoaded === true && alertsEnabled === true && selectedRetailer === context.selectedRetailer) {
+        if (alerts.length > 0 && alertTypes.length > 0 && selectedRetailer === context.selectedRetailer) {
             return (
                 <Box sx={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'row' }}>
@@ -166,6 +178,7 @@ export default function alerts() {
                         </Box>
                         <Box sx={{ height: '90vh', width: '80%' }}>
                             <DataGrid
+                                slots={{ toolbar: CustomToolbar }}
                                 sx={{ margin: 2 }}
                                 initialState={{
                                     sorting: {
@@ -186,14 +199,14 @@ export default function alerts() {
                     </Box>
                 </Box >
             )
-        } else {
+        } else if (selectedRetailer !== context.selectedRetailer) {
             return (
                 <Box sx={{ height: '100vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Typography variant='h2'>No Alerts to Display</Typography>
+                    <CircularProgress size={100} />
                 </Box>
             )
         }
-    } else if (isLoaded === true && alertsEnabled === false) {
+    } else if (isLoaded === true && alertsEnabled === false && selectedRetailer === context.selectedRetailer && selectedRetailer === context.selectedRetailer) {
         return (
             <Box sx={{ height: '100vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Typography variant='h2'>Alerts Disabled</Typography>

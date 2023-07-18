@@ -13,6 +13,7 @@ import { TreePicker } from 'rsuite';
 import axios from 'axios';
 import { useContext } from 'react';
 import UserContext from '../pages/UserContext';
+import _ from 'lodash';
 export default function Command(props) {
     const _width = 150;
     const [value, setValue] = useState(null);
@@ -176,11 +177,21 @@ export default function Command(props) {
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
                             const entry = { children: [], label: (findRetailer ? findRetailer.description : soft?.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
-                                entry.children.push({
-                                    label: v.description,
-                                    value: v._id,
-                                    type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
-                                });
+                                if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                                    if (v.forProd === 'true' || soft.toLowerCase() !== 'common') {
+                                        entry.children.push({
+                                            label: v.description,
+                                            value: v._id,
+                                            type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
+                                        });
+                                    }
+                                } else {
+                                    entry.children.push({
+                                        label: v.description,
+                                        value: v._id,
+                                        type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
+                                    });
+                                }
                             }
                             data.push(entry);
                         }
@@ -204,11 +215,21 @@ export default function Command(props) {
                             const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
                             const entry = { children: [], label: (findRetailer ? findRetailer.description : soft?.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
                             for (const v of response[soft]) {
-                                entry.children.push({
-                                    label: v.description,
-                                    value: v._id,
-                                    type: context.selectedRetailer === soft?.toLowerCase() ? 'retailer' : 'common'
-                                });
+                                if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                                    if (v.forProd === 'true' || soft.toLowerCase() !== 'common') {
+                                        entry.children.push({
+                                            label: v.description,
+                                            value: v._id,
+                                            type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
+                                        });
+                                    }
+                                } else {
+                                    entry.children.push({
+                                        label: v.description,
+                                        value: v._id,
+                                        type: context.selectedRetailer?.toLowerCase() === soft?.toLowerCase() ? 'retailer' : 'common'
+                                    });
+                                }
                             }
                             data.push(entry);
                         }
@@ -230,7 +251,7 @@ export default function Command(props) {
                                 const findConfig = configs?.find(item => item._id == selectedConfig);
                                 if (selectedConfig?.toLowerCase() === 'common' || selectedConfig?.toLowerCase() === context?.selectedRetailer?.toLowerCase()) {
                                     e.preventDefault();
-                                    setValue({ [props.id] : null })
+                                    setValue({ [props.id]: null })
                                     setArgs({ ...state, arguments: '' });
                                     setProp(props.id, { ...state, arguments: '' });
                                     return;

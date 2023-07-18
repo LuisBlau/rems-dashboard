@@ -169,7 +169,7 @@ export default function CommandCenterOverview() {
                 } else if (Object.keys(filter)[0] === 'Country') {
                     filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
                 } else if (Object.keys(filter)[0] === 'Continent') {
-                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
+                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.name);
                 }
             });
             setPlaces(filteredPlaces);
@@ -524,9 +524,9 @@ export default function CommandCenterOverview() {
         let filteredPlaces = [...allPlaces];
         let tempFiltersFiltered = [];
         if (selectedContinent) {
-            filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
+            filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.name);
 
-            tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.continent === selectedContinent.id);
+            tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.continent === selectedContinent.name);
         }
         if (selectedCountry) {
             filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
@@ -542,7 +542,7 @@ export default function CommandCenterOverview() {
                 tempFiltersFiltered = allFilters.filter((x) => (x.type === 'Store' && x.retailer === selectedFilterRetailer.id) || x.type === 'Country');
             }
             if (selectedContinent) {
-                tempFiltersFiltered = tempFiltersFiltered.filter((x) => x.continent === selectedContinent.id);
+                tempFiltersFiltered = tempFiltersFiltered.filter((x) => x.continent === selectedContinent.name);
             }
         }
         if (selectedStore) {

@@ -476,6 +476,10 @@ export default function ScheduleDeployment() {
 
     function handleSelectDeployConfig(selectedConfig, e) {
         if (selectedConfig) {
+            if (selectedConfig.toLowerCase() === 'common' || selectedConfig === context.selectedRetailer) {
+                e.preventDefault();
+                return;
+            }
             if (selectedConfig["children"]) {
                 setOptions(selectedConfig["children"])
                 return;

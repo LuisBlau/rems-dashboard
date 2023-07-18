@@ -83,13 +83,23 @@ export default function DataCapture() {
                 style={{ float: 'right', marginRight: 10, padding: 10 }}
                 variant="contained"
                 onClick={() => {
-                    axios.post('/api/registers/requestRemsDump', { retailer: selectedRetailer, dataCapture: 'REMS' })
-                        .then((res) => {
-                            processSuccessfulResponse(res, 'REMS Data');
-                        })
-                        .catch((res) => {
-                            processFailedResponse(res, 'REMS Data');
-                        });
+                    if (context.selectedRetailerIsTenant === true) {
+                        axios.post('/api/registers/requestRemsDump', { retailer: context.selectedRetailerParentRemsServerId, dataCapture: 'REMS' })
+                            .then((res) => {
+                                processSuccessfulResponse(res, 'REMS Data');
+                            })
+                            .catch((res) => {
+                                processFailedResponse(res, 'REMS Data');
+                            });
+                    } else {
+                        axios.post('/api/registers/requestRemsDump', { retailer: selectedRetailer, dataCapture: 'REMS' })
+                            .then((res) => {
+                                processSuccessfulResponse(res, 'REMS Data');
+                            })
+                            .catch((res) => {
+                                processFailedResponse(res, 'REMS Data');
+                            });
+                    }
                 }}
             >
                 Create Rems Data Capture
