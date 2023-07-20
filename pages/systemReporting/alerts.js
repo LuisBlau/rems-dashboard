@@ -182,7 +182,7 @@ export default function alerts() {
                                 sx={{ margin: 2 }}
                                 initialState={{
                                     sorting: {
-                                        sortModel: [{ field: 'timestamp', sort: 'desc' }]
+                                        sortModel: [{ field: 'AlertCollectedTime', sort: 'desc' }]
                                     },
                                     pagination: { paginationModel: { pageSize: 25 } },
                                 }}
