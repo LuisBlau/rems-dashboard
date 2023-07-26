@@ -59,7 +59,7 @@ export default function StoreOverview() {
     const [userHasAccess, setUserHasAccess] = useState(true)
     const [elera, setElera] = useState({});
 
-    const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader"]
+    const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
 
     const handleTabChange = (event, newValue) => {
         setSelectedTab(newValue);

@@ -19,6 +19,7 @@ export const UserContextProvider = (props) => {
     const [selectedRetailerDescription, setSelectedRetailerDescription] = useState('')
     const [selectedRetailerIsTenant, setSelectedRetailerIsTenant] = useState(null)
     const [selectedRetailerParentRemsServerId, setSelectedRetailerParentRemsServerId] = useState(null)
+    const [sidebarConfigs, setSidebarConfigs] = useState([])
     const cookies = new Cookies();
 
     const getRoles = async () => {
@@ -131,6 +132,8 @@ export const UserContextProvider = (props) => {
         openedMenuItems,
         userDetails,
         setOpenedMenuItems,
+        sidebarConfigs,
+        setSidebarConfigs,
         hasChildren,
         setHasChildren,
         selectedRetailer,

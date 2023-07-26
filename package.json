@@ -1,7 +1,7 @@
 {
     "name": "rems-dashboard",
     "packageManager": "yarn@3.3.1",
-    "version": "4.2.24",
+    "version": "4.2.26",
     "private": true,
     "dependencies": {
         "@azure/msal-browser": "2.32.0",

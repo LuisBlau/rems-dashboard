@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Card, Link, Typography } from '@mui/material';
+import { Box, Card } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
 
-export default function AttendedLanesList({ context, agents, selectedRetailer }) {
+export default function DeviceList({ devices }) {
     const [columns, setColumns] = useState([])
-    //this is the little comment to link the store in the store overview
-    const renderLinkStoreView = (value) => {
-        if (context.selectedRetailerIsTenant === false) {
-            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</Link>
-        } else {
-            return <Link style={{ color: '#004EE7' }} href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + context.selectedRetailerParentRemsServerId + '&tenant_id=' + context.selectedRetailer}>{value.row.storeName}</Link>
-        }
-    }
 
     useEffect(() => {
 
@@ -23,38 +15,35 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
-                renderCell: renderLinkStoreView
             },
             {
                 field: 'agentName',
-                headerName: 'Device',
+                headerName: 'Agent',
                 width: 200,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
             {
-                field: 'type',
-                headerName: 'Type',
+                field: 'deviceType',
+                headerName: 'Device Type',
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
             {
-                field: 'statusId',
-                headerName: 'Status',
-                width: 100,
-                sortingOrder: ['asc', 'desc'],
+                field: 'ip',
+                headerName: 'IP Address',
+                width: 150,
                 sortable: true,
-                renderCell: (params) => {
-                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
-                },
+                sortingOrder: ['asc', 'desc'],
             },
             {
-                field: 'os',
-                headerName: 'OS',
-                width: 100,
+                field: 'online',
+                headerName: 'Status',
+                width: 150,
+                sortable: true,
                 sortingOrder: ['asc', 'desc'],
-                sortable: true
+                renderCell: (params) => params.row.online === 'true' ? 'Online' : 'Offline'
             },
             {
                 field: 'last_updated',
@@ -92,7 +81,7 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                         },
                         pagination: { paginationModel: { pageSize: 10 } },
                     }}
-                    rows={agents}
+                    rows={devices}
                     columns={columns}
                     pageSizeOptions={[5, 10, 15]}
                     checkboxSelection={false}

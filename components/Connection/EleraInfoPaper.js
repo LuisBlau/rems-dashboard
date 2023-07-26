@@ -44,13 +44,13 @@ export default function EleraInfoPaper({ elera, agent, eleraContainers }) {
                     {eleraContainers.map((containerName) => {
                         if (containerName in value && value[containerName] != undefined) {
                             return (
-                                <Grid item xs={12}>
+                                <Grid key={containerName} item xs={12}>
                                     <Typography>{containerName + " - " + value[containerName]}</Typography>
                                 </Grid>
                             )
                         } else {
                             return (
-                                <Grid item xs={12}>
+                                <Grid key={containerName} item xs={12}>
                                     <Typography>{containerName + " -  Not Present"}</Typography>
                                 </Grid>
                             )

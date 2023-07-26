@@ -26,6 +26,7 @@ import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
 import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
 import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
+import DeviceList from '../components/EnterpriseOverview/DeviceList';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -58,15 +59,6 @@ function AppliedFilterDisplay({ filtersApplied, handleFilterDelete }) {
         </Stack>
     );
 };
-function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
-            </Box>
-        </GridToolbarContainer>
-    );
-}
 
 export default function EnterpriseOverview() {
     let par = '';
@@ -74,6 +66,8 @@ export default function EnterpriseOverview() {
         par = window.location.search;
     }
     const [places, setPlaces] = useState([]);
+    const [devices, setDevices] = useState([])
+    const [attendedLanes, setAttendedLanes] = useState([])
     const [allPlaces, setAllPlaces] = useState([]);
     const [selectedContinent, setSelectedContinent] = useState(null);
     const [selectedCountry, setSelectedCountry] = useState(null);
@@ -86,11 +80,14 @@ export default function EnterpriseOverview() {
     const [storesOnline, setStoresOnline] = useState(0);
     const [autocompleteKey, setAutocompleteKey] = useState('');
     const [lanesUp, setLanesUp] = useState(null);
+    const [devicesUp, setDevicesUp] = useState(null);
     const [pullStorePeriodically, setPullStorePeriodically] = useState(0);
     const [isFilterSelect, setIsFilterSelect] = useState(false);
     const [showStoreOnlineWidget, setShowStoreOnlineWidget] = useState(false);
     const [isListView, setIsListView] = useState(false);
     const [showAttendedLanesWidget, setShowAttendedLanesWidget] = useState(false);
+    const [showDevicesWidget, setShowDevicesWidget] = useState(false);
+    const [devicesWidgetErrorPercentage, setDevicesWidgetErrorPercentage] = useState(0)
     const [storesOnlineWidgetErrorPercentage, setStoresOnlineWidgetErrorPercentage] = useState(0)
     const [attendedLanesOnlineWidgetErrorPercentage, setAttendedLanesOnlineWidgetErrorPercentage] = useState(0)
     const [configInfo, setConfigInfo] = useState([])
@@ -100,7 +97,10 @@ export default function EnterpriseOverview() {
         onlineStoreColor: 'success',
         laneUp: 0,
         laneUpText: '0/0',
-        laneUpColor: 'success'
+        laneUpColor: 'success',
+        devicesUp: 0,
+        devicesUpText: '0/0',
+        devicesUpColor: 'success'
     })
     const { accounts } = useMsal();
     const username = accounts.length > 0 ? accounts[0].username : '';
@@ -115,6 +115,7 @@ export default function EnterpriseOverview() {
     const [poorStoreStatusPercentage, setPoorStoreStatusPercentage] = useState(0);
     const [isStoresOnlineListView, setIsStoresOnlineListView] = useState(false)
     const [isAttendedLanesListView, setIsAttendedLanesListView] = useState(false)
+    const [isDevicesListView, setIsDevicesListView] = useState(false)
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -160,6 +161,8 @@ export default function EnterpriseOverview() {
                 });
                 setConfigInfo(configurationInfo)
                 setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
+                setShowDevicesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewDevicesWidget').configValue)
+                setDevicesWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'deviceWidgetRedWhenAbovePercent').configValue)
                 setShowAttendedLanesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewAttendedLanesUpWidget').configValue)
                 setStoresOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue)
                 setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue)
@@ -180,10 +183,13 @@ export default function EnterpriseOverview() {
                     laneUp: lanesUp.percentUp,
                     laneUpText: `${lanesUp.online}/${lanesUp.total}`,
                     laneUpColor: lanesUp.percentUp > attendedLanesOnlineWidgetErrorPercentage ? 'success' : 'error',
+                    devicesUp: devicesUp?.percentUp,
+                    devicesUpText: `${devicesUp?.online}/${devicesUp?.total}`,
+                    devicesUpColor: devicesUp?.percentUp > devicesWidgetErrorPercentage ? 'success' : 'error'
                 });
             }
         }
-    }, [storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage])
+    }, [storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage, devicesUp])
 
     const handleFilterSelected = (e, selectedValue) => {
         if (selectedValue !== null) {
@@ -264,6 +270,78 @@ export default function EnterpriseOverview() {
         const localStores = [];
 
         axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/getAttendedLanes?retailerId=${selectedRetailer}`).then(function (res) {
+                    setAttendedLanes(res.data)
+                    let totalAttendedLanes = 0
+                    let onlineAttendedLanes = 0
+                    let localAttendedLanes = []
+                    if (res.data.length > 0) {
+                        res.data.forEach(agent => {
+                            localAttendedLanes.push(agent)
+                            if (agent.online === true) {
+                                onlineAttendedLanes++
+                            }
+                            totalAttendedLanes++
+                        })
+                    }
+                    setAttendedLanes(localAttendedLanes)
+                    setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
+                })
+                axios.get(`/api/REMS/devices?retailerId=${selectedRetailer}`).then(function (res) {
+                    let totalDevices = 0
+                    let onlineDevices = 0
+                    let localDevices = []
+                    if (res.data.length > 0) {
+                        res.data.forEach(device => {
+                            device.id = device._id
+                            localDevices.push(device)
+                            if (device.online === 'true') {
+                                onlineDevices++
+                            }
+                            totalDevices++
+                        });
+                    }
+                    setDevices(localDevices)
+                    setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
+                })
+            } else {
+                axios.get(`/api/REMS/getAttendedLanes?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                    setAttendedLanes(res.data)
+                    let totalAttendedLanes = 0
+                    let onlineAttendedLanes = 0
+                    let localAttendedLanes = []
+                    if (res.data.length > 0) {
+                        res.data.forEach(agent => {
+                            localAttendedLanes.push(agent)
+                            if (agent.online === true) {
+                                onlineAttendedLanes++
+                            }
+                            totalAttendedLanes++
+                        })
+                    }
+                    setAttendedLanes(localAttendedLanes)
+                    setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
+                })
+                axios.get(`/api/REMS/devices?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                    let totalDevices = 0
+                    let onlineDevices = 0
+                    let localDevices = []
+                    if (res.data.length > 0) {
+                        res.data.forEach(device => {
+                            device.id = device._id
+                            localDevices.push(device)
+                            if (device.online === 'true') {
+                                onlineDevices++
+                            }
+                            totalDevices++
+                        });
+                    }
+                    setDevices(localDevices)
+                    setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
+                })
+            }
+
             let counter = 0;
             let onlineCounter = 0;
             let upLanes = 0;
@@ -339,8 +417,8 @@ export default function EnterpriseOverview() {
                     }
                 });
             }
+
             setStoresOnline({ 'online': onlineCounter, 'total': counter, 'percentUp': ((onlineCounter / counter) * 100) });
-            setLanesUp({ 'online': upLanes, 'total': totalLanes, 'percentUp': ((upLanes / totalLanes) * 100) });
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
             if (!isRefresh) {
@@ -351,14 +429,14 @@ export default function EnterpriseOverview() {
     }
 
     useEffect(() => {
-        if (selectedRetailer && allRetailers.length > 0) {
+        if (selectedRetailer && allRetailers.length > 0 && context.selectedRetailerIsTenant !== null) {
             fetchStore();
             setSelectedContinent(null);
             setSelectedCountry(null);
             setSelectedStore(null);
             setFiltersApplied([]);
         }
-    }, [selectedRetailer, allRetailers]);
+    }, [selectedRetailer, allRetailers, context]);
 
     useEffect(() => {
         if (selectedRetailer && pullStorePeriodically > 0) {
@@ -476,19 +554,26 @@ export default function EnterpriseOverview() {
         setPlaces(filteredPlaces);
     }, [allPlaces, filtersApplied, isRefetch]);
 
-    function handleListViewPaperClicked(value, setter) {
+    function handleListViewPaperClicked(value, setter, viewName) {
         if (value === false) {
             setIsListView(true)
         } else {
             setIsListView(false)
         }
 
-        if (isAttendedLanesListView === true) {
+        if (viewName === 'storesOnline' && value === false) {
+            setIsDevicesListView(false)
             setIsAttendedLanesListView(false)
         }
-        if (isStoresOnlineListView === true) {
+        if (viewName === 'attendedLanes' && value === false) {
+            setIsDevicesListView(false)
             setIsStoresOnlineListView(false)
         }
+        if (viewName === 'devices' && value === false) {
+            setIsAttendedLanesListView(false)
+            setIsStoresOnlineListView(false)
+        }
+
         setter(!value)
     }
 
@@ -513,7 +598,7 @@ export default function EnterpriseOverview() {
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView)} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
+                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
                                 <CustomLinearProgress
                                     title="Stores Online"
                                     subTitle={widget.onlineStoreText}
@@ -523,12 +608,22 @@ export default function EnterpriseOverview() {
                             </Paper>
                         )}
                         {showAttendedLanesWidget === true && (
-                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView)} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
+                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView, 'attendedLanes')} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
                                 <CustomLinearProgress
                                     title="Attended Lanes Up"
                                     subTitle={widget.laneUpText}
                                     value={widget.laneUp}
                                     color={widget.laneUpColor}
+                                />
+                            </Paper>
+                        )}
+                        {(showDevicesWidget === true && devicesUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isDevicesListView, setIsDevicesListView, 'devices')} sx={[isDevicesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isDevicesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
+                                <CustomLinearProgress
+                                    title="Devices Online"
+                                    subTitle={widget.devicesUpText}
+                                    value={widget.devicesUp}
+                                    color={widget.devicesUpColor}
                                 />
                             </Paper>
                         )}
@@ -591,8 +686,9 @@ export default function EnterpriseOverview() {
                             </Card>
 
                         }
-                        {isStoresOnlineListView && <StoresOnlineList context={context} places={places} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
-                        {isAttendedLanesListView && <AttendedLanesList context={context} places={places} selectedRetailer={context.selectedRetailer} />}
+                        {isStoresOnlineListView === true && <StoresOnlineList context={context} places={places} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
+                        {isAttendedLanesListView === true && <AttendedLanesList context={context} agents={attendedLanes} selectedRetailer={context.selectedRetailer} />}
+                        {isDevicesListView === true && <DeviceList devices={devices} />}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>

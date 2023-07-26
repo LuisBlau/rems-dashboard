@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-import { styled } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 import Box from '@mui/material/Box'
@@ -91,8 +90,8 @@ export default function EleraHealth() {
         for (let i = 0; i < arr.length; i++) {
             arr[i] = JSON.parse(arr[i]);
             arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
-            if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq')) {
-                if (arr[i].Names.includes('elera')) {
+            if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
+                if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
                     rows.push(
                         objectifyRow(
                             i + 1,
