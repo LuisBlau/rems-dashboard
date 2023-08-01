@@ -205,6 +205,12 @@ export default function alerts() {
                     <CircularProgress size={100} />
                 </Box>
             )
+        } else {
+            return (
+                <Box sx={{ height: '100vh', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Typography variant='h2'>No Active Alerts</Typography>
+                </Box>
+            )
         }
     } else if (isLoaded === true && alertsEnabled === false && selectedRetailer === context.selectedRetailer && selectedRetailer === context.selectedRetailer) {
         return (

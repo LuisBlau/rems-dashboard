@@ -564,6 +564,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
+                    backgroundColor: '#E7431F'
                 }}
             >
                 <Grid container style={{ backgroundColor: agentBackgroundColorStyle, padding: 12 }}>
@@ -661,14 +662,14 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                                 selectedRetailer={context.selectedRetailer}
                             />
                         </Grid>
-                        <Grid item xs={1} sx={{ margin: 1 }}>
+                        {/* <Grid item xs={1} sx={{ margin: 1 }}>
                             <DockerInfoModal
                                 modalData={data.status}
                                 dockerModalOpen={dockerModalOpen}
                                 handleDockerModalClose={handleDockerModalClose}
                                 handleDockerModalOpen={handleDockerModalOpen}
                             />
-                        </Grid>
+                        </Grid> */}
                     </Grid>
                     {/* <ModalDisplayButtonsComponentTitle data={data}></ModalDisplayButtonsComponentTitle>
           <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} /> */}

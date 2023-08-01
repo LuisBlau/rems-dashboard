@@ -32,22 +32,23 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
-            {
-                field: 'type',
-                headerName: 'Type',
-                width: 150,
-                sortable: true,
-                sortingOrder: ['asc', 'desc'],
-            },
+            // {
+            //     field: 'type',
+            //     headerName: 'Type',
+            //     width: 150,
+            //     sortable: true,
+            //     sortingOrder: ['asc', 'desc'],
+            // },
             {
                 field: 'statusId',
                 headerName: 'Status',
-                width: 100,
+                width: 200,
                 sortingOrder: ['asc', 'desc'],
                 sortable: true,
                 renderCell: (params) => {
-                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
+                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < -24 ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline'}</Typography>
                 },
+                valueGetter: (params) => { return moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < -24 ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline' }
             },
             {
                 field: 'os',
@@ -57,14 +58,14 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                 sortable: true
             },
             {
-                field: 'last_updated',
+                field: 'last_updated_sec',
                 headerName: 'Last Update',
                 width: 250,
                 sortable: true,
                 type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
                 valueGetter: (params) => params.value,
-                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
+                renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             }
         ])
     }, [])

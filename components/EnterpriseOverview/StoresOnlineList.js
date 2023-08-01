@@ -26,14 +26,14 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                 renderCell: renderLinkStoreView
             },
             {
-                field: 'last_updated',
+                field: 'last_updated_sec',
                 headerName: 'Last Update',
                 width: 300,
                 sortable: true,
                 type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
                 valueGetter: (params) => params.value,
-                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
+                renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             },
             {
                 field: 'statusId',
@@ -55,6 +55,7 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                         </Box>
                     </Box>
                 },
+                valueGetter: (params) => params.row.status.label,
             }
         ])
     }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
@@ -104,6 +105,14 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                                 color: '#5BA52E',
                                 variant: 'success'
 
+                            }
+                        }
+                        if (item?.last_updated_sec && moment(item?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
+                            status = {
+                                id: 3,
+                                label: 'Disconnected',
+                                color: '#E7431F',
+                                variant: 'error'
                             }
                         }
                         return { ...item, id: key, statusId: status.id, status, signal }

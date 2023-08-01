@@ -29,6 +29,7 @@ import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
 import Copyright from '../components/Copyright';
 import UserContext from './UserContext';
 import EleraInfoRegion from '../components/StoreOverview/EleraInfoRegion';
+import moment from 'moment';
 
 const PREFIX = 'storeOverview';
 
@@ -58,6 +59,9 @@ export default function StoreOverview() {
     const [screenShotEnable, setScreenShotEnable] = useState(false);
     const [userHasAccess, setUserHasAccess] = useState(true)
     const [elera, setElera] = useState({});
+    const [headerPaperColor, setHeaderPaperColor] = useState('#FFFFFF')
+    const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
+    const context = useContext(UserContext)
 
     const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
 
@@ -72,13 +76,34 @@ export default function StoreOverview() {
     const handleAlertsConfirmationClose = () => {
         setAlertsConfirmationOpen(false);
     };
-    const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
 
-    const context = useContext(UserContext)
 
     function handleScreenshotViewChange() {
         setScreenshotView(!screenshotView);
     }
+
+    useEffect(() => {
+        if (context?.selectedRetailer) {
+            let time = 24
+            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+                const configurationArray = res.data.configuration;
+                const configurationInfo = [];
+                configurationArray.forEach(configObject => {
+                    const innerArray = Object.values(configObject)[0];
+                    configurationInfo.push(innerArray);
+                });
+
+                time = configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue;
+            }).then(() => {
+                axios.get('/api/REMS/storeInfo?retailerId=' + params.get('retailer_id') + '&storeName=' + params.get('storeName')).then((result) => {
+                    if (moment(result.data[0].last_updated_sec * 1000).diff(Date.now(), 'hours') < - time) {
+                        setHeaderPaperColor('#E7431F')
+                    }
+                })
+            })
+        }
+    }, [context?.selectedRetailer])
+
     useEffect(() => {
         if (context) {
             if (context.userRetailers) {
@@ -294,10 +319,11 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
+                            <Typography fontSize={'175%'} fontWeight={'bold'} >
                                 Store
                             </Typography>
                             <Typography fontSize={'125%'}>{params.get('storeName')}</Typography>
@@ -311,6 +337,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -328,6 +355,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -345,6 +373,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -362,11 +391,12 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignContent: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
                             <Typography variant='h6' sx={{ marginBottom: 1, alignSelf: 'center' }}>{'Store Health'}</Typography>
-                            <LinearProgress title="Store Health" color='info' sx={{ marginLeft: 2, marginRight: 2, borderRadius: 1, height: 10 }} variant="determinate" value={((storeAgents.length - downAgentCount) / storeAgents.length) * 100} />
+                            <LinearProgress title="Store Health" color='info' sx={{ marginLeft: 2, marginRight: 2, borderRadius: 1, height: 10 }} variant="determinate" value={headerPaperColor === '#FFFFFF' ? ((storeAgents.length - downAgentCount) / storeAgents.length) * 100 : 0} />
                         </Paper>
                         <Paper
                             style={{
@@ -376,6 +406,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -393,7 +424,7 @@ export default function StoreOverview() {
                     {Object.keys(elera).length > 0 ?
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
                             <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
-                            <EleraInfoRegion elera={elera} eleraContainers={eleraContainers} />
+                            <EleraInfoRegion elera={elera} />
                         </Box>
                         :
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
@@ -450,7 +481,7 @@ export default function StoreOverview() {
                         </Button>
                     </DialogActions>
                 </Dialog>
-            </Root>
+            </Root >
         );
     } else {
         return (

@@ -175,14 +175,14 @@ export default function EnterpriseOverview() {
 
     useEffect(() => {
         if (configInfo.length > 0) {
-            if (storesOnline && lanesUp) {
+            if (storesOnline || lanesUp || devicesUp) {
                 setWidget({
-                    onlineStore: storesOnline.percentUp,
-                    onlineStoreText: `${storesOnline.online}/${storesOnline.total}`,
-                    onlineStoreColor: storesOnline.percentUp > storesOnlineWidgetErrorPercentage ? 'success' : 'error',
-                    laneUp: lanesUp.percentUp,
-                    laneUpText: `${lanesUp.online}/${lanesUp.total}`,
-                    laneUpColor: lanesUp.percentUp > attendedLanesOnlineWidgetErrorPercentage ? 'success' : 'error',
+                    onlineStore: storesOnline?.percentUp,
+                    onlineStoreText: `${storesOnline?.online}/${storesOnline?.total}`,
+                    onlineStoreColor: storesOnline?.percentUp > storesOnlineWidgetErrorPercentage ? 'success' : 'error',
+                    laneUp: lanesUp?.percentUp,
+                    laneUpText: `${lanesUp?.online}/${lanesUp?.total}`,
+                    laneUpColor: lanesUp?.percentUp > attendedLanesOnlineWidgetErrorPercentage ? 'success' : 'error',
                     devicesUp: devicesUp?.percentUp,
                     devicesUpText: `${devicesUp?.online}/${devicesUp?.total}`,
                     devicesUpColor: devicesUp?.percentUp > devicesWidgetErrorPercentage ? 'success' : 'error'
@@ -271,77 +271,86 @@ export default function EnterpriseOverview() {
 
         axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
             if (context.selectedRetailerIsTenant === false) {
-                axios.get(`/api/REMS/getAttendedLanes?retailerId=${selectedRetailer}`).then(function (res) {
-                    setAttendedLanes(res.data)
-                    let totalAttendedLanes = 0
-                    let onlineAttendedLanes = 0
-                    let localAttendedLanes = []
-                    if (res.data.length > 0) {
-                        res.data.forEach(agent => {
-                            localAttendedLanes.push(agent)
-                            if (agent.online === true) {
-                                onlineAttendedLanes++
-                            }
-                            totalAttendedLanes++
-                        })
-                    }
-                    setAttendedLanes(localAttendedLanes)
-                    setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
-                })
-                axios.get(`/api/REMS/devices?retailerId=${selectedRetailer}`).then(function (res) {
-                    let totalDevices = 0
-                    let onlineDevices = 0
-                    let localDevices = []
-                    if (res.data.length > 0) {
-                        res.data.forEach(device => {
-                            device.id = device._id
-                            localDevices.push(device)
-                            if (device.online === 'true') {
-                                onlineDevices++
-                            }
-                            totalDevices++
-                        });
-                    }
-                    setDevices(localDevices)
-                    setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
-                })
+                if (showAttendedLanesWidget) {
+                    axios.get(`/api/REMS/getAttendedLanes?retailerId=${selectedRetailer}`).then(function (res) {
+                        setAttendedLanes(res.data)
+                        let totalAttendedLanes = 0
+                        let onlineAttendedLanes = 0
+                        let localAttendedLanes = []
+                        if (res.data.length > 0) {
+                            res.data.forEach(agent => {
+                                agent.id = agent._id
+                                localAttendedLanes.push(agent)
+                                if (agent.online === true) {
+                                    onlineAttendedLanes++
+                                }
+                                totalAttendedLanes++
+                            })
+                        }
+                        setAttendedLanes(localAttendedLanes)
+                        setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
+                    })
+                }
+                if (showDevicesWidget) {
+                    axios.get(`/api/REMS/devices?retailerId=${selectedRetailer}`).then(function (res) {
+                        let totalDevices = 0
+                        let onlineDevices = 0
+                        let localDevices = []
+                        if (res.data.length > 0) {
+                            res.data.forEach(device => {
+                                device.id = device._id
+                                localDevices.push(device)
+                                if (device.online === 'true') {
+                                    onlineDevices++
+                                }
+                                totalDevices++
+                            });
+                        }
+                        setDevices(localDevices)
+                        setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
+                    })
+                }
             } else {
-                axios.get(`/api/REMS/getAttendedLanes?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
-                    setAttendedLanes(res.data)
-                    let totalAttendedLanes = 0
-                    let onlineAttendedLanes = 0
-                    let localAttendedLanes = []
-                    if (res.data.length > 0) {
-                        res.data.forEach(agent => {
-                            localAttendedLanes.push(agent)
-                            if (agent.online === true) {
-                                onlineAttendedLanes++
-                            }
-                            totalAttendedLanes++
-                        })
-                    }
-                    setAttendedLanes(localAttendedLanes)
-                    setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
-                })
-                axios.get(`/api/REMS/devices?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
-                    let totalDevices = 0
-                    let onlineDevices = 0
-                    let localDevices = []
-                    if (res.data.length > 0) {
-                        res.data.forEach(device => {
-                            device.id = device._id
-                            localDevices.push(device)
-                            if (device.online === 'true') {
-                                onlineDevices++
-                            }
-                            totalDevices++
-                        });
-                    }
-                    setDevices(localDevices)
-                    setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
-                })
+                if (showAttendedLanesWidget) {
+                    axios.get(`/api/REMS/getAttendedLanes?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                        setAttendedLanes(res.data)
+                        let totalAttendedLanes = 0
+                        let onlineAttendedLanes = 0
+                        let localAttendedLanes = []
+                        if (res.data.length > 0) {
+                            res.data.forEach(agent => {
+                                agent.id = agent._id
+                                localAttendedLanes.push(agent)
+                                if (agent.online === true) {
+                                    onlineAttendedLanes++
+                                }
+                                totalAttendedLanes++
+                            })
+                        }
+                        setAttendedLanes(localAttendedLanes)
+                        setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': ((onlineAttendedLanes / totalAttendedLanes) * 100) })
+                    })
+                }
+                if (showDevicesWidget) {
+                    axios.get(`/api/REMS/devices?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                        let totalDevices = 0
+                        let onlineDevices = 0
+                        let localDevices = []
+                        if (res.data.length > 0) {
+                            res.data.forEach(device => {
+                                device.id = device._id
+                                localDevices.push(device)
+                                if (device.online === 'true') {
+                                    onlineDevices++
+                                }
+                                totalDevices++
+                            });
+                        }
+                        setDevices(localDevices)
+                        setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': ((onlineDevices / totalDevices) * 100) })
+                    })
+                }
             }
-
             let counter = 0;
             let onlineCounter = 0;
             let upLanes = 0;
@@ -436,7 +445,7 @@ export default function EnterpriseOverview() {
             setSelectedStore(null);
             setFiltersApplied([]);
         }
-    }, [selectedRetailer, allRetailers, context]);
+    }, [selectedRetailer, allRetailers, showAttendedLanesWidget, showStoreOnlineWidget, showDevicesWidget]);
 
     useEffect(() => {
         if (selectedRetailer && pullStorePeriodically > 0) {
@@ -591,44 +600,51 @@ export default function EnterpriseOverview() {
                     <Box sx={{
                         display: 'flex',
                         height: '100%',
-                        width: '20%',
+                        width: '12%',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'space-around'
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10} >
-                                <CustomLinearProgress
-                                    title="Stores Online"
-                                    subTitle={widget.onlineStoreText}
-                                    value={widget.onlineStore}
-                                    color={widget.onlineStoreColor}
-                                />
+                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10} >
+                                {widget.onlineStoreText !== '0/0' ?
+                                    <CustomLinearProgress
+                                        title="Stores Online"
+                                        subTitle={widget.onlineStoreText}
+                                        value={widget.onlineStore}
+                                        color={widget.onlineStoreColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
+
                             </Paper>
                         )}
                         {showAttendedLanesWidget === true && (
-                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView, 'attendedLanes')} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
-                                <CustomLinearProgress
-                                    title="Attended Lanes Up"
-                                    subTitle={widget.laneUpText}
-                                    value={widget.laneUp}
-                                    color={widget.laneUpColor}
-                                />
+                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView, 'attendedLanes')} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {widget.laneUpText !== '0/0' ?
+                                    <CustomLinearProgress
+                                        title="Agents Online"
+                                        subTitle={widget.laneUpText}
+                                        value={widget.laneUp}
+                                        color={widget.laneUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
                             </Paper>
                         )}
                         {(showDevicesWidget === true && devicesUp) && (
-                            <Paper onClick={() => handleListViewPaperClicked(isDevicesListView, setIsDevicesListView, 'devices')} sx={[isDevicesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF' }, isDevicesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd' }]} elevation={10}>
-                                <CustomLinearProgress
-                                    title="Devices Online"
-                                    subTitle={widget.devicesUpText}
-                                    value={widget.devicesUp}
-                                    color={widget.devicesUpColor}
-                                />
+                            <Paper onClick={() => handleListViewPaperClicked(isDevicesListView, setIsDevicesListView, 'devices')} sx={[isDevicesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isDevicesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {widget.devicesUpText !== '0/0' ?
+                                    <CustomLinearProgress
+                                        title="Devices Online"
+                                        subTitle={widget.devicesUpText}
+                                        value={widget.devicesUp}
+                                        color={widget.devicesUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
                             </Paper>
                         )}
                     </Box>
-                    <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
+                    <Box sx={{ display: 'flex', width: '88%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                             <Autocomplete
                                 key={autocompleteKey}

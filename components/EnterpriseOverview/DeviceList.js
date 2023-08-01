@@ -43,7 +43,8 @@ export default function DeviceList({ devices }) {
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
-                renderCell: (params) => params.row.online === 'true' ? 'Online' : 'Offline'
+                renderCell: (params) => params.row.online === 'true' ? 'Online' : 'Offline',
+                valueGetter: (params) => { return params.row.online === 'true' ? 'Online' : 'Offline' }
             },
             {
                 field: 'last_updated',

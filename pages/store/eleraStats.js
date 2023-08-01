@@ -64,15 +64,16 @@ const EleraStats = () => {
     }, [context?.selectedRetailer, storeList, selectedMenuItem, selectedRetailer]);
 
     useEffect(() => {
-        axios
-            .get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context?.selectedRetailerIsTenant}`)
-            .then(function (response) {
-                setStoreList(response.data);
-            })
-            .catch(function (error) {
-                console.error('Error fetching store list:', error);
-            });
-    }, [selectedRetailer, context?.selectedRetailerIsTenant]);
+        if (selectedRetailer !== '' && selectedRetailer !== null) {
+            axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context?.selectedRetailerIsTenant}`)
+                .then(function (response) {
+                    setStoreList(response.data);
+                })
+                .catch(function (error) {
+                    console.error('Error fetching store list:', error);
+                });
+        }
+    }, [context?.selectedRetailerIsTenant, selectedRetailer]);
 
     useEffect(() => {
         if (storeList.length > 0) {
