@@ -2,7 +2,7 @@
 import MuiDrawer from '@mui/material/Drawer';
 import React, { useContext, useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
-import { Avatar, Button, Grid, IconButton, MenuItem, Select, Typography } from '@mui/material';
+import { Avatar, Button, Grid, IconButton, MenuItem, Paper, Select, Typography } from '@mui/material';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
@@ -53,22 +53,42 @@ function DrawerOpenerBurger({ open, handleDrawerOpenAndClose, sidebarDisable }) 
 function RetailerSelector({ context, handleSelectedRetailerChanged, availableRetailers, open }) {
     if (context) {
         if (context.selectedRetailer && open) {
-            return (
-                <Select
-                    labelId="retailer-select-label"
-                    id="retailer-select"
-                    value={availableRetailers.length > 0 ? context.selectedRetailer : ''}
-                    onChange={handleSelectedRetailerChanged}
-                    sx={{ color: '#e4e4e4', height: 40, margin: 1 }}
-                    disabled={availableRetailers.length > 1 ? false : true}
-                >
-                    {availableRetailers.map((retailer, index) => (
-                        <MenuItem key={index} sx={{ mt: 1 }} value={retailer.retailer_id}>
-                            {retailer.description}
-                        </MenuItem>
-                    ))}
-                </Select>
-            );
+            if (availableRetailers.length > 1) {
+                return (
+                    <Select
+                        labelId="retailer-select-label"
+                        id="retailer-select"
+                        value={availableRetailers.length > 0 ? context.selectedRetailer : ''}
+                        onChange={handleSelectedRetailerChanged}
+                        sx={{
+                            color: '#e4e4e4',
+                            height: 40,
+                            margin: 1
+                        }}
+                    >
+                        {availableRetailers.map((retailer, index) => (
+                            <MenuItem key={index} sx={{
+                                mt: 1
+                            }} value={retailer.retailer_id}>
+                                {retailer.description}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                );
+            } else if (availableRetailers.length === 1) {
+                return (
+                    <Paper sx={{
+                        margin: 1,
+                        backgroundColor: "#4F5051",
+                        color: '#e4e4e4',
+                        height: 40,
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>
+                        <Typography variant='h5'>{availableRetailers[0].description}</Typography>
+                    </Paper>
+                )
+            }
         } else {
             return null;
         }

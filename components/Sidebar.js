@@ -232,14 +232,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             enabled: true,
                             items: []
                         };
-                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSoftwareVersions' && x.value === true)) {
-                            tmp.items.push({
-                                id: 'softwareVersions',
-                                name: 'Software Versions',
-                                route: '/systemReporting/tableauReportViewer?reportName=softwareVersions',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            })
-                        }
                         if (_.some(context.sidebarConfigs, x => x.name === 'sidebarAssetInventory' && x.value === true)) {
                             tmp.items.push({
                                 id: 'assetInventory',
@@ -277,6 +269,14 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 id: 'checkExtractAnalysis',
                                 name: 'CHEC Extract Analysis',
                                 route: '/systemReporting/tableauReportViewer?reportName=extracts',
+                                enabled: pasSubscriptionTier === 'advanced'
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSoftwareVersions' && x.value === true)) {
+                            tmp.items.push({
+                                id: 'softwareVersions',
+                                name: 'Software Versions',
+                                route: '/systemReporting/tableauReportViewer?reportName=softwareVersions',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
