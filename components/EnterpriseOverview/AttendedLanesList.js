@@ -40,6 +40,12 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
             //     sortingOrder: ['asc', 'desc'],
             // },
             {
+                field: 'ipaddress',
+                headerName: 'IP',
+                width: 200,
+                sortable: false,
+            },
+            {
                 field: 'statusId',
                 headerName: 'Status',
                 width: 200,
