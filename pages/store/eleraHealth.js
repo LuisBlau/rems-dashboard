@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 import Box from '@mui/material/Box'
 import axios from 'axios';
@@ -7,11 +7,13 @@ import {
     Typography,
 } from '@mui/material';
 import Divider from '@mui/material/Divider';
+import UserContext from '../UserContext';
 
 const PREFIX = 'eleraHealth'
 
 export default function EleraHealth() {
 
+    const context = useContext(UserContext);
     const [data, setData] = useState('')
     const [eleraHealthUrl, setEleraHealthUrl] = useState('')
     let par = '';
@@ -19,37 +21,35 @@ export default function EleraHealth() {
         par = window.location.search;
     }
     const params = new URLSearchParams(par);
-    let selectedRetailer = params.get('retailer_id');
+    let remsServerId = params.get('retailer_id');
     let storeName = params.get('storeName');
 
-    useEffect(() => {
-        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${selectedRetailer}&agentName=${params.get('agentName')}`).then((resp) => {
+    useEffect(() => {   
+        if (context?.selectedRetailer) {
+        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${remsServerId}&agentName=${params.get('agentName')}`).then((resp) => {
             if (resp.data) {
                 setData(resp.data)
             }
         })
-    }, [])
 
-    useEffect(() => {
-        if (selectedRetailer) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
-                // fetch configuration info
-                const configurationArray = res.data.configuration;
-                const configurationInfo = [];
-                configurationArray.forEach(configObject => {
-                    const innerArray = Object.values(configObject)[0];
-                    configurationInfo.push(innerArray);
-                });
+        axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`).then(function (res) {
+            // fetch configuration info
+            const configurationArray = res.data.configuration;
+            const configurationInfo = [];
+            configurationArray.forEach(configObject => {
+                const innerArray = Object.values(configObject)[0];
+                configurationInfo.push(innerArray);
+            });
 
-                const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
-                const modifiedUrl = urlFromDatabase
-                    .replace(/\${storeName}/g, storeName)
-                    .replace(/\${selectedRetailer}/g, selectedRetailer);
-                setEleraHealthUrl(modifiedUrl)
+            const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
+            const modifiedUrl = urlFromDatabase
+                .replace(/\${storeName}/g, storeName)
+                .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
+            setEleraHealthUrl(modifiedUrl)
 
-            })
-        }
-    }, [selectedRetailer])
+        })
+    }
+    }, [context?.selectedRetailer])
 
     const columns = [
         {
