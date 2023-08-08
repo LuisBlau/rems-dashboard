@@ -27,6 +27,7 @@ import { useMsal } from '@azure/msal-react';
 import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
 import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
 import DeviceList from '../components/EnterpriseOverview/DeviceList';
+import moment from 'moment';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -369,15 +370,20 @@ export default function EnterpriseOverview() {
                         upLanes += store.onlineLanes
                         totalLanes += store.totalLanes
                     }
-                    if (store.online !== true) {
-                        // red
-                        store.status = '#FF0000';
-                    } else if (store.online === true) {
+                    const signal = store?.onlineAgents / store?.totalAgents * 100;
+                    // default orange
+                    store.status = '#FA8128';
+                    if (signal > goodStoreStatusPercentage && store?.online) {
                         // green
                         store.status = '#00FF00';
                         onlineCounter++;
-                    } else {
-                        store.status = '#FF0000';
+                    } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && store?.online) {
+                        //yellow
+                        store.status = '#FFFF00';
+                    }
+                    if (store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
+                        // disconnected, red
+                        store.status = '#FF0000'
                     }
                     if (localContinents.findIndex((x) => x.name === store.continent) === -1) {
                         localContinents.push({

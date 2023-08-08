@@ -30,6 +30,7 @@ import RmqInfoModal from './InformationModals/RmqInfoModal';
 import DockerInfoModal from './InformationModals/DockerInfoModal';
 import Image from 'next/image';
 import OfflineImage from '../../public/images/offline.png';
+import _ from 'lodash';
 
 // TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper';
@@ -111,19 +112,34 @@ function DisplaySystemType(props) {
                 );
             }
         } else {
-            return (
-                <Grid item xs={12}>
-                    <Typography fontWeight='bold' variant="h7">Register</Typography>
-                </Grid>
-            );
+            if (_.includes(props.data.agentName, 'ars')) {
+                return (
+                    <Grid item xs={12}>
+                        <Typography fontWeight='bold' variant='h7'>Server</Typography>
+                    </Grid>
+                )
+            } else {
+                return (
+                    <Grid item xs={12}>
+                        <Typography fontWeight='bold' variant="h7">Register</Typography>
+                    </Grid>
+                );
+            }
         }
     }
-
-    return (
-        <Grid item xs={12}>
-            <Typography fontWeight='bold' variant="h7">Register</Typography>
-        </Grid >
-    );
+    if (_.includes(props.data.agentName, 'ars')) {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant='h7'>Server</Typography>
+            </Grid>
+        )
+    } else {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant="h7">Register</Typography>
+            </Grid >
+        );
+    }
 }
 function DisplayOnOffStatus(props) {
     if (props.data.online) {
