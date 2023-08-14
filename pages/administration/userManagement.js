@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import _ from 'lodash';
-import { Alert, AlertTitle, Autocomplete, Button, InputLabel, MenuItem, Select, Snackbar, TextField } from '@mui/material';
+import { Alert, AlertTitle, Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputLabel, MenuItem, Select, Snackbar, TextField } from '@mui/material';
 import axios from 'axios';
 
 export default function UserSettings() {
@@ -24,6 +24,8 @@ export default function UserSettings() {
     const [openFailure, setOpenFailure] = useState(false);
     const [toastSuccess, setToastSuccess] = useState('');
     const [openSuccess, setOpenSuccess] = useState(false);
+    const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
+    const [newUserEmail, setNewUserEmail] = useState('')
     const ITEM_HEIGHT = 48;
     const ITEM_PADDING_TOP = 8;
     const MenuProps = {
@@ -40,15 +42,17 @@ export default function UserSettings() {
         axios.get('/api/REMS/getAllRetailerDetails').then(function (response) {
             let tempResponse = response.data
             tempResponse.push({ description: 'All' })
+            tempResponse = _.sortBy(tempResponse, ['description'])
             setRetailers(tempResponse)
         });
 
         axios.get('/api/REMS/getAllUserDetails').then(function (response) {
-            setUsers(response.data)
-            setFilteredUsers(response.data)
+            let localUsers = _.sortBy(response.data, ['email'])
+            setUsers(localUsers)
+            setFilteredUsers(localUsers)
             const roles = []
             roles.push({ name: 'Administrator', isChecked: false })
-            response.data.forEach(user => {
+            localUsers.forEach(user => {
                 if ((user.role).length > 0) {
                     (user.role).forEach(role => {
                         if (!_.some(roles, x => x.name === role)) {
@@ -157,6 +161,45 @@ export default function UserSettings() {
             });
     }
 
+    function handleNewUserDialogClosed() {
+        setNewUserDialogOpen(false)
+    }
+
+    function isValidEmail(email) {
+        return /\S+@\S+\.\S+/.test(email);
+    }
+
+    function saveNewUser() {
+        if (isValidEmail(newUserEmail)) {
+            axios.post(`/api/REMS/insertUser?userEmail=${newUserEmail}`)
+                .then(function (response) {
+                    if (response.status !== 200) {
+                        setToastFailure('Error Saving New User!!');
+                        setOpenFailure(true);
+                    } else {
+                        setToastSuccess('User created!')
+                        setOpenSuccess(true)
+                        handleNewUserDialogClosed()
+                        setTimeout(function () {
+                            window.location.reload(true);
+                        }, SuccessToastDuration + 500);
+                    }
+                })
+                .catch(function (error) {
+                    if (error.response.status === 409) {
+                        setToastFailure('User with this email already exists!')
+                        setOpenFailure(true)
+                    } else {
+                        setToastFailure('Error connecting to server!!' + error);
+                        setOpenFailure(true);
+                    }
+                });
+        } else {
+            setToastFailure('Not a valid email!')
+            setOpenFailure(true)
+        }
+    }
+
     return (
         <Box sx={{ display: 'flex', height: '100vh', width: '100%', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h2">
@@ -176,7 +219,7 @@ export default function UserSettings() {
                             </li>
                         );
                     }}
-                    renderInput={(params) => <TextField sx={{ backgroundColor: 'white' }} {...params} label={'Retailer'} />}
+                    renderInput={(params) => <TextField sx={{ backgroundColor: 'white' }} {...params} label={'Filter Users by Retailer'} />}
                 />
 
                 <Autocomplete
@@ -193,9 +236,9 @@ export default function UserSettings() {
                             </li>
                         );
                     }}
-                    renderInput={(params) => <TextField sx={{ backgroundColor: 'white' }} {...params} label={'User'} />}
+                    renderInput={(params) => <TextField sx={{ backgroundColor: 'white' }} {...params} label={'Select User to Update'} />}
                 />
-                <Button sx={{ height: '70%', alignSelf: 'center' }} variant="contained">Add a User</Button>
+                <Button sx={{ height: '70%', alignSelf: 'center' }} variant="contained" onClick={() => { setNewUserDialogOpen(!newUserDialogOpen) }}>Add a User</Button>
             </Box>
             {selectedUser &&
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%', padding: 2, margin: 2 }}>
@@ -245,6 +288,30 @@ export default function UserSettings() {
                     <Button sx={{ width: '5%', alignSelf: 'center' }} onClick={handleSubmission} variant='contained'>Submit</Button>
                 </Box>
             }
+            <Dialog open={newUserDialogOpen} onClose={handleNewUserDialogClosed}>
+                <DialogTitle>Create New User</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        This screen allows you to create a new user, you will still need to assign their role(s)/retailer(s).
+                    </DialogContentText>
+                    <TextField
+                        type={'email'}
+                        autoFocus
+                        margin="dense"
+                        label='Email Address'
+                        fullWidth
+                        variant='standard'
+                        value={newUserEmail}
+                        onChange={(event) => {
+                            setNewUserEmail(event.target.value);
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleNewUserDialogClosed}>Cancel</Button>
+                    <Button variant='contained' onClick={saveNewUser}>Save</Button>
+                </DialogActions>
+            </Dialog>
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={openSuccess}
