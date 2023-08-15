@@ -76,7 +76,7 @@ export default function DataCapture() {
 
     return (
         <Root className={classes.content}>
-            <Typography align="center" variant="h3">
+            <Typography align="center" variant="h4" marginBottom={1}>
                 Trigger Data Capture
             </Typography>
             {remsDataCaptureEnabled && <Button

@@ -20,6 +20,7 @@ export const UserContextProvider = (props) => {
     const [selectedRetailerIsTenant, setSelectedRetailerIsTenant] = useState(null)
     const [selectedRetailerParentRemsServerId, setSelectedRetailerParentRemsServerId] = useState(null)
     const [sidebarConfigs, setSidebarConfigs] = useState([])
+    const [retailerConfigs, setRetailerConfigs] = useState([])
     const cookies = new Cookies();
 
     const getRoles = async () => {
@@ -113,6 +114,11 @@ export const UserContextProvider = (props) => {
                 setSelectedRetailerIsTenant(false)
                 setSelectedRetailerParentRemsServerId(null)
             }
+            //FETCH RETAILER CONFIGURATION
+            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
+                let configs = res.data.configuration;
+                setRetailerConfigs(configs)
+            })
         }
     }, [selectedRetailer])
 
@@ -120,7 +126,29 @@ export const UserContextProvider = (props) => {
         if (!selectedRetailer && userRetailers) {
             getSelectedRetailer();
         }
-    }, [userRetailers])
+    }, [userRetailers]);
+
+    useEffect(() => {
+        const localConfigs = []
+        if (userRetailers && sidebarConfigs.length === 0) {
+            let retailerIds = []
+            userRetailers.forEach(element => {
+                retailerIds.push(element.retailer_id)
+            });
+            axios.post('/api/REMS/getSidebarConfiguration', { data: retailerIds }).then((results) => {
+                results.data.configuration.forEach(config => {
+                    if (Object.values(config)[0].configCategory === 'Sidebar Items' && !_.some(localConfigs, function (x) { return x.name === Object.values(config)[0].configName })) {
+                        localConfigs.push({ name: Object.values(config)[0].configName, value: Object.values(config)[0].configValue })
+                    }
+                });
+            }).then(() => {
+                if (localConfigs.length > 0) {
+                    setSidebarConfigs(localConfigs);
+                }
+            })
+        }
+    }, [userRetailers, sidebarConfigs])
+
 
     if (props.pageName !== currentPage) {
         setCurrentPage(props.pageName);
@@ -139,6 +167,7 @@ export const UserContextProvider = (props) => {
         selectedRetailer,
         setSelectedRetailer,
         setUserDetails,
+        retailerConfigs,
         selectedRetailerIsTenant,
         selectedRetailerDescription,
         selectedRetailerParentRemsServerId

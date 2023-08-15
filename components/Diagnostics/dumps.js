@@ -1,13 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { styled } from '@mui/material/styles';
 import React from 'react';
-import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import CaptureGrid from '../../components/Tables/CaptureGrid';
+import DumpGrid from '../../components/Tables/DumpGrid';
 import Typography from '@mui/material/Typography';
 import Copyright from '../../components/Copyright';
-
-const PREFIX = 'docCollection';
+const PREFIX = 'dumps';
 
 const classes = {
     content: `${PREFIX}-content`,
@@ -27,18 +25,16 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
-export default function DocCollection() {
+export default function Dumps() {
     return (
         <Root className={classes.content}>
-            <Typography align="center" variant="h3">
-                Data Captures
+            <Typography align="center" variant="h4">
+                TCx Sky Dumps
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
-                <CaptureGrid />
+                <DumpGrid />
             </Container>
-            <Box>
-                <Copyright />
-            </Box>
+            <Copyright />
         </Root>
     );
 }

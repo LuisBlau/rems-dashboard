@@ -2,14 +2,17 @@
 import { styled } from '@mui/material/styles';
 import React from 'react';
 import Container from '@mui/material/Container';
-import DumpGrid from '../../components/Tables/DumpGrid';
 import Typography from '@mui/material/Typography';
 import Copyright from '../../components/Copyright';
-const PREFIX = 'dumps';
+import ExtractGrid from '../Tables/ExtractGrid'
+
+const PREFIX = 'checExtracts';
 
 const classes = {
     content: `${PREFIX}-content`,
     container: `${PREFIX}-container`,
+    paper: `${PREFIX}-paper`,
+    fixedHeight: `${PREFIX}-fixedHeight`,
 };
 
 const Root = styled('main')(({ theme }) => ({
@@ -25,14 +28,14 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
-export default function Dumps() {
+export default function ChecExtracts() {
     return (
         <Root className={classes.content}>
-            <Typography align="center" variant="h3">
-                TCx Sky Dumps
+            <Typography align="center" variant="h4">
+                CHEC Extracts
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
-                <DumpGrid height={'80vh'} />
+                <ExtractGrid height={'70vh'} />
             </Container>
             <Copyright />
         </Root>

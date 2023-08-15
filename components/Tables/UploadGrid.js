@@ -7,6 +7,8 @@ import { useContext } from 'react';
 import UserContext from '../../pages/UserContext'
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const PREFIX = 'UploadGrid';
 
@@ -58,19 +60,19 @@ export default function UploadGrid() {
         {
             field: 'description',
             headerName: 'Description',
-            width: 300
+            flex: 1
         },
         {
             field: 'filename',
             headerName: 'File Name',
-            width: 300,
+            flex: 1,
             sortable: true,
             filterable: true
         },
         {
             field: 'timestamp',
             headerName: 'Timestamp',
-            width: 200,
+            flex: 1,
             type: 'dateTime',
             sortable: true,
             valueGetter: (params) => new Date(params.row.timestamp),
@@ -79,13 +81,14 @@ export default function UploadGrid() {
         {
             field: 'retailer_id',
             headerName: 'File Origin',
-            width: 100,
+            flex: 1,
             renderCell: (params) => params.value === 'COMMON' ? params.value : 'RETAILER',
         },
+
         {
             field: 'archived',
             headerName: 'Archived',
-            width: 100,
+            flex: 1,
             renderCell: (params) => (
                 <Switch
                     onChange={(e) => {
@@ -101,9 +104,26 @@ export default function UploadGrid() {
 
     if (context?.userRoles?.includes('toshibaAdmin')) {
         columns.push({
+            field: 'delete',
+            headerName: 'Delete',
+            sortable: false,
+            flex: 1,
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this file?')) {
+                            deleteFile(params.row.retailer_id, params.row?.uploadId);
+                        }
+                    }}
+                >
+                    <DeleteIcon />
+                </IconButton>
+            ),
+        });
+        columns.push({
             field: 'forProd',
             headerName: 'For Production',
-            width: 125,
+            flex: 1,
             renderCell: (params) => {
                 return (
                     params.row.retailer_id === 'COMMON' && <Switch
@@ -111,7 +131,6 @@ export default function UploadGrid() {
                             changeForProdStatus(e, params.row?.uuid);
                         }}
                         checked={params.value === "true" ? true : false}
-                        disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
                         color="success"
                     />
                 )
@@ -119,7 +138,46 @@ export default function UploadGrid() {
 
 
         })
+    } else if (context?.userRoles?.includes('Administrator')) {
+        columns.push({
+            field: 'delete',
+            headerName: 'Delete',
+            sortable: false,
+            width: 100,
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this file?')) {
+                            deleteFile(params.row.retailer_id, params.row?.uploadId);
+                        }
+                    }}
+                    disabled={context.selectedRetailerIsTenant === false ? params.row.retailer_id !== context.selectedRetailer : params.row.tenant_id !== context.selectedRetailer}
+                >
+                    <DeleteIcon />
+                </IconButton>
+            ),
+        });
     }
+
+    function deleteFile(retailerId, id) {
+        var url = `/api/REMS/deletefile`;
+        var data = { retailerId, id };
+        axios.delete(url, { data })
+            .then(function (data) {
+                setToastSuccess('File deletion was successful');
+                setOpenSuccess(true);
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, SuccessToastDuration + 500);
+            })
+            .catch(function (error) {
+                setToastFailure('There has been a problem with your fetch operation:');
+                setOpenFailure(true);
+                FailToastDuration
+                window.location.reload();
+            });
+    }
+
 
     function fetchUploadData() {
         if (context.selectedRetailerParentRemsServerId) {
@@ -208,7 +266,7 @@ export default function UploadGrid() {
                         },
                         pagination: { paginationModel: { pageSize: 25 } },
                     }}
-                    rows={uploadData?.map((item, key) => ({ ...item, id: key }))}
+                    rows={uploadData?.map((item, key) => ({ ...item, id: key, uploadId: item.id }))}
                     columns={columns}
                     pageSizeOptions={[25, 50, 100]}
                     checkboxSelection={false}

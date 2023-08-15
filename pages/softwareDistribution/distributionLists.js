@@ -175,7 +175,7 @@ export default function DistributionLists() {
                 }
             }
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
+    }, [context])
 
     const onFileChange = (event) => {
         const inputFile = event.target.files[0];

@@ -53,16 +53,20 @@ export default function ExtractRequestGrid(props) {
     const [agents, setAgents] = useState([])
     const [agentsList, setAgentsList] = useState([])
     const context = useContext(UserContext)
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true)
         if (context.selectedRetailer) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
                     setAgents(res.data)
+                    setLoading(false)
                 })
             } else if (context.selectedRetailerParentRemsServerId) {
                 axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
                     setAgents(res.data)
+                    setLoading(false)
                 })
             }
         }
@@ -339,6 +343,7 @@ export default function ExtractRequestGrid(props) {
     return (
         <Box sx={{ height: '80vh', width: '100%' }}>
             <DataGrid
+                loading={loading}
                 rows={agentsList}
                 columns={[
                     { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },

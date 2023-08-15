@@ -108,19 +108,16 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
     const [alertsEnabled, setAlertsEnabled] = useState(false)
 
     useEffect(() => {
-        if (context) {
-            if (context.selectedRetailer) {
-                axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&ccv=true&retailerId=${context.selectedRetailer}`).then(function (res) {
-                    let configs = res.data.configuration
-                    Object.values(configs).forEach(config => {
-                        if (Object.keys(config)[0] === 'alertsEnabled') {
-                            setAlertsEnabled(config.alertsEnabled.configValue)
-                        }
-                    });
-                })
-            }
+        if (context?.retailerConfigs) {
+            //api/REMS/retailerConfiguration?isAdmin=true&ccv=true&retailerId=${selectedRetailer}      
+            let configs = context?.retailerConfigs;
+            Object.values(configs).forEach(config => {
+                if (Object.keys(config)[0] === 'alertsEnabled') {
+                    setAlertsEnabled(config.alertsEnabled.configValue)
+                }
+            })
         }
-    }, [context])
+    }, [context?.retailerConfigs])
 
     const handleSelectedRetailerChanged = (e) => {
         if (e.target) {

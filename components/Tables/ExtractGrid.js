@@ -31,6 +31,7 @@ const Root = styled('div')(({ theme }) => ({
 export default function ExtractGrid({ store, height }) {
     const [storeExtracts, setStoreExtracts] = useState([]);
     const context = useContext(UserContext)
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         if (context) {
             if (store) {
@@ -39,6 +40,7 @@ export default function ExtractGrid({ store, height }) {
                         const extracts = res.data.map((v, index) => {
                             return { ...v, id: index }
                         });
+                        setLoading(false)
                         setStoreExtracts(extracts);
                     });
                 } else {
@@ -46,6 +48,7 @@ export default function ExtractGrid({ store, height }) {
                         const extracts = res.data.map((v, index) => {
                             return { ...v, id: index }
                         });
+                        setLoading(false)
                         setStoreExtracts(extracts);
                     });
                 }
@@ -56,6 +59,7 @@ export default function ExtractGrid({ store, height }) {
                             const extracts = res.data.map((v, index) => {
                                 return { ...v, id: index }
                             });
+                            setLoading(false)
                             setStoreExtracts(extracts);
                         });
                     } else if (context.selectedRetailerParentRemsServerId) {
@@ -63,6 +67,7 @@ export default function ExtractGrid({ store, height }) {
                             const extracts = res.data.map((v, index) => {
                                 return { ...v, id: index }
                             });
+                            setLoading(false)
                             setStoreExtracts(extracts);
                         });
                     }
@@ -114,6 +119,7 @@ export default function ExtractGrid({ store, height }) {
     return (
         <Box sx={{ height: height, width: '100%' }}>
             <DataGrid
+            loading = {loading}
                 columns={columns}
                 rows={storeExtracts}
                 initialState={{

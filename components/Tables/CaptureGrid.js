@@ -33,6 +33,7 @@ const Root = styled('div')(({ theme }) => ({
 export default function CaptureGrid() {
     const context = useContext(UserContext)
     const [captures, setCaptures] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
 
@@ -46,6 +47,7 @@ export default function CaptureGrid() {
                             id: element._id
                         })
                     });
+                    setLoading(false)
                     setCaptures(captures)
                 })
             } else {
@@ -57,6 +59,7 @@ export default function CaptureGrid() {
                             id: element._id
                         })
                     });
+                    setLoading(false)
                     setCaptures(captures)
                 })
             }
@@ -123,8 +126,9 @@ export default function CaptureGrid() {
     ];
 
     return (
-        <Box sx={{ height: '80vh', width: '100%' }}>
+        <Box sx={{ height: '70vh', width: '100%' }}>
             <DataGrid
+                loading={loading}
                 rows={captures}
                 columns={columns}
                 initialState={{

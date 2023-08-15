@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Box, Card, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
+import axios from 'axios';
+import { filter, find, intersectionBy } from 'lodash';
 
-export default function AttendedLanesList({ context, agents, selectedRetailer }) {
+export default function AttendedLanesList({ context, places, selectedRetailer, attendedList }) {
     const [columns, setColumns] = useState([])
+    const [agents, setAgents] = useState([])
+    const [loading, setLoading] = useState(true)
     //this is the little comment to link the store in the store overview
     const renderLinkStoreView = (value) => {
         if (context.selectedRetailerIsTenant === false) {
@@ -15,6 +19,20 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
     }
 
     useEffect(() => {
+        setLoading(true);
+        if (context.selectedRetailerIsTenant === false) {
+            const placesData = places.map(p => ({ ...p, id: p._id }));
+            const response = attendedList?.filter(store => placesData?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
+            setAgents(response);
+            setLoading(false);
+
+        } else {
+            const placesData = places.map(p => ({ ...p, id: p._id }));
+            const response = attendedList?.filter(store => placesData?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
+            setAgents(response);
+            setLoading(false);
+
+        }
 
         setColumns([
             {
@@ -74,7 +92,7 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                 renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             }
         ])
-    }, [])
+    }, [places, attendedList])
 
 
     function CustomToolbar() {
@@ -91,6 +109,7 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
         <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
             <Box sx={{ display: 'flex', width: '80%', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <DataGrid
+                    loading={loading}
                     rowHeight={60}
                     slots={{ toolbar: CustomToolbar }}
                     initialState={{
@@ -99,7 +118,7 @@ export default function AttendedLanesList({ context, agents, selectedRetailer })
                         },
                         pagination: { paginationModel: { pageSize: 10 } },
                     }}
-                    rows={agents}
+                    rows={agents ?? []}
                     columns={columns}
                     pageSizeOptions={[5, 10, 15]}
                     checkboxSelection={false}

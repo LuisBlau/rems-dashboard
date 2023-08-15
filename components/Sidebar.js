@@ -183,26 +183,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
     const { pathname } = useRouter();
     const [menu, setMenu] = useState([]);
 
-    useEffect(() => {
-        const localConfigs = []
-        if (context?.userRetailers && context.sidebarConfigs.length === 0) {
-            let retailerIds = []
-            context.userRetailers.forEach(element => {
-                retailerIds.push(element.retailer_id)
-            });
-            axios.post('/api/REMS/getSidebarConfiguration', { data: retailerIds }).then((results) => {
-                results.data.configuration.forEach(config => {
-                    if (Object.values(config)[0].configCategory === 'Sidebar Items' && !_.some(localConfigs, function (x) { return x.name === Object.values(config)[0].configName })) {
-                        localConfigs.push({ name: Object.values(config)[0].configName, value: Object.values(config)[0].configValue })
-                    }
-                });
-            }).then(() => {
-                if (localConfigs.length > 0) {
-                    context.setSidebarConfigs(localConfigs);
-                }
-            })
-        }
-    }, [context?.userRetailers, context?.sidebarConfigs])
 
     useEffect(() => {
         function getSidebarItems() {
@@ -327,83 +307,50 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             name: 'Remote Software Maintenance',
                             icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
                             enabled: pasSubscriptionTier === 'advanced',
-                            items: []
+                            items: [
+                                {
+                                    id: 'softwareDeploy',
+                                    name: 'Deployment Status',
+                                    icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
+                                    route: '/softwareDistribution/deploymentStatus',
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'deploymentFileUpload',
+                                    name: 'Upload a File',
+                                    route: '/softwareDistribution/deploymentFileUpload',
+                                    icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'createDeploymentConfig',
+                                    name: 'Create Deploy Config',
+                                    route: '/softwareDistribution/createDeploymentConfig',
+                                    icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'scheduleDeployment',
+                                    name: 'Schedule a Deployment',
+                                    route: '/softwareDistribution/scheduleDeployment',
+                                    icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'distributionLists',
+                                    name: 'Distribution Lists',
+                                    route: '/softwareDistribution/distributionLists',
+                                    icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                            ]
                         };
-                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteDeployment' && x.value === true)) {
-                            tmp.items.push({
-                                id: 'remote-deployment',
-                                name: 'Remote Deployment',
-                                enabled: pasSubscriptionTier === 'advanced',
-                                items: [
-                                    {
-                                        id: 'softwareDeploy',
-                                        name: 'Deployment Status',
-                                        icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
-                                        route: '/softwareDistribution/deploymentStatus',
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'deploymentFileUpload',
-                                        name: 'Upload a File',
-                                        route: '/softwareDistribution/deploymentFileUpload',
-                                        icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'createDeploymentConfig',
-                                        name: 'Create Deploy Config',
-                                        route: '/softwareDistribution/createDeploymentConfig',
-                                        icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'scheduleDeployment',
-                                        name: 'Schedule a Deployment',
-                                        route: '/softwareDistribution/scheduleDeployment',
-                                        icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'distributionLists',
-                                        name: 'Distribution Lists',
-                                        route: '/softwareDistribution/distributionLists',
-                                        icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                ]
-                            })
-                        }
                         if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteDiagnostics' && x.value === true)) {
                             tmp.items.push({
-                                id: 'remote-diagnostic',
-                                name: 'Remote Diagnostic',
-                                enabled: pasSubscriptionTier === 'advanced',
-                                items: [
-                                    {
-                                        id: 'Doc Collection',
-                                        name: 'Doc Collection',
-                                        route: '/diagnostics/docCollection',
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'dumps',
-                                        name: 'Dumps',
-                                        route: '/diagnostics/dumps',
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'extracts',
-                                        name: 'CHEC Extracts',
-                                        route: '/diagnostics/checExtracts',
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                    {
-                                        id: 'dataCapture',
-                                        name: 'Data Capture',
-                                        route: '/diagnostics/dataCapture',
-                                        enabled: pasSubscriptionTier === 'advanced'
-                                    },
-                                ]
+                                id: 'remote-diagnostics',
+                                name: 'Remote Diagnostics',
+                                route: '/diagnostics',
+                                enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
                         MenuItems.push(tmp);
@@ -520,6 +467,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
             setMenu(getSidebarItems())
         }
     }, [])
+
 
     const handleOpenItem = (id, isOpened) => {
         let indexOfOpened = context.openedMenuItems.indexOf(id);

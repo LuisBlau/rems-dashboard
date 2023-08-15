@@ -36,26 +36,44 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                 renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             },
             {
-                field: 'statusId',
+                field: 'health',
+                headerName: 'Health',
+                width: 100,
+                sortingOrder: ['asc', 'desc'],
+                sortable: true,
+                renderCell: (params) => {
+                    return <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
+                },
+                valueGetter: (params) => params.row.status.label,
+            },
+            {
+                field: 'online',
                 headerName: 'Status',
+                width: 100,
+                sortingOrder: ['asc', 'desc'],
+                sortable: true,
+                renderCell: (params) => {
+                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
+                },
+                valueGetter: (params) => params.row?.online === true ? 'online' : 'offline',
+            },
+            {
+                field: 'signal',
+                headerName: 'Agents Online',
                 width: 400,
                 sortingOrder: ['asc', 'desc'],
                 sortable: true,
                 renderCell: (params) => {
-                    return <Box sx={{ display: 'flex', width: '80%', height: '100%', padding: 2 }}>
-                        <Typography variant='body2' sx={{ color: params.row.status.color, marginRight: 4, width: '20%' }}>{params.row.status.label}</Typography>
-                        <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{params.row?.online ? 'Online' : 'Offline'}</Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
-                            <LinearProgress sx={{
-                                borderRadius: 2, height: 10,
-                                backgroundColor: '#ddd'
-                            }} color={params.row.status.variant}
-                                variant="determinate" value={params.row?.signal} />
-                            <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
-                        </Box>
+                    return <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%' }}>
+                        <LinearProgress sx={{
+                            borderRadius: 2, height: 10,
+                            backgroundColor: '#ddd'
+                        }} color={params.row.status.variant}
+                            variant="determinate" value={params.row?.signal} />
+                        <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
                     </Box>
                 },
-                valueGetter: (params) => params.row.status.label,
+                valueGetter: (params) => `${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`,
             }
         ])
     }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
@@ -87,10 +105,17 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                         let status = {
                             id: 2,
                             label: 'Poor',
-                            color: '#E7431F',
-                            variant: 'error'
+                            color: '#FA8128',
+                            variant: 'alert'
                         }
-                        if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && item?.online) {
+                        if (item?.online !== true) {
+                            status = {
+                                id: 4,
+                                label: 'Offline',
+                                color: '#E7431F',
+                                variant: 'error'
+                            }
+                        } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && item?.online) {
                             status = {
                                 id: 1,
                                 label: 'Fair',
@@ -106,8 +131,7 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                                 variant: 'success'
 
                             }
-                        }
-                        if (item?.last_updated_sec && moment(item?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
+                        } else if (item?.last_updated_sec && moment(item?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
                             status = {
                                 id: 3,
                                 label: 'Disconnected',
@@ -115,7 +139,7 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                                 variant: 'error'
                             }
                         }
-                        return { ...item, id: key, statusId: status.id, status, signal }
+                        return { ...item, id: key, health: status.id, status, signal }
                     }) : []}
                     columns={columns}
                     pageSizeOptions={[5, 10, 15]}
