@@ -108,45 +108,74 @@ export default function DistributionLists() {
 
     useEffect(() => {
         if (context.selectedRetailer) {
-            let stringParams = `${context.selectedRetailer}`
-            if (context.selectedRetailerParentRemsServerId) {
-                stringParams = `${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
-            }
+            if (context.selectedRetailerIsTenant !== null) {
+                if (context.selectedRetailerIsTenant === true) {
+                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then((resp) => setExistingLists(resp.data));
+                    axios.get(`/api/registers/versions?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                        const data = [];
+                        for (const soft of Object.keys(res.data)) {
+                            const entry = { children: [], label: soft, value: soft };
+                            for (const ver of res.data[soft]) {
+                                entry.children.push({
+                                    label: ver,
+                                    value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
+                                });
+                            }
+                            data.push(entry);
+                        }
+                        setVersionData(data);
+                    });
 
-            axios.get(`/api/REMS/store-list?retailerId=${stringParams}`).then((resp) => setExistingLists(resp.data));
-
-            // gets versions of software(s) associated with agents that are assigned to the selected retailer
-            axios.get(`/api/registers/versions?retailerId=${stringParams}`).then(function (res) {
-                const data = [];
-                for (const soft of Object.keys(res.data)) {
-                    const entry = { children: [], label: soft, value: soft };
-                    for (const ver of res.data[soft]) {
-                        entry.children.push({
-                            label: ver,
-                            value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
+                    // gets all agents for the selected retailer
+                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
+                        const data = [];
+                        res.data.forEach((item) => {
+                            // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
+                            if (
+                                availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
+                                undefined
+                            ) {
+                                data.push({ isChecked: false, agent: item, storeName: item.storeName });
+                            }
                         });
-                    }
-                    data.push(entry);
-                }
-                setVersionData(data);
-            });
+                        setAvailableAgents(data);
+                    });
+                } else {
+                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailer}`).then((resp) => setExistingLists(resp.data));
+                    // gets versions of software(s) associated with agents that are assigned to the selected retailer
+                    axios.get(`/api/registers/versions?retailerId=${context.selectedRetailer}`).then(function (res) {
+                        const data = [];
+                        for (const soft of Object.keys(res.data)) {
+                            const entry = { children: [], label: soft, value: soft };
+                            for (const ver of res.data[soft]) {
+                                entry.children.push({
+                                    label: ver,
+                                    value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
+                                });
+                            }
+                            data.push(entry);
+                        }
+                        setVersionData(data);
+                    });
 
-            // gets all agents for the selected retailer
-            axios.get(`/api/REMS/agents?retailer=${stringParams}`).then(function (res) {
-                const data = [];
-                res.data.forEach((item) => {
-                    // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
-                    if (
-                        availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
-                        undefined
-                    ) {
-                        data.push({ isChecked: false, agent: item, storeName: item.storeName });
-                    }
-                });
-                setAvailableAgents(data);
-            });
+                    // gets all agents for the selected retailer
+                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
+                        const data = [];
+                        res.data.forEach((item) => {
+                            // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
+                            if (
+                                availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
+                                undefined
+                            ) {
+                                data.push({ isChecked: false, agent: item, storeName: item.storeName });
+                            }
+                        });
+                        setAvailableAgents(data);
+                    });
+                }
+            }
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
+    }, [context])
 
     const onFileChange = (event) => {
         const inputFile = event.target.files[0];
@@ -254,14 +283,23 @@ export default function DistributionLists() {
                 });
 
                 const importListAgents = [];
+                const missingStores = []
                 storeList.forEach((val) => {
                     const filteredAgents = _.filter(availableAgents, { storeName: val });
-                    filteredAgents.forEach((agent) => {
-                        if (agent !== undefined) {
-                            importListAgents.push(agent);
-                        }
-                    });
+                    if (filteredAgents.length > 0) {
+                        filteredAgents.forEach((agent) => {
+                            if (agent !== undefined) {
+                                importListAgents.push(agent);
+                            }
+                        });
+                    } else {
+                        missingStores.push(val)
+                    }
                 });
+                if (missingStores.length > 0) {
+                    setToast('Missing stores: ' + missingStores);
+                    setOpenErrorSnack(true)
+                }
                 setSelectedAgents(
                     _.concat(
                         selectedAgents,
@@ -275,12 +313,19 @@ export default function DistributionLists() {
                 storeList = text.split(/\r?\n/);
 
                 const importListAgents = [];
+                const missingStores = []
                 storeList.forEach((val) => {
                     const foundAgent = _.find(availableAgents, { storeName: val });
                     if (foundAgent !== undefined) {
                         importListAgents.push(foundAgent);
+                    } else {
+                        missingStores.push(val)
                     }
                 });
+                if (missingStores.length > 0) {
+                    setToast('Missing stores: ' + missingStores);
+                    setOpenErrorSnack(true)
+                }
                 setSelectedAgents(
                     _.concat(
                         selectedAgents,
@@ -404,11 +449,12 @@ export default function DistributionLists() {
                     agentsText += ', ' + agent.agent.agentName;
                 }
             });
+            agentsText += ' copied!'
             navigator.clipboard.writeText(agentsText);
         }
 
         setToast(agentsText);
-        if (agentsText !== 'No Agents Selected!!') {
+        if (agentsText === 'No Agents Selected!!') {
             setOpenErrorSnack(true)
         } else {
             setOpen(true);

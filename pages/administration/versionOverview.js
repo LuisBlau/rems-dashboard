@@ -5,10 +5,11 @@ import axios from 'axios';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Box } from '@mui/system';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
 import UserContext from '../../pages/UserContext'
 import _ from 'lodash';
+import Copyright from '../../components/Copyright';
 
 const PREFIX = 'versionOverview';
 
@@ -81,7 +82,7 @@ export default function versionOverview() {
         const installPas = (e) => {
             axios.get("/api/registers/installPas?store=" + value.row.storeName + "&agent=" + value.row.agentName + "&retailer_id=" + value.row.retailer_id).then((e) => setOpen(true))
         }
-        if (!value.value && userIsAdmin) {
+        if (!value.value && userIsAdmin && value.row.os === 'Windows') {
             return <Button onClick={installPas} variant="contained">Install PAS</Button>
         }
         return <p>{value.value}</p>
@@ -106,7 +107,7 @@ export default function versionOverview() {
         if (context) {
             setSelectedRetailer(context.selectedRetailer)
             if (context.userRoles.length > 0) {
-                if (_.includes(context.userRoles, 'toshibaAdmin')) {
+                if (_.includes(context.userRoles, 'toshibaAdmin') || _.includes(context.userRoles, 'Administrator')) {
                     setUserIsAdmin(true)
                 }
             }
@@ -114,21 +115,53 @@ export default function versionOverview() {
     }, [context])
 
     useEffect(() => {
-        if (selectedRetailer && selectedRetailer !== '') {
-            let url = `/api/REMS/versionsData?retailer_id=${selectedRetailer}`;
-            axios.get(url).then((x) => {
-                setRem(x.data.rem);
-                setAgents(x.data.agents.map((agent) => ({
-                    ...agent,
-                    id: agent._id
-                })));
-                setAllAgents(x.data.agents.map((agent) => ({
-                    ...agent,
-                    id: agent._id
-                })));
-            });
+        if (context.selectedRetailerIsTenant !== null) {
+            if (context.selectedRetailerIsTenant === false) {
+                if (selectedRetailer && selectedRetailer !== '') {
+                    let url = `/api/REMS/versionsData?retailer_id=${selectedRetailer}`;
+                    axios.get(url).then((x) => {
+                        setRem(x.data.rem);
+                        setAgents(x.data.agents.map((agent) => ({
+                            ...agent,
+                            id: agent._id
+                        })));
+                        setAllAgents(x.data.agents.map((agent) => ({
+                            ...agent,
+                            id: agent._id
+                        })));
+                    });
+                }
+            } else {
+                if (context.selectedRetailerParentRemsServerId) {
+                    if (selectedRetailer && selectedRetailer !== '') {
+                        let url = `/api/REMS/versionsData?retailer_id=${context.selectedRetailerParentRemsServerId}&tenant_id=${selectedRetailer}`;
+                        axios.get(url).then((x) => {
+                            setRem(x.data.rem);
+                            setAgents(x.data.agents.map((agent) => ({
+                                ...agent,
+                                id: agent._id
+                            })));
+                            setAllAgents(x.data.agents.map((agent) => ({
+                                ...agent,
+                                id: agent._id
+                            })));
+                        });
+                    }
+                }
+            }
         }
-    }, [selectedRetailer]);
+
+    }, [selectedRetailer, context.selectedRetailerParentRemsServerId]);
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                    <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+                </Box>
+            </GridToolbarContainer>
+        );
+    }
 
     return (
         <Root className={classes.content}>
@@ -153,6 +186,7 @@ export default function versionOverview() {
                 </Paper>
                 <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
                     <DataGrid
+                        slots={{ toolbar: CustomToolbar }}
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
                         }}
@@ -176,6 +210,7 @@ export default function versionOverview() {
             <TabPanel value={selectedTab} index={1}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
                     <DataGrid
+                        slots={{ toolbar: CustomToolbar }}
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
                         }}
@@ -196,6 +231,7 @@ export default function versionOverview() {
                     />
                 </Snackbar>
             </TabPanel>
+            <Copyright />
         </Root>
     );
 }

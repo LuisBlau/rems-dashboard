@@ -30,6 +30,7 @@ import RmqInfoModal from './InformationModals/RmqInfoModal';
 import DockerInfoModal from './InformationModals/DockerInfoModal';
 import Image from 'next/image';
 import OfflineImage from '../../public/images/offline.png';
+import _ from 'lodash';
 
 // TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper';
@@ -46,8 +47,8 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
-function timeSince(date) {
-    const seconds = (new Date() - new Date(date)) / 1000;
+function timeSince(dateTimestamp) {
+    const seconds = (new Date() - new Date(dateTimestamp * 1000)) / 1000;
     return prettifyTime(seconds) + ' ago';
 }
 
@@ -111,19 +112,34 @@ function DisplaySystemType(props) {
                 );
             }
         } else {
-            return (
-                <Grid item xs={12}>
-                    <Typography fontWeight='bold' variant="h7">Register</Typography>
-                </Grid>
-            );
+            if (_.includes(props.data.agentName, 'ars')) {
+                return (
+                    <Grid item xs={12}>
+                        <Typography fontWeight='bold' variant='h7'>Server</Typography>
+                    </Grid>
+                )
+            } else {
+                return (
+                    <Grid item xs={12}>
+                        <Typography fontWeight='bold' variant="h7">Register</Typography>
+                    </Grid>
+                );
+            }
         }
     }
-
-    return (
-        <Grid item xs={12}>
-            <Typography fontWeight='bold' variant="h7">Register</Typography>
-        </Grid >
-    );
+    if (_.includes(props.data.agentName, 'ars')) {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant='h7'>Server</Typography>
+            </Grid>
+        )
+    } else {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant="h7">Register</Typography>
+            </Grid >
+        );
+    }
 }
 function DisplayOnOffStatus(props) {
     if (props.data.online) {
@@ -139,6 +155,12 @@ function DisplayOnOffStatus(props) {
                     <Typography color="red">Unauthenticated</Typography>
                 </Grid>
             );
+        } else {
+            return (
+                <Grid item xs={4}>
+                    <Typography color="#5BA52E">Online</Typography>
+                </Grid>
+            )
         }
     }
 
@@ -251,7 +273,7 @@ function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScr
         justifyContent: 'center',
         alignItems: 'center',
         width: 625,
-        height: 625,
+        height: 640,
         bgcolor: '#ffffff',
         border: '2px solid #000',
         outline: '#7c70b3',
@@ -288,6 +310,7 @@ function ScreenCaptureDisplay({ agentData, refreshInterval, width, height }) {
     };
     const screenCaptureCommand = {
         Retailer: agentData.retailer_id,
+        Tenant: agentData.tenant_id,
         Store: agentData.storeName,
         Agent: agentData.agentName,
         Command: 'ScreenCapture',
@@ -497,7 +520,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
     const handleRmqModalOpen = () => setRmqModalOpen(true);
     const handleRmqModalClose = () => setRmqModalOpen(false);
 
-    const jsonCommand = { Retailer: data.retailer_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' };
+    const jsonCommand = { Retailer: data.retailer_id, Tenant: data.tenant_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' };
     const reload_link =
         'javascript:fetch("/api/registers/commands/' +
         btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/sg', '')))) +
@@ -557,6 +580,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
+                    backgroundColor: '#E7431F'
                 }}
             >
                 <Grid container style={{ backgroundColor: agentBackgroundColorStyle, padding: 12 }}>
@@ -581,12 +605,12 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                     </Grid>
                     {/* <Grid container spacing={1}>
             <Grid item xs={12}>
-              <DisplaySalesApplication data={data} />
+            <DisplaySalesApplication data={data} />
             </Grid>
           </Grid> */}
                     <Grid container spacing={1}>
                         <Grid className={classes.barHeight} item xs={12}>
-                            <Typography>Last Update: {timeSince(data.last_updated)}</Typography>
+                            <Typography>Last Update: {timeSince(data.last_updated_sec)}</Typography>
                         </Grid>
                     </Grid>
                     {/*
@@ -654,14 +678,14 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                                 selectedRetailer={context.selectedRetailer}
                             />
                         </Grid>
-                        <Grid item xs={1} sx={{ margin: 1 }}>
+                        {/* <Grid item xs={1} sx={{ margin: 1 }}>
                             <DockerInfoModal
                                 modalData={data.status}
                                 dockerModalOpen={dockerModalOpen}
                                 handleDockerModalClose={handleDockerModalClose}
                                 handleDockerModalOpen={handleDockerModalOpen}
                             />
-                        </Grid>
+                        </Grid> */}
                     </Grid>
                     {/* <ModalDisplayButtonsComponentTitle data={data}></ModalDisplayButtonsComponentTitle>
           <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} /> */}

@@ -26,6 +26,7 @@ import { Collapse, Divider, ListItemButton, Typography } from '@mui/material';
 import Link from 'next/link';
 import _ from 'lodash';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import axios from 'axios';
 
 const ListItemIcon = styled(MuiListItemIcon, {})(({ theme }) => ({
     minWidth: '30px'
@@ -41,6 +42,9 @@ function SidebarItem({ opened, sidebarOpen, handleOpened, name, id, icon, route,
     const activeColor = pathname === route ? "#4BA6FE" : sub !== true ? '#4f5051' : '#373839';
     if (_.isArray(items)) {
         if (enabled) {
+            if (items.length === 0) {
+                return null
+            }
             return (
                 <>
                     <ListItemButton onClick={handleExpandCategory} sx={{ backgroundColor: activeColor }}>
@@ -56,7 +60,7 @@ function SidebarItem({ opened, sidebarOpen, handleOpened, name, id, icon, route,
                     <Collapse sx={{ backgroundColor: '#373839' }} in={open} timeout="auto" unmountOnExit>
                         <List disablePadding dense>
                             {items.map((subItem) => (
-                                <SidebarItem sidebarOpen={sidebarOpen} key={subItem.name} {...subItem} sub={true} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} context={context} />
+                                <SidebarItem opened={context.openedMenuItems.indexOf(subItem.id) > -1} handleOpened={handleOpened} sidebarOpen={sidebarOpen} key={subItem.name} {...subItem} sub={true} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} context={context} />
                             ))}
                         </List>
                     </Collapse>
@@ -174,212 +178,231 @@ function SidebarItem({ opened, sidebarOpen, handleOpened, name, id, icon, route,
     }
 }
 
-export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelopedFeatureClicked, pasSubscriptionTier, sidebarOpen }) {
+export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelopedFeatureClicked, pasSubscriptionTier, sidebarOpen, alertsEnabled }) {
     const context = useContext(UserContext);
     const { pathname } = useRouter();
     const [menu, setMenu] = useState([]);
+
+
     useEffect(() => {
         function getSidebarItems() {
             const MenuItems = [];
             if (context) {
                 // instead of using context.userRoles to check for pas advanced, 
                 // check context.userRetailers array and check those for which permission to use
-                if (context.userRoles) {
+
+                if (context.userRoles && context.sidebarConfigs?.length > 0) {
                     const roles = context.userRoles
-                    let tmp = {
-                        id: 'overview',
-                        name: 'Enterprise Overview',
-                        route: '/enterpriseOverview',
-                        icon: <Image src={EnterpriseOverviewIcon} alt="EnterpriseOverviewIcon" />,
-                        enabled: true
-                    };
-                    MenuItems.push(tmp);
-                    tmp = {
-                        id: 'systemReporting',
-                        name: 'System Reporting',
-                        icon: <Image src={AssetInventoryIcon} alt="AssetInventoryIcon" />,
-                        enabled: true,
-                        items: [
-                            {
+                    let tmp = {}
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarEnterpriseOverview' && x.value === true)) {
+                        tmp = {
+                            id: 'overview',
+                            name: 'Enterprise Overview',
+                            route: '/enterpriseOverview',
+                            icon: <Image src={EnterpriseOverviewIcon} alt="EnterpriseOverviewIcon" />,
+                            enabled: true
+                        };
+                        MenuItems.push(tmp);
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSystemReporting' && x.value === true)) {
+                        tmp = {
+                            id: 'systemReporting',
+                            name: 'System Reporting',
+                            icon: <Image src={AssetInventoryIcon} alt="AssetInventoryIcon" />,
+                            enabled: true,
+                            items: []
+                        };
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarAssetInventory' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'assetInventory',
                                 name: 'Asset Inventory',
                                 route: '/systemReporting/tableauReportViewer?reportName=assetInventory',
                                 enabled: true
-                            },
-                            {
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarAlerts' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'alerts',
                                 name: 'Alerts',
-                                route: '/',
-                                enabled: false
-                            },
-                            {
+                                route: '/systemReporting/alerts',
+                                enabled: alertsEnabled
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarEvents' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'systemEvents',
                                 name: 'Events',
                                 route: '/systemReporting/tableauReportViewer?reportName=systemEvents',
                                 enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarReloadTrends' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'reloadTrends',
                                 name: 'Reload Trends',
                                 route: '/systemReporting/tableauReportViewer?reportName=registerReloads',
                                 enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarChecExtracts' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'checkExtractAnalysis',
                                 name: 'CHEC Extract Analysis',
                                 route: '/systemReporting/tableauReportViewer?reportName=extracts',
                                 enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSoftwareVersions' && x.value === true)) {
+                            tmp.items.push({
                                 id: 'softwareVersions',
                                 name: 'Software Versions',
                                 route: '/systemReporting/tableauReportViewer?reportName=softwareVersions',
                                 enabled: pasSubscriptionTier === 'advanced'
-                            }
-                        ]
-                    };
-                    let enableIncidents = false
-                    if (context.userRetailers) {
-                        context.userRetailers.forEach(retailer => {
-                            if (_.includes(retailer, "T0BF3K9")) {
-                                // temporarily only enabled for BJs
-                                enableIncidents = true
-                            }
-                        });
+                            })
+                        }
+                        MenuItems.push(tmp)
                     }
-                    MenuItems.push(tmp)
-                    tmp = {
-                        id: 'incidents',
-                        name: 'Incidents',
-                        route: '/systemReporting/tableauReportViewer?reportName=incidents',
-                        enabled: enableIncidents,
-                        icon: <Image src={DataCaptureIcon} alt="DataCaptureIcon" />
 
-                    };
-                    MenuItems.push(tmp)
-                    tmp = {
-                        id: 'operationalReporting',
-                        name: 'Operational Reporting',
-                        icon: <Image src={DocCollectionIcon} alt="DocCollectionIcon" />,
-                        enabled: pasSubscriptionTier === 'advanced',
-                        items: [{
-                            id: 'storeClose',
-                            name: 'Store Close',
-                            route: '/systemReporting/tableauReportViewer?reportName=storeClose',
-                            enabled: pasSubscriptionTier === 'advanced'
-                        }]
-                    };
-                    MenuItems.push(tmp)
-                    tmp = {
-                        id: 'diagnostics',
-                        name: 'Diagnostics',
-                        icon: <Image src={DiagnosticsIcon} alt="DiagnosticsIcon" />,
-                        enabled: pasSubscriptionTier === 'advanced',
-                        items: [
-                            {
-                                id: 'Doc Collection',
-                                name: 'Doc Collection',
-                                route: '/diagnostics/docCollection',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'dumps',
-                                name: 'Dumps',
-                                route: '/diagnostics/dumps',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'extracts',
-                                name: 'Chec Extracts',
-                                route: '/diagnostics/checExtracts',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'dataCapture',
-                                name: 'Data Capture',
-                                route: '/diagnostics/dataCapture',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                        ],
-                    };
-                    MenuItems.push(tmp);
-                    tmp = {
-                        id: 'remote-diagnostics',
-                        name: 'Remote Diagnostics',
-                        icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
-                        enabled: pasSubscriptionTier === 'advanced',
-                        items: [
-                            {
-                                id: 'softwareDeploy',
-                                name: 'Deployment Status',
-                                icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
-                                route: '/softwareDistribution/deploymentStatus',
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'deploymentFileUpload',
-                                name: 'Upload a File',
-                                route: '/softwareDistribution/deploymentFileUpload',
-                                icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'createDeploymentConfig',
-                                name: 'Create Deploy Config',
-                                route: '/softwareDistribution/createDeploymentConfig',
-                                icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'scheduleDeployment',
-                                name: 'Schedule a Deployment',
-                                route: '/softwareDistribution/scheduleDeployment',
-                                icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                            {
-                                id: 'distributionLists',
-                                name: 'Distribution Lists',
-                                route: '/softwareDistribution/distributionLists',
-                                icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
-                                enabled: pasSubscriptionTier === 'advanced'
-                            },
-                        ],
-                    };
-                    MenuItems.push(tmp);
-
-                    if (!MenuItems.some((x) => x.name === 'Administration')) {
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarIncidents' && x.value === true)) {
+                        let enableIncidents = false
+                        if (context.userRetailers) {
+                            context.userRetailers.forEach(retailer => {
+                                if (_.includes(retailer, "T0BF3K9")) {
+                                    // temporarily only enabled for BJs
+                                    enableIncidents = true
+                                }
+                            });
+                        }
                         tmp = {
-                            id: 'administration',
-                            name: 'Administration',
-                            icon: <Image src={AdminIcon} alt="AdminIcon" />,
-                            enabled: true,
+                            id: 'incidents',
+                            name: 'Incidents',
+                            route: '/systemReporting/tableauReportViewer?reportName=incidents',
+                            enabled: enableIncidents,
+                            icon: <Image src={DataCaptureIcon} alt="DataCaptureIcon" />
+
+                        };
+                        MenuItems.push(tmp)
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarOperationReporting' && x.value === true)) {
+                        tmp = {
+                            id: 'operationalReporting',
+                            name: 'Operational Reporting',
+                            icon: <Image src={DocCollectionIcon} alt="DocCollectionIcon" />,
+                            enabled: pasSubscriptionTier === 'advanced',
+                            items: []
+                        };
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarStoreClose')) {
+                            tmp.items.push({
+                                id: 'storeClose',
+                                name: 'Store Close',
+                                route: '/systemReporting/tableauReportViewer?reportName=storeClose',
+                                enabled: pasSubscriptionTier === 'advanced'
+                            })
+                        }
+                        MenuItems.push(tmp);
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteSoftwareMaintenance' && x.value === true)) {
+                        tmp = {
+                            id: 'remote-software-maintenance',
+                            name: 'Remote Software Maintenance',
+                            icon: <Image src={SoftwareDistributionIcon} alt="RemoteDiagnosticsIcon" />,
+                            enabled: pasSubscriptionTier === 'advanced',
                             items: [
                                 {
-                                    name: 'SNMP',
-                                    route: '/administration/snmp',
-                                    icon: <Image src={SnmpIcon} alt="SNMPIcon" />,
+                                    id: 'softwareDeploy',
+                                    name: 'Deployment Status',
+                                    icon: <Image src={DeployementStatusIcon} alt="DeploymentStatusIcon" />,
+                                    route: '/softwareDistribution/deploymentStatus',
                                     enabled: pasSubscriptionTier === 'advanced'
                                 },
                                 {
-                                    name: 'Version Overview',
-                                    route: '/administration/versionOverview',
-                                    icon: null,
-                                    enabled: roles.includes('toshibaAdmin')
+                                    id: 'deploymentFileUpload',
+                                    name: 'Upload a File',
+                                    route: '/softwareDistribution/deploymentFileUpload',
+                                    icon: <Image src={UploadFileIcon} alt="UploadFileIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
                                 },
+                                {
+                                    id: 'createDeploymentConfig',
+                                    name: 'Create Deploy Config',
+                                    route: '/softwareDistribution/createDeploymentConfig',
+                                    icon: <Image src={CreateDeployConfigIcon} alt="CreateDeployConfigIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'scheduleDeployment',
+                                    name: 'Schedule a Deployment',
+                                    route: '/softwareDistribution/scheduleDeployment',
+                                    icon: <Image src={ScheduleDeploymentIcon} alt="ScheduleDeploymentIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                                {
+                                    id: 'distributionLists',
+                                    name: 'Distribution Lists',
+                                    route: '/softwareDistribution/distributionLists',
+                                    icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
+                            ]
+                        };
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteDiagnostics' && x.value === true)) {
+                            tmp.items.push({
+                                id: 'remote-diagnostics',
+                                name: 'Remote Diagnostics',
+                                route: '/diagnostics',
+                                enabled: pasSubscriptionTier === 'advanced'
+                            })
+                        }
+                        MenuItems.push(tmp);
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarAdministration' && x.value === true)) {
+                        if (!MenuItems.some((x) => x.name === 'Administration')) {
+                            tmp = {
+                                id: 'administration',
+                                name: 'Administration',
+                                icon: <Image src={AdminIcon} alt="AdminIcon" />,
+                                enabled: true,
+                                items: []
+                            };
+
+                            if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSnmp' && x.value === true)) {
+                                tmp.items.push(
+                                    {
+                                        name: 'SNMP',
+                                        route: '/administration/snmp',
+                                        icon: <Image src={SnmpIcon} alt="SNMPIcon" />,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    }
+                                )
+                            }
+                            if (_.some(context.sidebarConfigs, x => x.name === 'sidebarVersionOverview' && x.value === true)) {
+                                tmp.items.push(
+                                    {
+                                        name: 'Version Overview',
+                                        route: '/administration/versionOverview',
+                                        icon: null,
+                                        enabled: pasSubscriptionTier === 'advanced'
+                                    }
+                                )
+                            }
+                            tmp.items.push(
                                 {
                                     name: 'Retailer Settings',
                                     route: '/administration/retailerSettings',
                                     enabled: true
-                                },
-                                {
-                                    name: 'User Settings',
-                                    route: '/administration/userSettings',
-                                    enabled: true
                                 }
-                            ],
-                        };
-                        MenuItems.push(tmp);
+                            )
+                            if (_.some(context.sidebarConfigs, x => x.name === 'sidebarUserSettings' && x.value === true)) {
+                                tmp.items.push(
+                                    {
+                                        name: 'User Settings',
+                                        route: '/administration/userSettings',
+                                        enabled: true
+                                    }
+                                )
+                            }
+                            MenuItems.push(tmp);
+                        }
                     }
 
                     if (MenuItems.some((x) => x.name === 'Administration') && roles.includes('toshibaAdmin')) {
@@ -444,6 +467,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
             setMenu(getSidebarItems())
         }
     }, [])
+
 
     const handleOpenItem = (id, isOpened) => {
         let indexOfOpened = context.openedMenuItems.indexOf(id);

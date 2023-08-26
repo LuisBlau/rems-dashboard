@@ -6,6 +6,7 @@ import _ from 'lodash';
 import UserContext from '../UserContext';
 import { Alert, AlertTitle, Button, Snackbar } from '@mui/material';
 import axios from 'axios';
+import Copyright from '../../components/Copyright';
 
 export default function UserSettings() {
     /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
@@ -48,7 +49,7 @@ export default function UserSettings() {
             }
         }
 
-        axios.post(`/api/REMS/userSettingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: '' })
+        axios.post(`/api/user/settingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: '' })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
@@ -70,7 +71,7 @@ export default function UserSettings() {
     }
 
     function handleSubmit() {
-        axios.post('/api/REMS/userSettingsSubmission', { email, firstName, lastName })
+        axios.post('/api/user/settingsSubmission', { email, firstName, lastName })
             .then(function (response) {
                 if (response.status !== 200) {
                     setToastFailure('Error Saving User Info!');
@@ -112,6 +113,7 @@ export default function UserSettings() {
 
 
             </Box>
+            <Copyright />
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={openSuccess}

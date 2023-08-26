@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { styled } from '@mui/material/styles'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 import Box from '@mui/material/Box'
 import axios from 'axios';
@@ -14,7 +13,7 @@ const PREFIX = 'eleraHealth'
 
 export default function EleraHealth() {
 
-    const context = useContext(UserContext)
+    const context = useContext(UserContext);
     const [data, setData] = useState('')
     const [eleraHealthUrl, setEleraHealthUrl] = useState('')
     let par = '';
@@ -22,18 +21,18 @@ export default function EleraHealth() {
         par = window.location.search;
     }
     const params = new URLSearchParams(par);
+    let remsServerId = params.get('retailer_id');
+    let storeName = params.get('storeName');
 
     useEffect(() => {
-        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&agentName=${params.get('agentName')}`).then((resp) => {
-            if (resp.data) {
-                setData(resp.data)
-            }
-        })
-    }, [])
+        if (context?.selectedRetailer) {
+            axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${remsServerId}&agentName=${params.get('agentName')}`).then((resp) => {
+                if (resp.data) {
+                    setData(resp.data)
+                }
+            })
 
-    useEffect(() => {
-        if (context.selectedRetailer) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`).then(function (res) {
                 // fetch configuration info
                 const configurationArray = res.data.configuration;
                 const configurationInfo = [];
@@ -41,11 +40,16 @@ export default function EleraHealth() {
                     const innerArray = Object.values(configObject)[0];
                     configurationInfo.push(innerArray);
                 });
-                setEleraHealthUrl(configurationInfo.find(item => item.configName === 'eleraDashboardurl').configValue)
+
+                const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
+                const modifiedUrl = urlFromDatabase
+                    .replace(/\${storeName}/g, storeName)
+                    .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
+                setEleraHealthUrl(modifiedUrl)
 
             })
         }
-    }, [context.selectedRetailer])
+    }, [context?.selectedRetailer])
 
     const columns = [
         {
@@ -86,8 +90,8 @@ export default function EleraHealth() {
         for (let i = 0; i < arr.length; i++) {
             arr[i] = JSON.parse(arr[i]);
             arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
-            if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq')) {
-                if (arr[i].Names.includes('elera')) {
+            if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
+                if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
                     rows.push(
                         objectifyRow(
                             i + 1,
@@ -103,7 +107,7 @@ export default function EleraHealth() {
 
         return (
             <Box sx={{ display: 'flex', flexGrow: 1, height: '100vh', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-                <Typography variant="h3">Elera - {params.get('storeName')} - {params.get('agentName')}</Typography>
+                <Typography variant="h3">ELERA - {params.get('storeName')} - {params.get('agentName')}</Typography>
                 <Box sx={{ height: 200, width: '90%' }}>
                     <DataGrid
                         rows={rows}

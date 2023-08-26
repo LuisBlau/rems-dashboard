@@ -7,6 +7,8 @@ import { useContext } from 'react';
 import UserContext from '../../pages/UserContext'
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const PREFIX = 'UploadGrid';
 
@@ -58,19 +60,19 @@ export default function UploadGrid() {
         {
             field: 'description',
             headerName: 'Description',
-            width: 300
+            flex: 1
         },
         {
             field: 'filename',
             headerName: 'File Name',
-            width: 300,
+            flex: 1,
             sortable: true,
             filterable: true
         },
         {
             field: 'timestamp',
             headerName: 'Timestamp',
-            width: 300,
+            flex: 1,
             type: 'dateTime',
             sortable: true,
             valueGetter: (params) => new Date(params.row.timestamp),
@@ -79,17 +81,18 @@ export default function UploadGrid() {
         {
             field: 'retailer_id',
             headerName: 'File Origin',
-            width: 100,
+            flex: 1,
             renderCell: (params) => params.value === 'COMMON' ? params.value : 'RETAILER',
         },
+
         {
             field: 'archived',
             headerName: 'Archived',
-            width: 100,
+            flex: 1,
             renderCell: (params) => (
                 <Switch
                     onChange={(e) => {
-                        changeArchiveStatus(e, params.row._id);
+                        changeArchiveStatus(e, params.row?.uuid);
                     }}
                     checked={params.value == "true" ? true : false}
                     disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
@@ -99,21 +102,113 @@ export default function UploadGrid() {
         },
     ];
 
+    if (context?.userRoles?.includes('toshibaAdmin')) {
+        columns.push({
+            field: 'delete',
+            headerName: 'Delete',
+            sortable: false,
+            flex: 1,
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this file?')) {
+                            deleteFile(params.row.retailer_id, params.row?.uploadId);
+                        }
+                    }}
+                >
+                    <DeleteIcon />
+                </IconButton>
+            ),
+        });
+        columns.push({
+            field: 'forProd',
+            headerName: 'For Production',
+            flex: 1,
+            renderCell: (params) => {
+                return (
+                    params.row.retailer_id === 'COMMON' && <Switch
+                        onChange={(e) => {
+                            changeForProdStatus(e, params.row?.uuid);
+                        }}
+                        checked={params.value === "true" ? true : false}
+                        color="success"
+                    />
+                )
+            }
+
+
+        })
+    } else if (context?.userRoles?.includes('Administrator')) {
+        columns.push({
+            field: 'delete',
+            headerName: 'Delete',
+            sortable: false,
+            width: 100,
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this file?')) {
+                            deleteFile(params.row.retailer_id, params.row?.uploadId);
+                        }
+                    }}
+                    disabled={context.selectedRetailerIsTenant === false ? params.row.retailer_id !== context.selectedRetailer : params.row.tenant_id !== context.selectedRetailer}
+                >
+                    <DeleteIcon />
+                </IconButton>
+            ),
+        });
+    }
+
+    function deleteFile(retailerId, id) {
+        var url = `/api/REMS/deletefile`;
+        var data = { retailerId, id };
+        axios.delete(url, { data })
+            .then(function (data) {
+                setToastSuccess('File deletion was successful');
+                setOpenSuccess(true);
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, SuccessToastDuration + 500);
+            })
+            .catch(function (error) {
+                setToastFailure('There has been a problem with your fetch operation:');
+                setOpenFailure(true);
+                FailToastDuration
+                window.location.reload();
+            });
+    }
+
+
     function fetchUploadData() {
-        if (context.selectedRetailer && context.selectedRetailerIsTenant === false) {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
-                .then((response) => {
-                    setUploadData(response.data)
-                })
-        } else if (context.selectedRetailerParentRemsServerId) {
+        if (context.selectedRetailerParentRemsServerId) {
             axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`)
                 .then((response) => {
-                    setUploadData(response.data)
+                    if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                        const prodList = []
+                        response.data.forEach(element => {
+                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
+                                prodList.push(element)
+                            }
+                        });
+                        setUploadData(prodList)
+                    } else {
+                        setUploadData(response.data)
+                    }
                 })
         } else {
             axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
                 .then((response) => {
-                    setUploadData(response.data)
+                    if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                        const prodList = []
+                        response.data.forEach(element => {
+                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
+                                prodList.push(element)
+                            }
+                        });
+                        setUploadData(prodList)
+                    } else {
+                        setUploadData(response.data)
+                    }
                 })
         }
     }
@@ -124,14 +219,14 @@ export default function UploadGrid() {
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
 
     const changeArchiveStatus = (e, id) => {
-        axios.get('/api/REMS/setArchive?id=' + id.toString() + '&archived=' + (e.target.checked).toString())
+        axios.get('/api/REMS/setArchive?uuid=' + id + '&archived=' + (e.target.checked).toString())
             .then((response) => {
                 if (response.status !== 200) {
                     setToastFailure('Error changing archive info!');
                     setOpenFailure(true);
                     return;
                 }
-                fetchUploadData()
+                fetchUploadData();
                 setToastSuccess('Archive Info Successfully Saved.');
                 setOpenSuccess(true);
             })
@@ -142,19 +237,38 @@ export default function UploadGrid() {
             });
     };
 
+    const changeForProdStatus = (e, id) => {
+        axios.get('/api/REMS/setForProd?uuid=' + id + '&forProd=' + (e.target.checked).toString())
+            .then((response) => {
+                if (response.status !== 200) {
+                    setToastFailure('Error changing production enablement!');
+                    setOpenFailure(true);
+                    return;
+                }
+                fetchUploadData();
+                setToastSuccess('Production Enablement Successfully Saved.');
+                setOpenSuccess(true);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setToastFailure('Error connecting to server!!');
+                setOpenFailure(true);
+            });
+    }
+
     if (uploadData.length > 0) {
         return (
-            <Box sx={{ height: 550, width: '100%' }}>
+            <Box sx={{ height: 550, width: '100%', marginTop: 2 }}>
                 <DataGrid
                     initialState={{
                         sorting: {
                             sortModel: [{ field: 'timestamp', sort: 'desc' }]
                         },
-                        pagination: { paginationModel: { pageSize: 10 } },
+                        pagination: { paginationModel: { pageSize: 25 } },
                     }}
-                    rows={uploadData?.map((item, key) => ({ ...item, id: key }))}
+                    rows={uploadData?.map((item, key) => ({ ...item, id: key, uploadId: item.id }))}
                     columns={columns}
-                    pageSizeOptions={[5, 10, 15]}
+                    pageSizeOptions={[25, 50, 100]}
                     checkboxSelection={false}
                     rowSelection={false}
                 />

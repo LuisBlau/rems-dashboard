@@ -2,7 +2,7 @@
 import MuiDrawer from '@mui/material/Drawer';
 import React, { useContext, useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
-import { Avatar, Button, Grid, IconButton, MenuItem, Select, Typography } from '@mui/material';
+import { Avatar, Button, Grid, IconButton, MenuItem, Paper, Select, Typography } from '@mui/material';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
@@ -16,6 +16,7 @@ import Image from 'next/image';
 import UserContext from '../pages/UserContext';
 import Cookies from 'universal-cookie';
 import { Box } from '@mui/system';
+import axios from 'axios';
 
 function AppNameplate({ open }) {
     if (open === true) {
@@ -52,22 +53,42 @@ function DrawerOpenerBurger({ open, handleDrawerOpenAndClose, sidebarDisable }) 
 function RetailerSelector({ context, handleSelectedRetailerChanged, availableRetailers, open }) {
     if (context) {
         if (context.selectedRetailer && open) {
-            return (
-                <Select
-                    labelId="retailer-select-label"
-                    id="retailer-select"
-                    value={availableRetailers.length > 0 ? context.selectedRetailer : ''}
-                    onChange={handleSelectedRetailerChanged}
-                    sx={{ color: '#e4e4e4', height: 40, margin: 1 }}
-                    disabled={availableRetailers.length > 1 ? false : true}
-                >
-                    {availableRetailers.map((retailer, index) => (
-                        <MenuItem key={index} sx={{ mt: 1 }} value={retailer.retailer_id}>
-                            {retailer.description}
-                        </MenuItem>
-                    ))}
-                </Select>
-            );
+            if (availableRetailers.length > 1) {
+                return (
+                    <Select
+                        labelId="retailer-select-label"
+                        id="retailer-select"
+                        value={availableRetailers.length > 0 ? context.selectedRetailer : ''}
+                        onChange={handleSelectedRetailerChanged}
+                        sx={{
+                            color: '#e4e4e4',
+                            height: 40,
+                            margin: 1
+                        }}
+                    >
+                        {availableRetailers.map((retailer, index) => (
+                            <MenuItem key={index} sx={{
+                                mt: 1
+                            }} value={retailer.retailer_id}>
+                                {retailer.description}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                );
+            } else if (availableRetailers.length === 1) {
+                return (
+                    <Paper sx={{
+                        margin: 1,
+                        backgroundColor: "#4F5051",
+                        color: '#e4e4e4',
+                        height: 40,
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>
+                        <Typography variant='h5'>{availableRetailers[0].description}</Typography>
+                    </Paper>
+                )
+            }
         } else {
             return null;
         }
@@ -84,6 +105,18 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
     const [userInitials, setUserInitials] = useState('')
     const [userDisplayName, setUserDisplayName] = useState('')
     const context = useContext(UserContext);
+    const [alertsEnabled, setAlertsEnabled] = useState(false)
+
+    useEffect(() => {
+        if (context?.retailerConfigs) {
+            let configs = context?.retailerConfigs;
+            Object.values(configs).forEach(config => {
+                if (Object.keys(config)[0] === 'alertsEnabled') {
+                    setAlertsEnabled(config.alertsEnabled.configValue)
+                }
+            })
+        }
+    }, [context?.retailerConfigs])
 
     const handleSelectedRetailerChanged = (e) => {
         if (e.target) {
@@ -211,7 +244,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
         instance.loginRedirect({ scopes: ['openid', 'email', 'profile'] });
     }
 
-    const drawerWidth = 240;
+    const drawerWidth = 270;
 
     const Drawer = styled(MuiDrawer, {
         shouldForwardProp: (prop) => prop !== 'open',
@@ -290,7 +323,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                         style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', marginTop: 8, marginLeft: 3 }}
                     >
                         <Link key={'enterpriseOverview'} href={'/enterpriseOverview'} style={{ display: 'flex' }}>
-                            <div style={{ display: 'flex', cursor: 'pointer' }}>
+                            <div style={{ display: 'flex', cursor: 'pointer', marginRight: 15 }}>
                                 <div style={{ maxWidth: '32px', maxHeight: '32px', paddingTop: 8 }}>
                                     <Image src={ToshibaLogo} alt="ToshibaLogo" />
                                 </div>
@@ -310,13 +343,14 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                             availableRetailers={availableRetailers}
                         />
                     )}
-
                     <Sidebar
+                        alertsEnabled={alertsEnabled}
                         handleDisabledFeatureClicked={handleDisabledFeatureClicked}
                         handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked}
                         pasSubscriptionTier={pasSubscriptionTier}
                         sidebarOpen={open}
                     />
+
                     {open &&
                         <div
                             style={{

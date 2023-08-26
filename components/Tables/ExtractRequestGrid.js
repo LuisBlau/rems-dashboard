@@ -2,16 +2,13 @@
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import React, { useContext, useState, useEffect } from 'react';
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
-import useSWR from 'swr';
-import fetcher from '../../lib/fetcherWithHeader';
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
+import { DataGrid } from '@mui/x-data-grid';
+import { Box } from '@mui/material';
 
 const PREFIX = 'DumpGrid';
 
@@ -56,16 +53,20 @@ export default function ExtractRequestGrid(props) {
     const [agents, setAgents] = useState([])
     const [agentsList, setAgentsList] = useState([])
     const context = useContext(UserContext)
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true)
         if (context.selectedRetailer) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
                     setAgents(res.data)
+                    setLoading(false)
                 })
             } else if (context.selectedRetailerParentRemsServerId) {
                 axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
                     setAgents(res.data)
+                    setLoading(false)
                 })
             }
         }
@@ -74,14 +75,15 @@ export default function ExtractRequestGrid(props) {
     useEffect(() => {
         const list = [];
 
-        for (const x of agents) {
+        for (let i = 0; i < agents.length; i++) {
+            const x = agents[i];
             const obj = {
-                retailerId: x.retailer_id,
+                id: i + 1, // Assigning a unique id based on the index
                 storeName: x.storeName,
                 agent: x.agentName,
                 os: x.os,
                 isRMA: x.deviceType !== 3,
-                hasEleraServices: x.status !== undefined && x.status.EleraServices !== undefined,
+                hasEleraServices: x.status !== undefined && x.status.EleraServer !== undefined,
                 hasEleraClient: x.status !== undefined && x.status.EleraClient !== undefined,
                 hasChec: false,
             };
@@ -89,13 +91,18 @@ export default function ExtractRequestGrid(props) {
             // Checking to see if 'CHEC' is mentioned in the versions list.
             // If it is, I assume that we can request a chec capture
             // Probably not right so should check with Brent
-            if (x.versions !== undefined) {
-                for (let i = 0; i < x.versions.length; i++) {
-                    const objKeys = Object.keys(x.versions[i]);
-                    if (objKeys[0] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
-                        obj.hasChec = true;
-                        break;
-                    }
+            // if (x.versions !== undefined) {
+            //     for (let i = 0; i < x.versions.length; i++) {
+            //         const objKeys = Object.values(x.status[i]);
+            //         if (objKeys[1] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
+            //             obj.hasChec = true;
+            //             break;
+            //         }
+            //     }
+            // }
+            if (x.status !== undefined) {
+                if (x.status.hasChec !== undefined) {
+                    obj.hasChec = x.status.hasChec.configured
                 }
             }
 
@@ -121,20 +128,31 @@ export default function ExtractRequestGrid(props) {
     };
 
     const skyButtonRenderer = function (params) {
-        if (params.data.os === 'Sky' && context?.selectedRetailer) {
+        if (params.row && params.row.os === 'Sky' && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'SkyLogs';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
-                            });
+                        params.row.dataCapture = 'SkyLogs';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -146,20 +164,31 @@ export default function ExtractRequestGrid(props) {
     };
 
     const rmaButtonRenderer = function (params) {
-        if (params.data.isRMA && context?.selectedRetailer) {
+        if (params.row && params.row.isRMA && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'RMA';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
-                            });
+                        params.row.dataCapture = 'RMA';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -170,20 +199,31 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraButtonRenderer = function (params) {
-        if (params.data.hasEleraClient && context?.selectedRetailer) {
+        if (params.row && params.row.hasEleraClient && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'EleraClient';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
-                            });
+                        params.row.dataCapture = 'EleraClient';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -194,20 +234,31 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const eleraServicesButtonRenderer = function (params) {
-        if (params.data.hasEleraServices && context?.selectedRetailer) {
+        if (params.row && params.row.hasEleraServices && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'EleraServices';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
-                            });
+                        params.row.dataCapture = 'EleraServices';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -218,20 +269,67 @@ export default function ExtractRequestGrid(props) {
         }
     };
     const checButtonRenderer = function (params) {
-        if (params.data.hasChec && context?.selectedRetailer) {
+        if (params.row && params.row.hasChec && context?.selectedRetailer) {
             return (
                 <Button
                     variant="contained"
                     onClick={() => {
-                        params.data.dataCapture = 'Chec';
-                        axios
-                            .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.data)
-                            .then((res) => {
-                                processSuccessfulResponse(res, params.data.dataCapture);
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, params.data.dataCapture);
-                            });
+                        params.row.dataCapture = 'Chec';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
+                    }}
+                >
+                    Request
+                </Button>
+            );
+        } else {
+            return null;
+        }
+    };
+
+    const checLogsButtonRenderer = function (params) {
+        if (params.row && params.row.hasChec && context?.selectedRetailer) {
+            return (
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        params.row.dataCapture = 'ChecInstall';
+                        if (context.selectedRetailerIsTenant === false) {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        } else {
+                            axios
+                                .post(`/api/registers/requestDump?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`, params.row)
+                                .then((res) => {
+                                    processSuccessfulResponse(res, params.row.dataCapture);
+                                })
+                                .catch((res) => {
+                                    processFailedResponse(res, params.row.dataCapture);
+                                });
+                        }
                     }}
                 >
                     Request
@@ -243,55 +341,59 @@ export default function ExtractRequestGrid(props) {
     };
 
     return (
-        <div className="ag-theme-alpine" style={{ height: 800, width: '100%' }}>
-            <AgGridReact rowData={agentsList} onGridReady={sortGrid}>
-                <AgGridColumn
-                    sortable={true}
-                    filter={true}
-                    floatingFilter={true}
-                    suppressMenu={true}
-                    resizable={true}
-                    field="storeName"
-                ></AgGridColumn>
-                <AgGridColumn
-                    sortable={true}
-                    filter={true}
-                    floatingFilter={true}
-                    suppressMenu={true}
-                    resizable={true}
-                    field="agent"
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={skyButtonRenderer}
-                    resizable={true}
-                    field="SKY Logs Capture"
-                    headerName={'SKY Logs'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={rmaButtonRenderer}
-                    resizable={true}
-                    field="RMA Capture"
-                    headerName={'RMA'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={eleraButtonRenderer}
-                    resizable={true}
-                    field="EleraClient Capture"
-                    headerName={'Elera Client'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={eleraServicesButtonRenderer}
-                    resizable={true}
-                    field="EleraServices Capture"
-                    headerName={'Elera Services'}
-                ></AgGridColumn>
-                <AgGridColumn
-                    cellRenderer={checButtonRenderer}
-                    resizable={true}
-                    field="Chec Capture"
-                    headerName={'CHEC'}
-                ></AgGridColumn>
-            </AgGridReact>
+        <Box sx={{ height: '80vh', width: '100%' }}>
+            <DataGrid
+                loading={loading}
+                rows={agentsList}
+                columns={[
+                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },
+                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true, width: 200 },
+                    {
+                        field: 'skyButtonRenderer',
+                        headerName: 'SKY Logs',
+                        renderCell: skyButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'rmaButtonRenderer',
+                        headerName: 'RMA Logs',
+                        renderCell: rmaButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'eleraButtonRenderer',
+                        headerName: 'Elera Client Logs',
+                        renderCell: eleraButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'eleraServicesButtonRenderer',
+                        headerName: 'Elera Services Logs',
+                        renderCell: eleraServicesButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'checButtonRenderer',
+                        headerName: 'CHEC Extract',
+                        renderCell: checButtonRenderer,
+                        width: 150,
+                    },
+                    {
+                        field: 'checLogsButtonRenderer',
+                        headerName: 'CHEC Install Logs',
+                        renderCell: checLogsButtonRenderer,
+                        width: 150,
+                    },
+                ]}
+                initialState={{
+                    pagination: { paginationModel: { pageSize: 10 } },
+                }}
+                pageSizeOptions={[5, 10, 15]}
+                checkboxSelection={false}
+                disableSelectionOnClick
+                onGridReady={sortGrid}
+            />
+
 
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -320,6 +422,6 @@ export default function ExtractRequestGrid(props) {
                     {toastFailure}
                 </Alert>
             </Snackbar>
-        </div>
+        </Box>
     );
 }

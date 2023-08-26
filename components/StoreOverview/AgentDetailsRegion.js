@@ -1,17 +1,22 @@
 /* eslint-disable react/prop-types */
-import { Paper } from '@mui/material';
+import { CircularProgress, Paper, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import OverviewAgentPaper from '../Connection/OverviewAgentPaper';
 import React from 'react';
-import { TripleMaze } from 'react-spinner-animated';
 
-export default function AgentDetailsRegion({ boxWidth, paperWidth, storeAgents, screenshotView }) {
-    if (storeAgents.length === 0) {
+export default function AgentDetailsRegion({ boxWidth, paperWidth, storeAgents, screenshotView, storeHasNoAgents }) {
+    if (storeAgents.length === 0 && storeHasNoAgents !== true) {
         return (
-            <div role="progressbar" style={{ width: '100%', height: '100%' }}>
-                <TripleMaze center="true" />
-            </div>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                <CircularProgress size={80} />
+            </Box>
         );
+    } else if (storeHasNoAgents === true) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                <Typography variant='h2' >No Agents Reporting for This Store</Typography>
+            </Box>
+        )
     } else {
         return (
             <Box sx={{ display: 'flex', width: `${boxWidth}%`, flexDirection: 'row', flexWrap: 'wrap', overflowY: 'auto' }}>

@@ -1,17 +1,17 @@
 /* eslint-disable no-unused-vars */
 import { styled } from '@mui/material/styles';
 import React from 'react';
+import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import ExtractGrid from '../../components/Tables/ExtractGrid';
+import CaptureGrid from '../../components/Tables/CaptureGrid';
 import Typography from '@mui/material/Typography';
+import Copyright from '../../components/Copyright';
 
-const PREFIX = 'checExtracts';
+const PREFIX = 'docCollection';
 
 const classes = {
     content: `${PREFIX}-content`,
     container: `${PREFIX}-container`,
-    paper: `${PREFIX}-paper`,
-    fixedHeight: `${PREFIX}-fixedHeight`,
 };
 
 const Root = styled('main')(({ theme }) => ({
@@ -27,15 +27,18 @@ const Root = styled('main')(({ theme }) => ({
     },
 }));
 
-export default function ChecExtracts() {
+export default function DocCollection() {
     return (
         <Root className={classes.content}>
-            <Typography align="center" variant="h3">
-                Chec Extracts
+            <Typography align="center" variant="h4">
+                Data Captures
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
-                <ExtractGrid height={400} />
+                <CaptureGrid height={'50vh'}/>
             </Container>
+            <Box>
+                <Copyright />
+            </Box>
         </Root>
     );
 }

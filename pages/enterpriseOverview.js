@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
-import { DataGrid } from '@mui/x-data-grid';
 import GoogleMap from '../components/Maps/GoogleMap';
 import {
     Card,
@@ -17,17 +16,20 @@ import {
     Button,
     CircularProgress,
     Snackbar, SnackbarContent,
-    Grid,
-    LinearProgress
 } from '@mui/material';
 import axios from 'axios';
-import { now } from 'lodash';
+import { isEmpty, now } from 'lodash';
 import Copyright from '../components/Copyright';
 import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
 import UserContext from './UserContext';
 import { useMsal } from '@azure/msal-react';
+import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
+import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
+import DeviceList from '../components/EnterpriseOverview/DeviceList';
 import moment from 'moment';
+import MobileHandheldsList from '../components/EnterpriseOverview/MobileHandheldsList';
+import PeripheralsList from '../components/EnterpriseOverview/PeripheralsList';
 // import mockAxios from '../mocks/mock';
 // mockAxios(axios);
 
@@ -70,6 +72,10 @@ export default function EnterpriseOverview() {
         par = window.location.search;
     }
     const [places, setPlaces] = useState([]);
+    const [devices, setDevices] = useState([])
+    const [handhelds, setHandhelds] = useState([])
+    const [peripherals, setPeripherals] = useState([])
+    const [attendedLanes, setAttendedLanes] = useState([])
     const [allPlaces, setAllPlaces] = useState([]);
     const [selectedContinent, setSelectedContinent] = useState(null);
     const [selectedCountry, setSelectedCountry] = useState(null);
@@ -79,23 +85,53 @@ export default function EnterpriseOverview() {
     const [filteredFilters, setFilteredFilters] = useState([]);
     const [allRetailers, setAllRetailers] = useState([]);
     const [showOnlyDownStores, setShowOnlyDownStores] = useState(false);
-    const [storesOnline, setStoresOnline] = useState(0);
+    const [storesOnline, setStoresOnline] = useState(null);
     const [autocompleteKey, setAutocompleteKey] = useState('');
     const [lanesUp, setLanesUp] = useState(null);
+    const [devicesUp, setDevicesUp] = useState(null);
+    const [handheldsUp, setHandheldsUp] = useState(null)
+    const [peripheralsUp, setPeripheralsUp] = useState(null)
     const [pullStorePeriodically, setPullStorePeriodically] = useState(0);
     const [isFilterSelect, setIsFilterSelect] = useState(false);
     const [showStoreOnlineWidget, setShowStoreOnlineWidget] = useState(false);
+    const [isListView, setIsListView] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showAttendedLanesWidget, setShowAttendedLanesWidget] = useState(false);
+    const [showDevicesWidget, setShowDevicesWidget] = useState(false);
+    const [showPeripheralsWidget, setShowPeripheralsWidget] = useState(false);
+    const [showHandheldsWidget, setShowHandheldsWidget] = useState(false);
+    const [devicesWidgetErrorPercentage, setDevicesWidgetErrorPercentage] = useState(0)
     const [storesOnlineWidgetErrorPercentage, setStoresOnlineWidgetErrorPercentage] = useState(0)
     const [attendedLanesOnlineWidgetErrorPercentage, setAttendedLanesOnlineWidgetErrorPercentage] = useState(0)
     const [configInfo, setConfigInfo] = useState([])
-    const [widget, setWidget] = useState({
+    const [allStores, setAllStores] = useState([]);
+    const [filteredStores, setFilteredStores] = useState([]);
+    const [filteredDevices, setFilteredDevices] = useState([]);
+    const [onlineStoreWidget, setOnlineStoreWidget] = useState({
         onlineStore: 0,
-        onlineStoreText: '0/0',
+        onlineStoreText: null,
         onlineStoreColor: 'success',
+    });
+    const [laneUpWidget, setLaneUpWidget] = useState({
         laneUp: 0,
-        laneUpText: '0/0',
-        laneUpColor: 'success'
+        laneUpText: null,
+        laneUpColor: 'success',
+        loading: true
+    });
+    const [devicesUpWidget, setDevicesUpWidget] = useState({
+        devicesUp: 0,
+        devicesUpText: null,
+        devicesUpColor: 'success'
+    })
+    const [handheldsUpWidget, setHandheldsUpWidget] = useState({
+        handheldsUp: 0,
+        handheldsUpText: null,
+        handheldsUpColor: 'success'
+    })
+    const [peripheralsUpWidget, setPeripheralsUpWidget] = useState({
+        peripheralsUp: 0,
+        peripheralsUpText: null,
+        peripheralsUpColor: 'success'
     })
     const { accounts } = useMsal();
     const username = accounts.length > 0 ? accounts[0].username : '';
@@ -106,53 +142,68 @@ export default function EnterpriseOverview() {
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [mapParams, setMapParams] = useState(null);
     const [isRefetch, setIsRefetch] = useState(null);
-    const [viewMode, setViewMode] = useState(true);
-
-    const renderLinkStoreView = (value) => {
-      return <a href={'/storeOverview?storeName=' + value.row.storeName + '&retailer_id=' + selectedRetailer}>{value.row.storeName}</a>
-    }
-    const renderUpdateTime = (value) => {
-      return moment.duration((new Date(value.row.last_updated).getTime() - new Date().getTime()) / 60000, "minutes").humanize(true);
-    }
-    const renderStatus = (value) => {
-      let onlineStatus = value.row.online ? 'Online' : 'Offline';
-      let val = parseFloat(parseInt(value.row.onlineAgents) / parseInt(value.row.totalAgents) * 100.0);
-      let color = 'success';
-      let txtColor = 'green';
-      let status = 'Good';
-      let confForGood = configInfo.find(o => o.configName === 'GoodStoreStatusPercentage');
-      let confForPoor = configInfo.find(o => o.configName === 'PoorStoreStatusPercentage');
-      if (val < parseInt(confForGood?.configValue)??0.66) {
-        color = 'warning';
-        status = 'Fair';
-        txtColor = 'orange';
-      }
-      if (val < parseInt(confForGood?.configValue)??0.33) {
-        color = 'error';
-        status = 'Poor';
-        txtColor = 'error';
-      }
-      return (
-        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', margin: 1 }}>
-          <Typography color={txtColor}>{status}</Typography>
-          <Typography sx={{mx: 3}}>{onlineStatus}</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', margin: 1 }}>
-            <LinearProgress sx={{ borderRadius: 1, height: 10, width: 150 }} color={color} variant="determinate" value={val} />
-            <Typography color={txtColor}>{value.row.onlineAgents} / {value.row.totalAgents}</Typography>
-          </Box>
-        </Box>
-        // <LinearProgress sx={{ borderRadius: 1, height: 10, width: 200 }} color={color} variant="determinate" value={val} />
-      );
-    }
-    const columns = [
-      { field: 'storeName', headerName: 'Store', sortable: true, flex: 1, renderCell: renderLinkStoreView },
-      { field: 'last_updated', headerName: 'Update', flex: 1, renderCell: renderUpdateTime },
-      { field: 'online', headerName: 'Status', flex: 1, renderCell: renderStatus },
-    ];
+    const [goodStoreStatusPercentage, setGoodStoreStatusPercentage] = useState(0);
+    const [poorStoreStatusPercentage, setPoorStoreStatusPercentage] = useState(0);
+    const [isStoresOnlineListView, setIsStoresOnlineListView] = useState(false)
+    const [isPeripheralsListView, setIsPeripheralsListView] = useState(false)
+    const [isAttendedLanesListView, setIsAttendedLanesListView] = useState(false)
+    const [isDevicesListView, setIsDevicesListView] = useState(false)
+    const [disconnectTimeLimit, setDisconnectTimeLimit] = useState(24)
+    const [isHandheldsListView, setIsHandheldsListView] = useState(false)
 
     useEffect(() => {
+        setSelectedRetailer('');
+        setPeripheralsUp(null)
+        setHandheldsUp(null)
+        setDevicesUp(null);
+        setLaneUpWidget({
+            laneUp: 0,
+            laneUpText: null,
+            laneUpColor: 'success',
+            loading: true
+        });
+        setOnlineStoreWidget(null);
+        setStoresOnline(null);
+        setLanesUp(null);
+        setDevicesUpWidget(null)
+        setPlaces([])
+        setAllPlaces([])
+        setAllStores([])
+        setAttendedLanes([])
+        setDevices([])
+        setPeripherals([])
+        setHandhelds([])
+        setFilteredFilters([])
+        setShowAttendedLanesWidget(false);
+        setShowDevicesWidget(false);
+        setShowStoreOnlineWidget(false);
+        setShowPeripheralsWidget(false);
+        setConfigInfo([]);
+        setSelectedContinent(null);
+        setSelectedCountry(null);
+        setSelectedStore(null);
+        setFiltersApplied([]);
+        setIsListView(false);
+        setIsAttendedLanesListView(false);
+        setIsDevicesListView(false);
+        setIsHandheldsListView(false);
+        setIsPeripheralsListView(false);
+        setIsStoresOnlineListView(false)
         if (context?.selectedRetailer) {
-            setSelectedRetailer(context.selectedRetailer)
+            setTimeout(() => {
+                setSelectedRetailer(context.selectedRetailer);
+            }, 500);
+        }
+        if (context?.selectedRetailer) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+                const configurationArray = res.data.configuration;
+                const configurationInfo = [];
+                configurationArray.forEach(configObject => {
+                    const innerArray = Object.values(configObject)[0];
+                    configurationInfo.push(innerArray);
+                });
+                setDisconnectTimeLimit(configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue)
+            })
         }
     }, [context?.selectedRetailer])
 
@@ -180,47 +231,82 @@ export default function EnterpriseOverview() {
                 }
             }
         }
-
-    }, [context?.userDetails?.userDefinedMapConfig, places])
-
-    useEffect(() => {
-        if (selectedRetailer && selectedRetailer !== '') {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
-                // fetch configuration info
-                const configurationArray = res.data.configuration;
-                const configurationInfo = [];
-                configurationArray.forEach(configObject => {
-                    const innerArray = Object.values(configObject)[0];
-                    configurationInfo.push(innerArray);
-                });
-                setConfigInfo(configurationInfo)
-                setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
-                setShowAttendedLanesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewAttendedLanesUpWidget').configValue)
-                setStoresOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue)
-                setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue)
-                setPullStorePeriodically(configurationInfo.find(item => item.configName === 'pullStorePeriodically').configValue)
-
-            })
-        }
-    }, [selectedRetailer])
+    }, [context?.userDetails?.userDefinedMapConfig])
 
     useEffect(() => {
-        if (configInfo.length > 0) {
-            if (storesOnline && lanesUp) {
-                console.log({storesOnline, lanesUp})
-                setWidget({
-                    onlineStore: storesOnline.percentUp,
-                    onlineStoreText: `${storesOnline.online}/${storesOnline.total}`,
-                    onlineStoreColor: storesOnline.percentUp > storesOnlineWidgetErrorPercentage ? 'success' : 'error',
-                    laneUp: lanesUp.percentUp,
-                    laneUpText: `${lanesUp.online}/${lanesUp.total}`,
-                    laneUpColor: lanesUp.percentUp > attendedLanesOnlineWidgetErrorPercentage ? 'success' : 'error',
-                });
-            }
+        if (context?.retailerConfigs?.length > 0) {
+            // fetch configuration info
+            const configurationArray = context.retailerConfigs;
+            const configurationInfo = [];
+            configurationArray.forEach(configObject => {
+                const innerArray = Object.values(configObject)[0];
+                configurationInfo.push(innerArray);
+            });
+            setConfigInfo(configurationInfo)
+            setShowPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewPeripheralsWidget').configValue)
+            setShowHandheldsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewHandheldsWidget').configValue)
+            setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
+            setShowDevicesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewDevicesWidget').configValue)
+            setDevicesWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'deviceWidgetRedWhenAbovePercent').configValue)
+            setShowAttendedLanesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewAttendedLanesUpWidget').configValue)
+            setStoresOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue)
+            setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue)
+            setPullStorePeriodically(configurationInfo.find(item => item.configName === 'pullStorePeriodically').configValue)
+            setPoorStoreStatusPercentage(configurationInfo.find(item => item.configName === 'PoorStoreStatusPercentage').configValue)
+            setGoodStoreStatusPercentage(configurationInfo.find(item => item.configName === 'GoodStoreStatusPercentage').configValue)
         }
-    }, [storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage])
+    }, [context?.retailerConfigs, selectedRetailer])
+
+    useEffect(() => {
+        if (configInfo.length > 0 && storesOnline) {
+            setOnlineStoreWidget({
+                onlineStore: storesOnline?.percentUp,
+                onlineStoreText: `${storesOnline?.online}/${storesOnline?.total}`,
+                onlineStoreColor: storesOnline?.percentUp > storesOnlineWidgetErrorPercentage ? 'success' : 'error',
+            });
+        }
+    }, [storesOnline, configInfo, storesOnlineWidgetErrorPercentage])
+
+    useEffect(() => {
+        if (configInfo.length > 0 && lanesUp) {
+            setLaneUpWidget({
+                laneUp: lanesUp?.percentUp,
+                laneUpText: `${lanesUp?.online}/${lanesUp?.total}`,
+                laneUpColor: lanesUp?.percentUp > attendedLanesOnlineWidgetErrorPercentage ? 'success' : 'error',
+                loading: false
+            });
+        }
+    }, [lanesUp, configInfo, attendedLanesOnlineWidgetErrorPercentage])
+
+
+    useEffect(() => {
+        if (configInfo.length > 0 && devicesUp) {
+            setDevicesUpWidget({
+                devicesUp: devicesUp?.percentUp,
+                devicesUpText: `${devicesUp?.online}/${devicesUp?.total}`,
+                devicesUpColor: devicesUp?.percentUp > devicesWidgetErrorPercentage ? 'success' : 'error'
+            });
+        }
+    }, [devicesUp, configInfo, devicesWidgetErrorPercentage])
+
+    useEffect(() => {
+        setHandheldsUpWidget({
+            handheldsUp: handheldsUp?.percentUp,
+            handheldsUpText: `${handheldsUp?.online}/${handheldsUp?.total}`,
+            handheldsUpColor: handheldsUp?.percentUp > 50 ? 'success' : 'error'
+        })
+    }, [handheldsUp])
+
+    useEffect(() => {
+        setPeripheralsUpWidget({
+            peripheralsUp: peripheralsUp?.percentUp,
+            peripheralsUpText: `${peripheralsUp?.online}/${peripheralsUp?.total}`,
+            peripheralsUpColor: peripheralsUp?.percentUp > 50 ? 'success' : 'error'
+        })
+    }, [peripheralsUp])
 
     const handleFilterSelected = (e, selectedValue) => {
+        setLoading(true);
         if (selectedValue !== null) {
             if (selectedValue.type === 'store') {
                 setSelectedStore({ id: selectedValue.id, name: selectedValue.name });
@@ -234,7 +320,8 @@ export default function EnterpriseOverview() {
             // this is a little hack to place the map to the selected filter
             setIsFilterSelect(true)
             setTimeout(() => {
-                setIsFilterSelect(false)
+                setIsFilterSelect(false);
+                setLoading(false);
             }, 500);
         }
     };
@@ -257,7 +344,7 @@ export default function EnterpriseOverview() {
             setIsFilterSelect(false)
         }, 500);
     };
-
+    /*
     const applyAllPreviouslyAppliedFilters = () => {
         if (filtersApplied.length !== 0) {
             filtersApplied.forEach((filter) => {
@@ -276,7 +363,7 @@ export default function EnterpriseOverview() {
             setPlaces(allPlaces);
         }
     };
-
+    */
     const toggleShowOnlyDownStores = () => {
         setShowOnlyDownStores(!showOnlyDownStores)
     };
@@ -292,27 +379,25 @@ export default function EnterpriseOverview() {
 
 
     function fetchStore(isRefresh = false) {
+        const localStoresNoAddress = [];
         const stores = [];
         const localAllFilters = [];
         const localCountries = [];
         const localContinents = [];
         const localStores = [];
 
+        setLoading(true);
         axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
+            setLoading(false);
             let counter = 0;
             let onlineCounter = 0;
             let upLanes = 0;
             let totalLanes = 0;
-
-            res.data.forEach((store) => {
+            res.data.map((store) => {
                 store["label"] = store.storeName;
-                store["id"] = store._id;
-                const storeRetailer = allRetailers.find(x => x.retailer_id === store.retailer_id)
+                const storeRetailer = allRetailers.find((x) => x.retailer_id === store.retailer_id || x?.retailer_id === store?.tenant_id);
                 if (storeRetailer !== undefined) {
                     store["description"] = storeRetailer.description
-                }
-                if (context.selectedRetailerIsTenant === true) {
-                    store["description"] = context.selectedRetailerDescription
                 }
                 // only able to map stores we have the lat/lng for
                 if (store.geometry && store.continent && store.retailer_id) {
@@ -321,15 +406,24 @@ export default function EnterpriseOverview() {
                         upLanes += store.onlineLanes
                         totalLanes += store.totalLanes
                     }
-                    if (store.online !== true) {
-                        // red
-                        store.status = '#FF0000';
-                    } else if (store.online === true) {
+                    const signal = store?.onlineAgents / store?.totalAgents * 100;
+                    // default orange
+                    store.status = '#FA8128';
+                    if (store?.online === true) {
+                        onlineCounter++
+                    } else {
+                        store.online = false
+                    }
+                    if (signal > goodStoreStatusPercentage && store?.online) {
                         // green
                         store.status = '#00FF00';
-                        onlineCounter++;
-                    } else {
-                        store.status = '#FF0000';
+                    } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && store?.online) {
+                        //yellow
+                        store.status = '#FFFF00';
+                    }
+                    if (store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) {
+                        // disconnected, red
+                        store.status = '#FF0000'
                     }
                     if (localContinents.findIndex((x) => x.name === store.continent) === -1) {
                         localContinents.push({
@@ -363,10 +457,25 @@ export default function EnterpriseOverview() {
                     });
                     counter++;
                     stores.push(store);
-                    console.log({stores})
+                } else {
+                    if (store?.online === true) {
+                        onlineCounter++
+                    }
+                    localStoresNoAddress.push({
+                        id: `${store._id}`,
+                        type: 'store',
+                        name: `${store.storeName}`,
+                        display: `${store.storeName}`,
+                        continent: `${store.continent}`,
+                        country: `${store.country}`,
+                        retailer: `${store.retailer_id}`,
+                        tenant: `${store.tenant_id}`,
+                        str: `${store.continent} ${store.country}`
+                    });
+                    counter++;
                 }
             });
-            localAllFilters.push(...localContinents, ...localCountries, ...localStores);
+            localAllFilters.push(...localContinents, ...localCountries, ...localStores, ...localStoresNoAddress);
             if (localAllFilters.length > 0 && allRetailers.length > 0) {
                 localAllFilters.forEach((filter) => {
                     if (filter.type === 'store') {
@@ -380,7 +489,8 @@ export default function EnterpriseOverview() {
                 });
             }
             setStoresOnline({ 'online': onlineCounter, 'total': counter, 'percentUp': ((onlineCounter / counter) * 100) });
-            setLanesUp({ 'online': upLanes, 'total': totalLanes, 'percentUp': ((upLanes / totalLanes) * 100) });
+            setAllStores(res.data);
+            setFilteredStores(res.data);
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
             if (!isRefresh) {
@@ -391,14 +501,184 @@ export default function EnterpriseOverview() {
     }
 
     useEffect(() => {
+        if (selectedRetailer) {
+            let query = { params: { retailerId: selectedRetailer, isLab: false } };
+            if (context.selectedRetailerIsTenant && context.selectedRetailerParentRemsServerId) {
+                query = {
+                    params: {
+                        retailerId: context?.selectedRetailerParentRemsServerId,
+                        tenantId: selectedRetailer,
+                        isLab: true
+                    }
+                }
+            }
+            if (showAttendedLanesWidget === true || showAttendedLanesWidget === 'true') {
+
+                axios.get(`/api/REMS/getAttendedLanes`, query).then(function (res) {
+                    let totalAttendedLanes = 0
+                    let onlineAttendedLanes = 0
+                    let localAttendedLanes = []
+                    if (res.data.length > 0) {
+                        res.data.forEach(agent => {
+                            localAttendedLanes.push(agent)
+                            if (agent.online === true) {
+                                onlineAttendedLanes++
+                            }
+                            totalAttendedLanes++
+                        })
+                        setAttendedLanes(localAttendedLanes)
+                    }
+                });
+            }
+
+            if (showDevicesWidget === true || showDevicesWidget === 'true') {
+                axios.get(`/api/REMS/devices`, query).then(function (res) {
+                    let localDevices = []
+                    if (res.data.length > 0) {
+                        res.data.forEach((device, index) => {
+                            device.id = index
+                            localDevices.push(device)
+                        });
+                    }
+                    setDevices(localDevices)
+                    setFilteredDevices(res?.data)
+                });
+            }
+            if (showHandheldsWidget === true || showHandheldsWidget === 'true') {
+                axios.get(`/api/rsmpData/getMobileAssets`, query).then(function (res) {
+                    let totalHandhelds = 0
+                    let onlineHandhelds = 0
+                    let localHandhelds = []
+                    if (res.data.length > 0) {
+                        res.data.forEach((handheld, index) => {
+                            handheld.id = index
+                            handheld.os = handheld.OsType + '-' + handheld.OsVersion
+                            localHandhelds.push(handheld)
+                            if (handheld.online == 'Operational') {
+                                onlineHandhelds++
+                            }
+                            totalHandhelds++
+                        });
+                    }
+                    setHandhelds(localHandhelds)
+                    setHandheldsUp({ 'online': onlineHandhelds, 'total': totalHandhelds, 'percentUp': ((onlineHandhelds / totalHandhelds) * 100) })
+                });
+            }
+
+            if (showPeripheralsWidget === true || showPeripheralsWidget === 'true') {
+                axios.get(`/api/rsmpData/getWirelessPeripherals`, query).then(function (res) {
+                    let totalPeripherals = 0
+                    let onlinePeripherals = 0
+                    let localPeripherals = []
+                    if (res.data.length > 0) {
+                        res.data.forEach((peripheral, index) => {
+                            peripheral.id = index
+                            localPeripherals.push(peripheral)
+                            // todo: lol wtf is this
+                            if (true === true) {
+                                onlinePeripherals++
+                            }
+                            totalPeripherals++
+                        });
+                    }
+                    setPeripherals(localPeripherals)
+                    setPeripheralsUp({ 'online': onlinePeripherals, 'total': totalPeripherals, 'percentUp': ((onlinePeripherals / totalPeripherals) * 100) })
+                });
+            }
+
+        }
+    }, [showHandheldsWidget, showPeripheralsWidget, showAttendedLanesWidget, showDevicesWidget, selectedRetailer, context?.selectedRetailerIsTenant, context?.selectedRetailerParentRemsServerId]);
+
+    useEffect(() => {
+        let totalDevices = 0;
+        let onlineDevices = 0;
+        if (filteredDevices.length > 0) {
+            filteredDevices.map(device => {
+                device.id = device._id
+                if (device.online == 'true') {
+                    onlineDevices++
+                }
+                totalDevices++
+            });
+            const percentUp = (onlineDevices / totalDevices) * 100;
+            setDevicesUp({ 'online': onlineDevices, 'total': totalDevices, 'percentUp': isNaN(percentUp) ? 0 : percentUp })
+        } else {
+            setDevicesUp({ 'online': 0, 'total': 0, 'percentUp': 0 })
+        }
+    }, [filteredDevices])
+
+    useEffect(() => {
+        if (attendedLanes?.length > 0) {
+            let placesResult = allStores ?? [];
+            if (filtersApplied.length > 0) {
+                placesResult = places
+            }
+            if (showOnlyDownStores) {
+                placesResult = places.filter((x) => x.online === false)
+            }
+            const response = attendedLanes?.filter(store => placesResult?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
+            let totalAttendedLanes = 0
+            let onlineAttendedLanes = 0
+            response.map(agent => {
+                if (agent.online == true) {
+                    onlineAttendedLanes++
+                }
+                totalAttendedLanes++
+            })
+            const percentUp = (onlineAttendedLanes / totalAttendedLanes) * 100;
+            setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': isNaN(percentUp) ? 0 : percentUp })
+        }
+    }, [attendedLanes, showOnlyDownStores, filtersApplied, places])
+
+    useEffect(() => {
+        let onlineCounter = 0;
+        let placesResult = allStores;
+        if (filtersApplied.length > 0) {
+            placesResult = places
+        }
+        let counter = 0;
+        let upLanes = 0;
+        let totalLanes = 0;
+        if (showOnlyDownStores) {
+            placesResult = allStores.filter((x) => x?.online === false)
+        }
+        if (placesResult.length > 0) {
+            placesResult?.map((store) => {
+                // color the marker based on online status
+                if (store.onlineLanes && store.totalLanes) {
+                    upLanes += store.onlineLanes
+                    totalLanes += store.totalLanes
+                }
+                const signal = store?.onlineAgents / store?.totalAgents * 100;
+
+                // default to orange
+                store.status = '#FA8128';
+                if (store?.online === true) {
+                    onlineCounter++
+                } else {
+                    store.online = false
+                }
+                if (signal > goodStoreStatusPercentage && store?.online) {
+                    // green
+                    store.status = '#00FF00';
+                } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && store?.online) {
+                    store.status = '#FFFF00';
+                } else if ((store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) || store?.online === false) {
+                    store.status = '#FF0000'
+                }
+                counter++;
+            });
+            setStoresOnline({ 'online': onlineCounter, 'total': placesResult.length, 'percentUp': ((onlineCounter / filteredStores.length) * 100) });
+        } else {
+            setStoresOnline({ 'online': 0, 'total': filteredStores.length, 'percentUp': 0 });
+        }
+    }, [filtersApplied, places, showOnlyDownStores])
+
+    useEffect(() => {
         if (selectedRetailer && allRetailers.length > 0) {
             fetchStore();
-            setSelectedContinent(null);
-            setSelectedCountry(null);
-            setSelectedStore(null);
-            setFiltersApplied([]);
         }
-    }, [selectedRetailer, allRetailers]);
+    }, [selectedRetailer, allRetailers, showAttendedLanesWidget, showStoreOnlineWidget, showDevicesWidget]);
 
     useEffect(() => {
         if (selectedRetailer && pullStorePeriodically > 0) {
@@ -409,25 +689,6 @@ export default function EnterpriseOverview() {
             return () => clearInterval(interval);
         }
     }, [allRetailers, selectedRetailer, pullStorePeriodically]);
-
-    useEffect(() => {
-        if (showOnlyDownStores) {
-            async function func() {
-                if (selectedStore !== null) {
-                    if (places.filter((x) => x._id === selectedStore.id && x.status === '#FF0000').length <= 0) {
-                        const index = filtersApplied.findIndex(x => Object.keys(x)[0] === 'Store');
-                        filtersApplied.splice(index, 1);
-                        setFiltersApplied(filtersApplied);
-                    }
-                }
-                const filteredPlaces = places.filter((x) => x.status === '#FF0000');
-                setPlaces(filteredPlaces);
-            }
-            func();
-        } else {
-            applyAllPreviouslyAppliedFilters();
-        }
-    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         let temp = [...filtersApplied];
@@ -443,7 +704,7 @@ export default function EnterpriseOverview() {
     }, [selectedStore]);
 
     function handleSubmitMap() {
-        axios.post(`/api/REMS/userSettingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
+        axios.post(`/api/user/settingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
@@ -472,7 +733,6 @@ export default function EnterpriseOverview() {
         temp.splice(pos);
         if (selectedCountry !== null) temp.push({ Country: selectedCountry.name });
         setFiltersApplied(temp);
-        setFiltersApplied(temp);
     }, [selectedCountry]);
 
     useEffect(() => {
@@ -495,27 +755,90 @@ export default function EnterpriseOverview() {
 
     useEffect(() => {
         let filteredPlaces = [...allPlaces];
+        let filteredStores = [...allStores];
+        let filteredDevices = [...devices];
         let tempFiltersFiltered = [];
         if (selectedContinent) {
             filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
-
+            filteredStores = filteredStores.filter((x) => x.continent === selectedContinent.id);
+            filteredDevices = filteredDevices.filter((x) => {
+                const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
+                return findStore ? true : false;
+            })
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'continent' && x.continent === selectedContinent.id);
         }
         if (selectedCountry) {
             filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
-
+            filteredStores = filteredStores.filter((x) => x.country === selectedCountry.id);
+            filteredDevices = filteredDevices.filter((x) => {
+                const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
+                return findStore ? true : false;
+            })
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'continent' && x.type !== 'country' && x.country === selectedCountry.id);
         }
         if (selectedStore) {
             filteredPlaces = filteredPlaces.filter((x) => x._id === selectedStore.id);
+            filteredStores = filteredStores.filter((x) => x._id === selectedStore.id);
+            filteredDevices = filteredDevices.filter((x) => x.storeName === selectedStore.name);
         }
         if (filtersApplied.length === 0) {
             tempFiltersFiltered = [...allFilters];
         }
+        setFilteredStores(filteredStores)
         setFilteredFilters(tempFiltersFiltered);
         setPlaces(filteredPlaces);
-
+        setFilteredDevices(filteredDevices)
     }, [allPlaces, filtersApplied, isRefetch]);
+
+    function handleListViewPaperClicked(value, setter, viewName) {
+        if (value === false) {
+            setIsListView(true)
+        } else {
+            setIsListView(false)
+        }
+
+        if (viewName === 'storesOnline' && value === false) {
+            setIsDevicesListView(false)
+            setIsAttendedLanesListView(false)
+            setIsHandheldsListView(false)
+            setIsPeripheralsListView(false)
+        }
+        if (viewName === 'attendedLanes' && value === false) {
+            setIsDevicesListView(false)
+            setIsStoresOnlineListView(false)
+            setIsHandheldsListView(false)
+            setIsPeripheralsListView(false)
+        }
+        if (viewName === 'devices' && value === false) {
+            setIsAttendedLanesListView(false)
+            setIsStoresOnlineListView(false)
+            setIsHandheldsListView(false)
+            setIsPeripheralsListView(false)
+        }
+        if (viewName === 'handhelds' && value === false) {
+            setIsAttendedLanesListView(false)
+            setIsStoresOnlineListView(false)
+            setIsDevicesListView(false)
+            setIsPeripheralsListView(false)
+        }
+        if (viewName === 'peripherals' && value === false) {
+            setIsAttendedLanesListView(false)
+            setIsStoresOnlineListView(false)
+            setIsDevicesListView(false)
+            setIsHandheldsListView(false)
+        }
+
+        setter(prev => !prev)
+    }
+
+    let placesResult = [...places];
+    let storesResult = [...filteredStores];
+    let devicesResult = [...filteredDevices];
+    if (showOnlyDownStores) {
+        placesResult = places.filter((x) => x.online === false);
+        storesResult = filteredStores.filter((x) => x.online === false)
+        devicesResult = filteredDevices.filter((x) => x.online == 'false');
+    }
 
     return (
         <Root className={classes.content}>
@@ -527,48 +850,81 @@ export default function EnterpriseOverview() {
             }}>
             </div>
             <Box sx={{ display: 'flex', flexGrow: 1, flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', height: '90vh', width: '100%', flexDirection: 'row' }}>
+                <Box sx={{ display: 'flex', width: '100%', height: '90Vh', flexDirection: 'row' }}>
                     <Box sx={{
                         display: 'flex',
                         height: '100%',
-                        width: '20%',
+                        width: '14%',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'space-around'
                     }}
                     >
                         {showStoreOnlineWidget === true && (
-                            <Paper sx={{ width: '90%', marginTop: 1 }} elevation={10} >
-                                <CustomLinearProgress
-                                    title="Stores Online"
-                                    subTitle={widget.onlineStoreText}
-                                    value={widget.onlineStore}
-                                    color={widget.onlineStoreColor}
-                                />
+                            <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10} >
+                                {!isEmpty(onlineStoreWidget?.onlineStoreText) && filteredStores.length > 0 ?
+                                    <CustomLinearProgress
+                                        title="Stores Online"
+                                        subTitle={onlineStoreWidget?.onlineStoreText}
+                                        value={onlineStoreWidget?.onlineStore}
+                                        color={onlineStoreWidget?.onlineStoreColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
+
                             </Paper>
                         )}
                         {showAttendedLanesWidget === true && (
-                            <Paper sx={{ width: '90%', marginTop: 1 }} elevation={10}>
-                                <CustomLinearProgress
-                                    title="Attended Lanes Up"
-                                    subTitle={widget.laneUpText}
-                                    value={widget.laneUp}
-                                    color={widget.laneUpColor}
-                                />
+                            <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView, 'attendedLanes')} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {laneUpWidget?.loading && <CircularProgress sx={{ margin: 2 }} />}
+                                {!laneUpWidget?.loading && !isEmpty(laneUpWidget?.laneUpText) &&
+                                    <CustomLinearProgress
+                                        title="Agents Online"
+                                        subTitle={laneUpWidget?.laneUpText}
+                                        value={laneUpWidget?.laneUp}
+                                        color={laneUpWidget?.laneUpColor}
+                                    />
+                                }
+                            </Paper>
+                        )}
+                        {(showDevicesWidget === true && devicesUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isDevicesListView, setIsDevicesListView, 'devices')} sx={[isDevicesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isDevicesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {!isEmpty(devicesUpWidget?.devicesUpText) ?
+                                    <CustomLinearProgress
+                                        title="SNMP Devices"
+                                        subTitle={devicesUpWidget?.devicesUpText}
+                                        value={devicesUpWidget?.devicesUp}
+                                        color={devicesUpWidget?.devicesUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
+                            </Paper>
+                        )}
+                        {(showHandheldsWidget === true && handheldsUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isHandheldsListView, setIsHandheldsListView, 'handhelds')} sx={[isHandheldsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isHandheldsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {!isEmpty(handheldsUpWidget?.handheldsUpText) ?
+                                    <CustomLinearProgress
+                                        title="Mobile Handhelds"
+                                        subTitle={handheldsUpWidget?.handheldsUpText}
+                                        value={handheldsUpWidget?.handheldsUp}
+                                        color={handheldsUpWidget?.handheldsUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
+                            </Paper>
+                        )}
+                        {(showPeripheralsWidget === true && peripheralsUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isPeripheralsListView, setIsPeripheralsListView, 'peripherals')} sx={[isPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {!isEmpty(peripheralsUpWidget?.peripheralsUpText) ?
+                                    <CustomLinearProgress
+                                        title="Mobile Printers"
+                                        subTitle={peripheralsUpWidget?.peripheralsUpText}
+                                        value={peripheralsUpWidget?.peripheralsUp}
+                                        color={peripheralsUpWidget?.peripheralsUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
                             </Paper>
                         )}
                     </Box>
-                    <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
+                    <Box sx={{ display: 'flex', width: '86%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                            <Typography sx={{ alignSelf: 'center' }}>Map/List</Typography>
-                            <Switch
-                                sx={{ alignSelf: 'center' }}
-                                onChange={() => setViewMode(!viewMode)}
-                                checked={viewMode}
-                                color='success'
-                            />
-                          </Box>
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
@@ -611,51 +967,44 @@ export default function EnterpriseOverview() {
                             filtersApplied={filtersApplied}
                             handleFilterDelete={handleFilterDelete}
                         />
-                        {!viewMode && (
-                          <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
-                              <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
-                              >{places?.length > 0 && mapParams ?
-                                  <GoogleMap
-                                      places={places}
-                                      setMapParams={setMapParams}
-                                      mapParams={mapParams}
-                                      isFilterSelect={isFilterSelect}
-                                  /> : <CircularProgress />}
-                              </Box>
-                          </Card>
-                        )}
-                        {viewMode && (
-                          <Box sx={{ display: 'flex', width: '80%', flexDirection: 'column', height: '100%' }}>
-                            <DataGrid
-                              initialState={{
-                                  pagination: { paginationModel: { pageSize: 10 } },
-                                  sorting: {
-                                    sortModel: [{ field: 'storeName', sort: 'asc' }],
-                                  },
-                              }}
-                              rows={places}
-                              columns={columns}
-                              pageSizeOptions={[5, 10, 15]}
-                            />
-                          </Box>
-                        )}
+                        {!isListView &&
+                            <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
+                                <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                    {loading ? <CircularProgress /> :
+                                        placesResult?.length > 0 && mapParams ?
+                                            <GoogleMap
+                                                places={placesResult}
+                                                setMapParams={setMapParams}
+                                                mapParams={mapParams}
+                                                isFilterSelect={isFilterSelect}
+                                            /> : <Typography>No Store Address</Typography>}
+                                </Box>
+                            </Card>
+
+                        }
+                        {isStoresOnlineListView && <StoresOnlineList context={context} disconnectTimeLimit={disconnectTimeLimit} places={storesResult} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
+                        {isAttendedLanesListView && <AttendedLanesList context={context} disconnectTimeLimit={disconnectTimeLimit} places={placesResult} selectedRetailer={context.selectedRetailer} attendedList={attendedLanes} />}
+                        {isDevicesListView === true && <DeviceList devices={devicesResult} />}
+                        {isHandheldsListView === true && <MobileHandheldsList handhelds={handhelds} />}
+                        {isPeripheralsListView === true && <PeripheralsList peripherals={peripherals} />}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>
                 </Box>
-                {!viewMode && (
                 <Box sx={{ display: 'flex', justifyContent: 'end', paddingRight: 8 }}>
-                    <Button
-                        color='info'
-                        variant='contained'
-                        onClick={handleSubmitMap}
-                        sx={{
-                            width: '200px',
-                            height: '40px',
-                        }}
-                    >
-                        Save Current View
-                    </Button>
+                    {!isListView &&
+                        <Button
+                            color='info'
+                            variant='contained'
+                            onClick={handleSubmitMap}
+                            sx={{
+                                width: '200px',
+                                height: '40px',
+                            }}
+                        >
+                            Save Current View
+                        </Button>
+                    }
                     <Snackbar
                         open={open}
                         autoHideDuration={SuccessToastDuration}
@@ -668,7 +1017,6 @@ export default function EnterpriseOverview() {
                         />
                     </Snackbar>
                 </Box>
-                )}
                 <Box sx={{ alignItems: 'center' }}>
                     <Copyright />
                 </Box>

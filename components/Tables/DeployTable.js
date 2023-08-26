@@ -3,9 +3,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from 'react';
-import fetcher from '../../lib/lib.js';
 import axios from 'axios';
-import useSWR from 'swr';
 import Grid from '@mui/material/Grid';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -163,7 +161,7 @@ export function DeployTable(props) {
                 .then((resp) => setData(resp.data))
         }
 
-    }, [context.selectedRetailer, context.selectedRetailerIsTenant])
+    }, [context.selectedRetailer, context.selectedRetailerIsTenant, props])
 
     const handleClickOpen = (event) => {
         setOpen(true);

@@ -1,3 +1,4 @@
+
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -5,6 +6,9 @@ import UserContext from '../../pages/UserContext';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import RequestLinkButton from '../Buttons/RequestLinkButton';
+import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
+import _ from 'lodash';
 const PREFIX = 'CaptureGrid';
 
 const classes = {
@@ -25,12 +29,15 @@ const Root = styled('div')(({ theme }) => ({
     },
 }));
 
+
 export default function CaptureGrid() {
     const context = useContext(UserContext)
     const [captures, setCaptures] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (context.selectedRetailer !== '') {
+
+        if (context.selectedRetailerIsTenant !== null) {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
                     const captures = []
@@ -40,10 +47,11 @@ export default function CaptureGrid() {
                             id: element._id
                         })
                     });
+                    setLoading(false)
                     setCaptures(captures)
                 })
             } else {
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (response) {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
                     const captures = []
                     response.data.forEach(element => {
                         captures.push({
@@ -51,6 +59,7 @@ export default function CaptureGrid() {
                             id: element._id
                         })
                     });
+                    setLoading(false)
                     setCaptures(captures)
                 })
             }
@@ -90,36 +99,45 @@ export default function CaptureGrid() {
             flex: 1,
             type: 'dateTime',
             sortable: true,
-            valueGetter: (params) => new Date(params.value),
+            valueGetter: (params) => {
+                var dateString = _.replace(params.value, /-/g, '/') // firefox doesn't like '-' in date strings
+                return new Date(dateString)
+            }
         },
         {
             field: 'SBreqLink',
             headerName: 'Request from Store',
+            headerAlign: 'center',
             flex: 1,
-            renderCell: (params) => (
-                <a href={'javascript:fetch("' + params.value + '")'}>Request File</a>
-            ),
+            renderCell: (params) => {
+                return (
+                    <RequestLinkButton link={params.value} />
+                )
+            },
         },
         {
             field: 'Download',
             headerName: 'Pushed to Cloud',
+            headerAlign: 'center',
             flex: 1,
             renderCell: (params) => {
-                if (params.value !== undefined) {
-                    return (
-                        <a href={params.value}> Download</a >
-                    )
-                }
-            },
+                return (
+                    params.value !== undefined && <DownloadAzureFileButton link={params.value} />
+                )
+            }
         }
     ];
 
     return (
-        <Box sx={{ height: '80vh', width: '100%' }}>
+        <Box sx={{ height: '70vh', width: '100%' }}>
             <DataGrid
+                loading={loading}
                 rows={captures}
                 columns={columns}
                 initialState={{
+                    sorting: {
+                        sortModel: [{ field: 'Timestamp', sort: 'desc' }]
+                    },
                     pagination: { paginationModel: { pageSize: 10 } },
                 }}
                 pageSizeOptions={[5, 10, 15]}

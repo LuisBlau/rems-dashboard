@@ -61,6 +61,7 @@ export default function CommandCenterOverview() {
     const [filtersApplied, setFiltersApplied] = useState([]);
     const [allRetailers, setAllRetailers] = useState([]);
     const [showStoreOnlineWidget, setShowStoreOnlineWidget] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showAttendedLanesWidget, setShowAttendedLanesWidget] = useState(false);
     const [showOnlyDownStores, setShowOnlyDownStores] = useState(false);
     const [pasSubscriptionTier, setPasSubscriptionTier] = useState(false);
@@ -160,7 +161,7 @@ export default function CommandCenterOverview() {
 
     const applyAllPreviouslyAppliedFilters = () => {
         if (filtersApplied.length !== 0) {
-            let filteredPlaces = allPlaces
+            let filteredPlaces = [...allPlaces]
             filtersApplied.forEach((filter) => {
                 if (Object.keys(filter)[0] === 'Retailer') {
                     filteredPlaces = filteredPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
@@ -169,7 +170,7 @@ export default function CommandCenterOverview() {
                 } else if (Object.keys(filter)[0] === 'Country') {
                     filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
                 } else if (Object.keys(filter)[0] === 'Continent') {
-                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
+                    filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.name);
                 }
             });
             setPlaces(filteredPlaces);
@@ -178,6 +179,7 @@ export default function CommandCenterOverview() {
             setPlaces(allPlaces);
         }
     }
+
     const [widget, setWidget] = useState({
         onlineStore: 0,
         onlineStoreText: '0/0',
@@ -188,24 +190,22 @@ export default function CommandCenterOverview() {
     })
 
     useEffect(() => {
-        if (context.selectedRetailer) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
-                // fetch configuration info
-                const configurationArray = res.data.configuration;
-                const configurationInfo = [];
-                configurationArray.forEach(configObject => {
-                    const innerArray = Object.values(configObject)[0];
-                    configurationInfo.push(innerArray);
-                });
-                setConfigItems(configurationInfo)
-                setStoresOnlineWidgetErrorPercentage(configurationInfo?.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue);
-                setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo?.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue);
-                setPullStorePeriodically(configurationInfo?.find(item => item.configName === 'pullStorePeriodically').configValue);
-                setShowStoreOnlineWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewStoreOnlineWidget').configValue);
-                setShowAttendedLanesWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewAttendedLanesUpWidget').configValue);
-            })
+        if (context?.retailerConfigs?.length > 0) {
+            // fetch configuration info
+            const configurationArray = context.retailerConfigs;
+            const configurationInfo = [];
+            configurationArray.forEach(configObject => {
+                const innerArray = Object.values(configObject)[0];
+                configurationInfo.push(innerArray);
+            });
+            setConfigItems(configurationInfo)
+            setStoresOnlineWidgetErrorPercentage(configurationInfo?.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue);
+            setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo?.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue);
+            setPullStorePeriodically(configurationInfo?.find(item => item.configName === 'pullStorePeriodically').configValue);
+            setShowStoreOnlineWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewStoreOnlineWidget').configValue);
+            setShowAttendedLanesWidget(configurationInfo?.find(item => item.configName === 'commandCenterOverviewAttendedLanesUpWidget').configValue);
         }
-    }, [context.selectedRetailer]);
+    }, [context.retailerConfigs]);
 
     useEffect(() => {
         if (configItems.length > 0) {
@@ -222,7 +222,7 @@ export default function CommandCenterOverview() {
         }
     }, [configItems, storesOnline, lanesUp, storesOnlineWidgetErrorPercentage, attendedLanesOnlineWidgetErrorPercentage,])
 
-    async function fetchData(isRefresh = false) {
+    async function fetchData(isRefetch = false) {
         const stores = [];
         const localAllFilters = [];
 
@@ -237,7 +237,7 @@ export default function CommandCenterOverview() {
         }
 
         await axios.get('/api/REMS/allStores').then(function (res) {
-
+            setLoading(false);
             let totalStoreCount = 0;
             let onlineStoreCount = 0;
             let onlineAgentsCount = 0;
@@ -273,7 +273,7 @@ export default function CommandCenterOverview() {
                     }
                     if (localContinents.findIndex((x) => x.name === store.continent) === -1) {
                         localContinents.push({
-                            id: `${store.continent}`,
+                            id: `continent-${store.continent}`,
                             name: `${store.continent}`,
                             display: `${store.continent}`,
                             type: 'Continent',
@@ -290,8 +290,8 @@ export default function CommandCenterOverview() {
                             str: `${store.continent} ${store.country}`
                         });
                     }
-                    if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
-                        if (store.tenant_id === undefined) {
+                    if (store.tenant_id === undefined) {
+                        if (localRetailers.findIndex((x) => x.id === store.retailer_id) === -1) {
                             localRetailers.push({
                                 id: `${store.retailer_id}`,
                                 type: 'Retailer',
@@ -302,10 +302,12 @@ export default function CommandCenterOverview() {
                                 str: `${store.continent} ${store.country}`
                             });
                         }
-                        else {
+                    } else {
+                        if (localRetailers.findIndex((x) => x.id === store.tenant_id) === -1) {
                             localRetailers.push({
                                 id: `${store.tenant_id}`,
                                 type: 'Retailer',
+                                subtype: 'Tenant',
                                 name: '',
                                 display: '',
                                 continent: `${store.continent}`,
@@ -346,7 +348,7 @@ export default function CommandCenterOverview() {
             setLanesUp({ 'online': onlineLanesCount, 'total': totalLanesCount, 'percentUp': ((onlineLanesCount / totalLanesCount) * 100) });
             setAllPlaces(stores);
             setAllFilters(localAllFilters);
-            if (!isRefresh) {
+            if (!isRefetch) {
                 setPlaces(stores);
                 setFilteredFilters(localAllFilters);
             }
@@ -354,6 +356,47 @@ export default function CommandCenterOverview() {
     }
 
     useEffect(() => {
+        let totalStoreCount = 0;
+        let onlineStoreCount = 0;
+        let onlineAgentsCount = 0;
+        let totalOnlineAgentsCount = 0;
+        let onlineLanesCount = 0;
+        let totalLanesCount = 0;
+        let placesResult = places;
+        if (showOnlyDownStores) {
+            placesResult = places.filter((x) => x.status === '#FF0000')
+        }
+        placesResult?.filter((item) => {
+            if (b2bFlag === true && pasSubscriptionTier === true) {
+                return item.isB2B && ['advanced', 'lite'].includes(item.tier);
+            } else if (b2bFlag === true && pasSubscriptionTier === false) {
+                return item.isB2B;
+            } else if (b2bFlag === false && pasSubscriptionTier === true) {
+                return ['advanced', 'lite'].includes(item.tier);
+            } else {
+                return true;
+            }
+        }).map((store) => {
+            totalStoreCount++;
+            //find count total store and find count stores that has online=true
+            if (store.online) onlineStoreCount++;
+            if (!isNaN(store.onlineAgents))
+                onlineAgentsCount = onlineAgentsCount + store.onlineAgents;
+            if (!isNaN(store.totalAgents))
+                totalOnlineAgentsCount = totalOnlineAgentsCount + store.totalAgents;
+
+            if (!isNaN(store.onlineLanes))
+                onlineLanesCount = onlineLanesCount + store.onlineLanes;
+            if (!isNaN(store.totalLanes))
+                totalLanesCount = totalLanesCount + store.totalLanes;
+            setStoresOnline({ 'online': onlineStoreCount, 'total': totalStoreCount, 'percentUp': ((onlineStoreCount / totalStoreCount) * 100) });
+            setLanesUp({ 'online': onlineLanesCount, 'total': totalLanesCount, 'percentUp': ((onlineLanesCount / totalLanesCount) * 100) });
+        })
+
+    }, [filtersApplied, places, b2bFlag, pasSubscriptionTier, showOnlyDownStores])
+
+    useEffect(() => {
+        setLoading(true);
         fetchData();
     }, []);
 
@@ -373,47 +416,32 @@ export default function CommandCenterOverview() {
                 let detail;
                 if (filter.type === 'Retailer' && filter.name === '') {
                     detail = allRetailers.find((x) => x.retailer_id === filter.id);
-                    filter.name = detail.description;
-                    filter.display = `${filter.name}${filter.display}`;
-                    filter.str = `${filter.str} ${filter.name}`;
-                    if (detail?.configuration?.isB2B === 'true') {
-                        filter.isB2B = true;
-                    } else {
-                        filter.isB2B = false;
+                    if (detail !== undefined) {
+                        filter.name = detail.description;
+                        filter.display = `${filter.name}${filter.display}`;
+                        filter.str = `${filter.str} ${filter.name}`;
+                        if (detail?.configuration?.isB2B === 'true') {
+                            filter.isB2B = true;
+                        } else {
+                            filter.isB2B = false;
+                        }
+                        filter.tier = detail?.configuration?.pas_subscription_tier;
                     }
-                    filter.tier = detail?.configuration?.pas_subscription_tier;
                 } else if (filter.type === 'Store') {
                     detail = allRetailers.find((x) => x.retailer_id === filter.retailer);
-                    filter.str = `${filter.str} ${detail.description} ${filter.name}`;
-                    if (detail?.configuration?.isB2B === 'true') {
-                        filter.isB2B = true;
-                    } else {
-                        filter.isB2B = false;
+                    if (detail !== undefined) {
+                        filter.str = `${filter.str} ${detail.description} ${filter.name}`;
+                        if (detail?.configuration?.isB2B === 'true') {
+                            filter.isB2B = true;
+                        } else {
+                            filter.isB2B = false;
+                        }
+                        filter.tier = detail?.configuration?.pas_subscription_tier;
                     }
-                    filter.tier = detail?.configuration?.pas_subscription_tier;
                 }
             });
         }
     }, [allFilters, allRetailers]);
-
-    useEffect(() => {
-        if (showOnlyDownStores) {
-            async function func() {
-                if (selectedStore !== null) {
-                    if (places.filter((x) => x._id === selectedStore.id && x.status === '#FF0000').length <= 0) {
-                        const index = filtersApplied.findIndex(x => Object.keys(x)[0] === 'Store');
-                        filtersApplied.splice(index, 1);
-                        setFiltersApplied(filtersApplied);
-                    }
-                }
-                const filteredPlaces = places.filter((x) => x.status === '#FF0000');
-                setPlaces(filteredPlaces);
-            }
-            func();
-        } else {
-            applyAllPreviouslyAppliedFilters();
-        }
-    }, [showOnlyDownStores, places]);
 
     useEffect(() => {
         if (selectedContinent !== null && selectedCountry !== null && selectedFilterRetailer !== null) {
@@ -518,9 +546,9 @@ export default function CommandCenterOverview() {
         let filteredPlaces = [...allPlaces];
         let tempFiltersFiltered = [];
         if (selectedContinent) {
-            filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
+            filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.name);
 
-            tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.continent === selectedContinent.id);
+            tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.continent === selectedContinent.name);
         }
         if (selectedCountry) {
             filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
@@ -528,7 +556,7 @@ export default function CommandCenterOverview() {
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'Continent' && x.type !== 'Country' && x.country === selectedCountry.id);
         }
         if (selectedFilterRetailer) {
-            filteredPlaces = filteredPlaces.filter((x) => x.retailer_id === selectedFilterRetailer.id);
+            filteredPlaces = filteredPlaces.filter((x) => (x?.retailer_id === selectedFilterRetailer.id || x?.tenant_id === selectedFilterRetailer.id));
 
             if (selectedCountry) {
                 tempFiltersFiltered = allFilters.filter((x) => (x.type === 'Store' && x.retailer === selectedFilterRetailer.id));
@@ -536,7 +564,7 @@ export default function CommandCenterOverview() {
                 tempFiltersFiltered = allFilters.filter((x) => (x.type === 'Store' && x.retailer === selectedFilterRetailer.id) || x.type === 'Country');
             }
             if (selectedContinent) {
-                tempFiltersFiltered = tempFiltersFiltered.filter((x) => x.continent === selectedContinent.id);
+                tempFiltersFiltered = tempFiltersFiltered.filter((x) => x.continent === selectedContinent.name);
             }
         }
         if (selectedStore) {
@@ -552,7 +580,7 @@ export default function CommandCenterOverview() {
     useEffect(() => {
         if (places.length > 0 && allPlaces.length > 0 && allRetailers.length > 0) {
             places.forEach((place) => {
-                const storeRetailer = allRetailers.find((x) => x.retailer_id === place.retailer_id);
+                const storeRetailer = allRetailers.find((x) => x.retailer_id === place.retailer_id || x.retailer_id === place?.tenant_id);
                 if (storeRetailer !== undefined) {
                     place.description = storeRetailer.description;
                     if (storeRetailer?.configuration?.isB2B === 'true') {
@@ -567,7 +595,7 @@ export default function CommandCenterOverview() {
     }, [places, allPlaces, allRetailers]);
 
     function handleSubmitMap() {
-        axios.post(`/api/REMS/userSettingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
+        axios.post(`/api/user/settingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
@@ -583,6 +611,10 @@ export default function CommandCenterOverview() {
             });
     }
 
+    let placesResult = places;
+    if (showOnlyDownStores) {
+        placesResult = places?.filter((x) => x.status === '#FF0000')
+    }
     return (
         <Root className={classes.content}>
             <div style={{
@@ -729,9 +761,10 @@ export default function CommandCenterOverview() {
                         }
                         <Card elevation={10} sx={{ margin: 1, display: 'flex', flexGrow: 1 }}>
                             <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                {places?.length > 0 && mapParams ?
+                                {loading && <CircularProgress />}
+                                {placesResult?.length > 0 && mapParams ?
                                     <GoogleMap
-                                        places={places.filter((item) => {
+                                        places={placesResult.filter((item) => {
                                             if (b2bFlag === true && pasSubscriptionTier === true) {
                                                 return item.isB2B && ['advanced', 'lite'].includes(item.tier);
                                             } else if (b2bFlag === true && pasSubscriptionTier === false) {
@@ -745,7 +778,7 @@ export default function CommandCenterOverview() {
                                         isFilterSelect={isFilterSelect}
                                         setMapParams={setMapParams}
                                         mapParams={mapParams}
-                                    /> : <CircularProgress />}
+                                    /> : <Typography variant='h5'>{!loading && 'No store'}</Typography>}
                             </Box>
                         </Card>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>

@@ -37,7 +37,7 @@ export default function tableauReportViewer(props) {
                 });
             }
 
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`)
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`)
                 .then(function (res) {
                     // fetch configuration info
                     const configurationArray = res.data.configuration;

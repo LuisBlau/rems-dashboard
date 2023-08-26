@@ -83,6 +83,7 @@ export default function ScheduleDeployment() {
     const [deployConfigs, setDeployConfigs] = useState([]);
     const [selectedDeployConfig, setSelectedDeployConfig] = useState(null);
     const [allStoresDetails, setAllStoresDetails] = useState([]);
+    const [variables, setVariables] = useState({});
     const [_storeList, setStoreList] = useState('');
     const [_dateTime, setDateTime] = useState(_.now);
     const [_options, setOptions] = useState([]);
@@ -93,6 +94,8 @@ export default function ScheduleDeployment() {
     const collisionDialogTitleString = 'Existing Version Collision';
     const [collisionDialogData, setCollisionDialogData] = useState([]);
     const [openSuccess, setOpenSuccess] = useState(false);
+    const [canDeploy, setCanDeploy] = useState(true);
+
     const [toastSuccess, setToastSuccess] = useState('');
     const [openMissingMaster, setOpenMissingMaster] = useState(false);
     const [openFileMissingPackages, setOpenFileMissingPackages] = useState(false);
@@ -119,24 +122,59 @@ export default function ScheduleDeployment() {
         if (context.selectedRetailer) {
             setSelectedRetailer(context.selectedRetailer);
         }
-        if (context.selectedRetailer && context.userRetailers?.length > 0) {
-            axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
-                const data = [];
-                const response = _.groupBy(res.data, 'retailer_id');
-                for (const soft of Object.keys(response)) {
-                    const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
-                    const entry = { children: [], label: (findRetailer ? findRetailer.description : soft) + " Deployments", value: soft };
-                    for (const v of response[soft]) {
-                        entry.children.push({
-                            label: v.name,
-                            value: v.id,
-                        });
+        if (context.selectedRetailer && context.userRetailers?.length > 0 && context.selectedRetailerIsTenant !== null) {
+            if (context.selectedRetailerIsTenant === false) {
+                axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailer}`).then(function (res) {
+                    const data = [];
+                    const response = _.groupBy(res.data, 'retailer_id');
+                    for (const soft of Object.keys(response)) {
+                        if (soft.toLowerCase() === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
+
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.uuid,
+                            });
+                        }
+                        data.push(entry);
                     }
-                    data.push(entry);
-                }
-                setDeployConfigs(res.data);
-                setOptions(data)
-            });
+                    setDeployConfigs(res.data);
+                    setOptions(data)
+                });
+            } else {
+                axios.get(`/api/REMS/deploy-configs?retailerId=common,${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
+                    const data = [];
+                    const response = _.groupBy(res.data, 'retailer_id');
+                    for (let soft of Object.keys(response)) {
+                        if (soft.toLowerCase() === 'common' && !_.includes(context.userRoles, 'toshibaAdmin')) {
+                            response[soft] = _.filter(response[soft], x => x.forProd === true)
+                        }
+
+                        if (soft.toLowerCase() !== 'common') {
+                            const oldKey = soft
+                            soft = response[soft][0].tenant_id
+                            Object.defineProperty(response, soft, Object.getOwnPropertyDescriptor(response, oldKey));
+                            delete response[oldKey];
+                        }
+
+                        const findRetailer = context.userRetailers.find(item => item.retailer_id === soft);
+                        const entry = { children: [], label: (findRetailer ? findRetailer.description : soft.toLowerCase() === 'common' ? 'Common' : soft) + " Deployments", value: soft };
+                        for (const v of response[soft]) {
+                            entry.children.push({
+                                label: v.name,
+                                value: v.uuid,
+                            });
+                        }
+                        data.push(entry);
+                    }
+                    setDeployConfigs(res.data);
+                    setOptions(data)
+                });
+            }
         }
     }, [context])
 
@@ -147,31 +185,60 @@ export default function ScheduleDeployment() {
             // this won't be performant when we have a large number of uploads
             // we should do this later in the workflow, once a deploy-config is
             // selected, and filter the request
-            axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
-                const uploads = [];
-                res.data.forEach((upload) => {
-                    uploads.push({
-                        fileId: upload.id,
-                        fileName: upload.filename,
-                        description: upload.description,
-                        packages: upload.packages,
+            if (context.selectedRetailerIsTenant !== null) {
+                if (context.selectedRetailerIsTenant === false) {
+                    axios.get(`/api/REMS/uploads?retailerId=${selectedRetailer}`).then(function (res) {
+                        const uploads = [];
+                        res.data.forEach((upload) => {
+                            uploads.push({
+                                fileId: upload.uuid,
+                                fileName: upload.filename,
+                                description: upload.description,
+                                packages: upload.packages,
+                            });
+                        });
+                        setAllUploads(uploads);
                     });
-                });
-                setAllUploads(uploads);
-            });
 
-            axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
-                const sNames = [];
-                const stores = [];
-                resp.data.forEach((v) => {
-                    stores.push(v);
-                    sNames.push(v.list_name);
-                });
-                setAllStoresDetails(stores);
-                setStoreNames(sNames);
-            });
+                    axios.get(`/api/REMS/store-list?retailerId=${selectedRetailer}`).then((resp) => {
+                        const sNames = [];
+                        const stores = [];
+                        resp.data.forEach((v) => {
+                            stores.push(v);
+                            sNames.push(v.list_name);
+                        });
+                        setAllStoresDetails(stores);
+                        setStoreNames(sNames);
+                    });
+                } else {
+                    axios.get(`/api/REMS/uploads?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then(function (res) {
+                        const uploads = [];
+                        res.data.forEach((upload) => {
+                            uploads.push({
+                                fileId: upload.id,
+                                fileName: upload.filename,
+                                description: upload.description,
+                                packages: upload.packages,
+                            });
+                        });
+                        setAllUploads(uploads);
+                    });
+
+                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`).then((resp) => {
+                        const sNames = [];
+                        const stores = [];
+                        resp.data.forEach((v) => {
+                            stores.push(v);
+                            sNames.push(v.list_name);
+                        });
+                        setAllStoresDetails(stores);
+                        setStoreNames(sNames);
+                    });
+                }
+            }
+
         }
-    }, [selectedRetailer]);
+    }, [selectedRetailer, context.selectedRetailerIsTenant, context.selectedRetailerParentRemsServerId]);
 
     function getUsefulInformation(agents, useful) {
         const arr = [];
@@ -258,17 +325,32 @@ export default function ScheduleDeployment() {
         );
         const usefulInformation = [];
         // gets useful agent/store info for the selected retailer
-        await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
-            res.data.forEach((element) => {
-                usefulInformation.push({
-                    storeAgentCombo: element.storeName + ':' + element.agentName,
-                    versions: element.versions,
-                    isMaster: element.is_master,
-                    store: element.storeName,
-                    agent: element.agentName,
+        if (context.selectedRetailerIsTenant === false) {
+            await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
+                res.data.forEach((element) => {
+                    usefulInformation.push({
+                        storeAgentCombo: element.storeName + ':' + element.agentName,
+                        versions: element.versions,
+                        isMaster: element.is_master,
+                        store: element.storeName,
+                        agent: element.agentName,
+                    });
                 });
             });
-        });
+        } else {
+            await axios.get('/api/REMS/agents?retailer=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + selectedRetailer).then(function (res) {
+                res.data.forEach((element) => {
+                    usefulInformation.push({
+                        storeAgentCombo: element.storeName + ':' + element.agentName,
+                        versions: element.versions,
+                        isMaster: element.is_master,
+                        store: element.storeName,
+                        agent: element.agentName,
+                    });
+                });
+            });
+        }
+
         if (value.length === 1) {
             // I want to store all the stores/agents in the distribution list
             // in the store list :)
@@ -333,11 +415,14 @@ export default function ScheduleDeployment() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
-        let config = deployConfigs.find((x) => x.id === selectedDeployConfig);
+        let config = deployConfigs.find((x) => x.uuid === selectedDeployConfig);
         formValues.name = config.name;
-        formValues.id = config.id;
+        formValues.id = config.uuid;
         formValues.retailerId = config.retailer_id;
+        formValues.variables = variables;
+        if (context.selectedRetailerIsTenant === true) {
+            formValues.tenantId = config.tenant_id;
+        }
         formValues.storeList = _storeList;
         // formValues.listNames = _listNames,
         // Don't adjust for users time zone i.e we are always in store time.
@@ -349,21 +434,40 @@ export default function ScheduleDeployment() {
 
         setFormValues(formValues);
 
-        axios
-            .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
-            .then(function (response) {
-                if (response.data.message !== 'Success') {
-                    setToastFailure(response.data);
+        if (context.selectedRetailerIsTenant === false) {
+            axios
+                .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
+                .then(function (response) {
+                    if (response.data.message !== 'Success') {
+                        setToastFailure(response.data);
+                        setOpenFailure(true);
+                    } else {
+                        setToastSuccess('Deploy-Config Scheduled');
+                        setOpenSuccess(true);
+                    }
+                })
+                .catch(function (error) {
+                    setToastFailure(error.message);
                     setOpenFailure(true);
-                } else {
-                    setToastSuccess('Deploy-Config Scheduled');
-                    setOpenSuccess(true);
-                }
-            })
-            .catch(function (error) {
-                setToastFailure(error.message);
-                setOpenFailure(true);
-            });
+                });
+        } else {
+            axios
+                .post(`/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`, _formValues)
+                .then(function (response) {
+                    if (response.data.message !== 'Success') {
+                        setToastFailure(response.data);
+                        setOpenFailure(true);
+                    } else {
+                        setToastSuccess('Deploy-Config Scheduled');
+                        setOpenSuccess(true);
+                    }
+                })
+                .catch(function (error) {
+                    setToastFailure(error.message);
+                    setOpenFailure(true);
+                });
+        }
+
     };
 
     function handleVersionCollisionDialogClose() {
@@ -372,8 +476,12 @@ export default function ScheduleDeployment() {
 
     function handleSelectDeployConfig(selectedConfig, e) {
         if (selectedConfig) {
-            if (selectedConfig === 'common' || selectedConfig === 'selectedRetailer') {
+            if (selectedConfig.toLowerCase() === 'common' || selectedConfig === context.selectedRetailer) {
                 e.preventDefault();
+                return;
+            }
+            if (selectedConfig["children"]) {
+                setOptions(selectedConfig["children"])
                 return;
             }
             setSelectedDeployConfig(selectedConfig);
@@ -381,8 +489,9 @@ export default function ScheduleDeployment() {
             // traverse the 'steps' array
             // retrieve any that have 'upload'
             // get file name from there
-            const selectedConfigDetailSteps = deployConfigs.find((x) => x.id === selectedConfig)?.steps ?? [];
+            const selectedConfigDetailSteps = deployConfigs.find((x) => x.uuid === selectedConfig)?.steps ?? [];
             const newSelectedUploadedFiles = [];
+            let newVars = {}
             selectedConfigDetailSteps.forEach((step) => {
                 if (step.type === 'upload') {
                     // store the uploaded files in an array, filtered down to the ones that have matches :)
@@ -391,14 +500,41 @@ export default function ScheduleDeployment() {
                     // we can access that array from:
                     // selectedUploadedFiles[index].packages
                 }
+                if (step.type === 'shell') {
+                    for (var v of Object.values(step)) {
+                        let varMatch = v.match(/(?<!^\\)\$[A-Z0-9_]+/)
+                        if (varMatch) newVars[varMatch] = null;
+                    }
+                }
             });
+            if (Object.keys(newVars).length > 0) {
+                setCanDeploy(false)
+            } else {
+                setCanDeploy(true)
+            }
+            setVariables(newVars);
             setSelectedUploadedFiles(newSelectedUploadedFiles);
         } else {
             setSelectedDeployConfig(null);
             setSelectedUploadedFiles([]);
+            setVariables({});
         }
     }
-
+    function varentry(name) {
+        return function changever(event) {
+            let newVars = Object.assign({}, variables)
+            newVars[name] = event.target.value
+            setVariables(newVars)
+            if (canDeploy && event.target.value) return
+            var nowCanDeploy = true
+            Object.values(newVars).forEach(variable => {
+                if (variable === null || variable === '' || nowCanDeploy === false) {
+                    nowCanDeploy = false
+                }
+            });
+            setCanDeploy(nowCanDeploy)
+        }
+    }
     return (
         <Root className={classes.content}>
             <Container maxWidth="lg" className={classes.container}>
@@ -459,6 +595,10 @@ export default function ScheduleDeployment() {
                             // disabled={storeSelected}
                             helperText="example store list: 0001:0001-CC, 0500:0500-CC, 0100:0100-CC, 02000:02000-CC, 0123:0123-CC"
                         />
+                        {Object.keys(variables).map(function (name, index) {
+                            return <TextField key={index} onChange={varentry(name)} label={name} />
+                        })
+                        }
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateTimePicker
                                 id="date-time-local"
@@ -469,7 +609,7 @@ export default function ScheduleDeployment() {
                                 }}
                             />
                         </LocalizationProvider>
-                        <Button variant="contained" color="primary" type="submit">
+                        <Button variant="contained" color="primary" type="submit" disabled={!canDeploy}>
                             Submit
                         </Button>
                     </Stack>

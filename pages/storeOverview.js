@@ -29,6 +29,7 @@ import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
 import Copyright from '../components/Copyright';
 import UserContext from './UserContext';
 import EleraInfoRegion from '../components/StoreOverview/EleraInfoRegion';
+import moment from 'moment';
 
 const PREFIX = 'storeOverview';
 
@@ -49,6 +50,7 @@ export default function StoreOverview() {
     const [storeAlerts, setStoreAlerts] = useState([]);
     const [storeAlertDescriptions, setStoreAlertDescriptions] = useState([]);
     const [storeAgents, setStoreAgents] = useState([]);
+    const [storeHasNoAgents, setStoreHasNoAgents] = useState(null)
     const [agentCount, setAgentCount] = useState([]);
     const [alertsConfirmationOpen, setAlertsConfirmationOpen] = useState(false);
     const [scoCount, setScoCount] = useState(0);
@@ -57,8 +59,11 @@ export default function StoreOverview() {
     const [screenShotEnable, setScreenShotEnable] = useState(false);
     const [userHasAccess, setUserHasAccess] = useState(true)
     const [elera, setElera] = useState({});
+    const [headerPaperColor, setHeaderPaperColor] = useState('#FFFFFF')
+    const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
+    const context = useContext(UserContext)
 
-    const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader"]
+    const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
 
     const handleTabChange = (event, newValue) => {
         setSelectedTab(newValue);
@@ -71,171 +76,210 @@ export default function StoreOverview() {
     const handleAlertsConfirmationClose = () => {
         setAlertsConfirmationOpen(false);
     };
-    const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
 
-    const context = useContext(UserContext)
 
     function handleScreenshotViewChange() {
         setScreenshotView(!screenshotView);
     }
+
     useEffect(() => {
-        const fetchStoreInfo = async () => {
-            async function getStoreAgents() {
-                // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
-                // for now, I'll do this: 
-                let userHasRetailer = true
-                if (params.get('tenant_id') !== null) {
-                    userHasRetailer = false
-                    context.userRetailers.forEach(retailer => {
-                        if (params.get('tenant_id') === retailer.retailer_id) {
-                            userHasRetailer = true
-                        }
-                    });
-                    setUserHasAccess(userHasRetailer)
-                    if (userHasRetailer) {
-                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
-                            let scoCounter = 0;
-                            let downCounter = 0;
-                            const controllers = [];
-                            const agents = [];
-                            let newElera = {}
-                            if (resp.data) {
-                                const response = resp.data;
-                                response.forEach((agent) => {
-                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
-                                        controllers.push(agent);
-                                    } else {
-                                        agents.push(agent);
-                                    }
-                                    if (agent.isSCO === true) {
-                                        scoCounter++;
-                                    }
-                                    if (agent.online === false) {
-                                        downCounter++;
-                                    }
-                                    if ("status" in agent && "docker" in agent["status"]) {
-                                        let container_status = {}
-                                        let workingContainers = 0
-                                        for (var containerName of eleraContainers) {
-                                            if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
-                                                let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
-                                                let stat = JSON.parse(statStr)["State"]
-                                                container_status[containerName] = stat
-                                                if (stat == "running") workingContainers++
-                                            }
-
-                                            if (Object.keys(container_status).length > 0) {
-                                                container_status["workingContainers"] = workingContainers;
-                                                newElera[agent.agentName] = container_status
-                                            }
-
-                                        }
-                                    }
-                                });
-
-                                setStoreAgents(_.concat(controllers, agents));
-                                setAgentCount(agents.length);
-                                setScoCount(scoCounter);
-                                setDownAgentCount(downCounter);
-                                setElera(newElera);
-                            }
-                        });
-                    }
-                } else {
-                    let userHasRetailer = false
-                    context.userRetailers.forEach(retailer => {
-                        if (params.get('retailer_id') === retailer.retailer_id) {
-                            userHasRetailer = true
-                        }
-                    });
-                    setUserHasAccess(userHasRetailer)
-
-                    if (userHasRetailer) {
-                        await axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
-                            let scoCounter = 0;
-                            let downCounter = 0;
-                            const controllers = [];
-                            const agents = [];
-                            let newElera = {}
-                            if (resp.data) {
-                                const response = resp.data;
-                                response.forEach((agent) => {
-                                    if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
-                                        controllers.push(agent);
-                                    } else {
-                                        agents.push(agent);
-                                    }
-                                    if (agent.isSCO === true) {
-                                        scoCounter++;
-                                    }
-                                    if (agent.online === false) {
-                                        downCounter++;
-                                    }
-                                    if ("status" in agent && "docker" in agent["status"]) {
-                                        let container_status = {}
-                                        let workingContainers = 0
-                                        for (var containerName of eleraContainers) {
-                                            if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
-                                                let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
-                                                let stat = JSON.parse(statStr)["State"]
-                                                container_status[containerName] = stat
-                                                if (stat == "running") workingContainers++
-                                            }
-
-                                            if (Object.keys(container_status).length > 0) {
-                                                container_status["workingContainers"] = workingContainers;
-                                                newElera[agent.agentName] = container_status
-                                            }
-
-                                        }
-                                    }
-                                });
-                                setStoreAgents(_.concat(controllers, agents));
-                                setAgentCount(agents.length);
-                                setScoCount(scoCounter);
-                                setElera(newElera);
-                                setDownAgentCount(downCounter);
-                            }
-                        });
-                    }
-                }
-            }
-
-            if (storeAlerts.length === 0) {
-                await getStoreAgents();
-            }
-        };
-        fetchStoreInfo();
-
-        const fetchAlerts = async () => {
-            async function getStoreAlerts() {
-                let alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
-                if (context.selectedRetailerIsTenant === true) {
-                    alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
-                }
-                await axios.get(alertsUrl).then((resp) => {
-                    if (resp.data) {
-                        const alerts = [];
-                        const response = resp.data;
-                        response.forEach((alert) => {
-                            alerts.push(alert);
-                        });
-                        const descriptions = [];
-                        alerts.forEach((alert) => {
-                            descriptions.push(alert.description);
-                        });
-                        setStoreAlertDescriptions(descriptions);
-                        setStoreAlerts(alerts);
-                    }
+        if (context?.selectedRetailer) {
+            let time = 24
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+                const configurationArray = res.data.configuration;
+                const configurationInfo = [];
+                configurationArray.forEach(configObject => {
+                    const innerArray = Object.values(configObject)[0];
+                    configurationInfo.push(innerArray);
                 });
+
+                time = configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue;
+            }).then(() => {
+                axios.get('/api/REMS/storeInfo?retailerId=' + params.get('retailer_id') + '&storeName=' + params.get('storeName')).then((result) => {
+                    if (moment(result.data[0].last_updated_sec * 1000).diff(Date.now(), 'hours') < - time) {
+                        setHeaderPaperColor('#E7431F')
+                    }
+                })
+            })
+        }
+    }, [context?.selectedRetailer])
+
+    useEffect(() => {
+        if (context) {
+            if (context.userRetailers) {
+                if (context.userRetailers.length > 0) {
+                    const fetchStoreInfo = () => {
+                        function getStoreAgents() {
+                            // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
+                            // for now, I'll do this: 
+                            let userHasRetailer = true
+                            if (params.get('tenant_id') !== null) {
+                                userHasRetailer = false
+                                context.userRetailers.forEach(retailer => {
+                                    if (params.get('tenant_id') === retailer.retailer_id) {
+                                        userHasRetailer = true
+                                    }
+                                });
+                                setUserHasAccess(userHasRetailer)
+                                if (userHasRetailer) {
+                                    axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
+                                        let scoCounter = 0;
+                                        let downCounter = 0;
+                                        const controllers = [];
+                                        const agents = [];
+                                        let newElera = {}
+                                        if (resp.data) {
+                                            const response = resp.data;
+                                            response.forEach((agent) => {
+                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                                    controllers.push(agent);
+                                                } else {
+                                                    agents.push(agent);
+                                                }
+                                                if (agent.isSCO === true) {
+                                                    scoCounter++;
+                                                }
+                                                if (agent.online === false) {
+                                                    downCounter++;
+                                                }
+                                                if ("status" in agent && "docker" in agent["status"]) {
+                                                    let container_status = {}
+                                                    let workingContainers = 0
+                                                    for (var containerName of eleraContainers) {
+                                                        if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
+                                                            let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
+                                                            let stat = JSON.parse(statStr)["State"]
+                                                            container_status[containerName] = stat
+                                                            if (stat == "running") workingContainers++
+                                                        }
+
+                                                        if (Object.keys(container_status).length > 0) {
+                                                            container_status["workingContainers"] = workingContainers;
+                                                            newElera[agent.agentName] = container_status
+                                                        }
+
+                                                    }
+                                                }
+                                            });
+
+                                            if (controllers.length > 0 || agents.length > 0) {
+                                                setStoreAgents(_.concat(controllers, agents));
+                                                setStoreHasNoAgents(false)
+                                            } else {
+                                                setStoreHasNoAgents(true)
+                                            }
+                                            setAgentCount(agents.length);
+                                            setScoCount(scoCounter);
+                                            setDownAgentCount(downCounter);
+                                            setElera(newElera);
+                                        } else {
+                                            console.log('no data')
+                                        }
+                                    });
+                                }
+                            } else {
+                                let userHasRetailer = false
+                                context.userRetailers.forEach(retailer => {
+                                    if (params.get('retailer_id') === retailer.retailer_id) {
+                                        userHasRetailer = true
+                                    }
+                                });
+                                setUserHasAccess(userHasRetailer)
+
+                                if (userHasRetailer) {
+                                    axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                                        let scoCounter = 0;
+                                        let downCounter = 0;
+                                        const controllers = [];
+                                        const agents = [];
+                                        let newElera = {}
+                                        if (resp.data.length > 0) {
+                                            const response = resp.data;
+                                            response.forEach((agent) => {
+                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                                    controllers.push(agent);
+                                                } else {
+                                                    agents.push(agent);
+                                                }
+                                                if (agent.isSCO === true) {
+                                                    scoCounter++;
+                                                }
+                                                if (agent.online === false) {
+                                                    downCounter++;
+                                                }
+                                                if ("status" in agent && "docker" in agent["status"]) {
+                                                    let container_status = {}
+                                                    let workingContainers = 0
+                                                    for (var containerName of eleraContainers) {
+                                                        if ("Container-[/" + containerName + "]" in agent["status"]["docker"]) {
+                                                            let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
+                                                            let stat = JSON.parse(statStr)["State"]
+                                                            container_status[containerName] = stat
+                                                            if (stat == "running") workingContainers++
+                                                        }
+
+                                                        if (Object.keys(container_status).length > 0) {
+                                                            container_status["workingContainers"] = workingContainers;
+                                                            newElera[agent.agentName] = container_status
+                                                        }
+
+                                                    }
+                                                }
+                                            });
+                                            setStoreAgents(_.concat(controllers, agents));
+                                            setAgentCount(agents.length);
+                                            setScoCount(scoCounter);
+                                            setElera(newElera);
+                                            setDownAgentCount(downCounter);
+                                        } else {
+                                            setStoreHasNoAgents(true)
+                                            setAgentCount(0)
+                                            setScoCount(0)
+                                            setDownAgentCount(0)
+                                        }
+                                    });
+                                }
+                            }
+                        }
+
+                        if (storeAlerts.length === 0) {
+                            getStoreAgents();
+                        }
+                    };
+                    fetchStoreInfo();
+
+                    const fetchAlerts = async () => {
+                        async function getStoreAlerts() {
+                            let alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
+                            if (context.selectedRetailerIsTenant === true) {
+                                alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
+                            }
+                            await axios.get(alertsUrl).then((resp) => {
+                                if (resp.data) {
+                                    const alerts = [];
+                                    const response = resp.data;
+                                    response.forEach((alert) => {
+                                        alerts.push(alert);
+                                    });
+                                    const descriptions = [];
+                                    alerts.forEach((alert) => {
+                                        descriptions.push(alert.description);
+                                    });
+                                    setStoreAlertDescriptions(descriptions);
+                                    setStoreAlerts(alerts);
+                                }
+                            });
+                        }
+                        if (storeAlerts.length === 0) {
+                            await getStoreAlerts();
+                        }
+                    };
+                    fetchAlerts();
+                    setSelectedTab('dumps');
+                }
             }
-            if (storeAlerts.length === 0) {
-                await getStoreAlerts();
-            }
-        };
-        fetchAlerts();
-        setSelectedTab('dumps');
-    }, []);
+        }
+    }, [context]);
 
     useEffect(() => {
         if (storeAgents?.length > 0) {
@@ -275,10 +319,11 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
+                            <Typography fontSize={'175%'} fontWeight={'bold'} >
                                 Store
                             </Typography>
                             <Typography fontSize={'125%'}>{params.get('storeName')}</Typography>
@@ -292,6 +337,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -309,6 +355,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -326,6 +373,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -343,11 +391,12 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignContent: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
                             <Typography variant='h6' sx={{ marginBottom: 1, alignSelf: 'center' }}>{'Store Health'}</Typography>
-                            <LinearProgress title="Store Health" color='info' sx={{ marginLeft: 2, marginRight: 2, borderRadius: 1, height: 10 }} variant="determinate" value={((storeAgents.length - downAgentCount) / storeAgents.length) * 100} />
+                            <LinearProgress title="Store Health" color='info' sx={{ marginLeft: 2, marginRight: 2, borderRadius: 1, height: 10 }} variant="determinate" value={headerPaperColor === '#FFFFFF' ? ((storeAgents.length - downAgentCount) / storeAgents.length) * 100 : 0} />
                         </Paper>
                         <Paper
                             style={{
@@ -357,6 +406,7 @@ export default function StoreOverview() {
                                 width: '12%',
                                 justifyContent: 'center',
                                 alignItems: 'center',
+                                backgroundColor: headerPaperColor
                             }}
                             elevation={10}
                         >
@@ -373,12 +423,12 @@ export default function StoreOverview() {
                     </Box>
                     {Object.keys(elera).length > 0 ?
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} />
-                            <EleraInfoRegion elera={elera} eleraContainers={eleraContainers} />
+                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
+                            <EleraInfoRegion elera={elera} />
                         </Box>
                         :
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} />
+                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                         </Box>
                     }
                     <Box sx={{ height: '23%', width: '100%' }}>
@@ -431,7 +481,7 @@ export default function StoreOverview() {
                         </Button>
                     </DialogActions>
                 </Dialog>
-            </Root>
+            </Root >
         );
     } else {
         return (

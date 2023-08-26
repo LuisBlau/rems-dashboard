@@ -45,6 +45,8 @@ export const UserContextProvider = (props) => {
     const [selectedRetailerDescription, setSelectedRetailerDescription] = useState('')
     const [selectedRetailerIsTenant, setSelectedRetailerIsTenant] = useState(null)
     const [selectedRetailerParentRemsServerId, setSelectedRetailerParentRemsServerId] = useState(null)
+    const [sidebarConfigs, setSidebarConfigs] = useState([])
+    const [retailerConfigs, setRetailerConfigs] = useState([])
     const cookies = new Cookies();
 
     const getRoles = async () => {
@@ -61,7 +63,7 @@ export const UserContextProvider = (props) => {
         if (!userRoles) {
             try {
                 const u = await axios
-                    .get('/api/REMS/getUserDetails?email=' + username)
+                    .get('/api/user/getDetails?email=' + username)
                     .then((resp) => resp.data || null);
                 if (u) {
                     setUserDetails(u);
@@ -130,7 +132,7 @@ export const UserContextProvider = (props) => {
         if (selectedRetailer !== '') {
             if (_.find(userRetailers, x => x.retailer_id === selectedRetailer).isTenant === true) {
                 setSelectedRetailerIsTenant(true)
-                axios.get(`/api/REMS/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
+                axios.get(`/api/retailers/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
                     setSelectedRetailerDescription(res.data.description)
                     setSelectedRetailerParentRemsServerId(res.data.retailer_id)
                 })
@@ -138,6 +140,11 @@ export const UserContextProvider = (props) => {
                 setSelectedRetailerIsTenant(false)
                 setSelectedRetailerParentRemsServerId(null)
             }
+            //FETCH RETAILER CONFIGURATION
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
+                let configs = res.data.configuration;
+                setRetailerConfigs(configs)
+            })
         }
     }, [selectedRetailer])
 
@@ -145,7 +152,29 @@ export const UserContextProvider = (props) => {
         if (!selectedRetailer && userRetailers) {
             getSelectedRetailer();
         }
-    }, [userRetailers])
+    }, [userRetailers]);
+
+    useEffect(() => {
+        const localConfigs = []
+        if (userRetailers && sidebarConfigs.length === 0) {
+            let retailerIds = []
+            userRetailers.forEach(element => {
+                retailerIds.push(element.retailer_id)
+            });
+            axios.post('/api/retailers/getSidebarConfiguration', { data: retailerIds }).then((results) => {
+                results.data.configuration.forEach(config => {
+                    if (Object.values(config)[0].configCategory === 'Sidebar Items' && !_.some(localConfigs, function (x) { return x.name === Object.values(config)[0].configName })) {
+                        localConfigs.push({ name: Object.values(config)[0].configName, value: Object.values(config)[0].configValue })
+                    }
+                });
+            }).then(() => {
+                if (localConfigs.length > 0) {
+                    setSidebarConfigs(localConfigs);
+                }
+            })
+        }
+    }, [userRetailers, sidebarConfigs])
+
 
     if (props.pageName !== currentPage) {
         setCurrentPage(props.pageName);
@@ -157,11 +186,14 @@ export const UserContextProvider = (props) => {
         openedMenuItems,
         userDetails,
         setOpenedMenuItems,
+        sidebarConfigs,
+        setSidebarConfigs,
         hasChildren,
         setHasChildren,
         selectedRetailer,
         setSelectedRetailer,
         setUserDetails,
+        retailerConfigs,
         selectedRetailerIsTenant,
         selectedRetailerDescription,
         selectedRetailerParentRemsServerId
