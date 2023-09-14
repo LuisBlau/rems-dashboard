@@ -87,27 +87,32 @@ export default function DeploymentStatus() {
     const [statusFilterItems, setStatusFilterItems] = useState([]);
     const context = useContext(UserContext)
     const [packageFilter, setPackageFilter] = useState('');
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
-        if (context.selectedRetailer) {
-            if (context.selectedRetailerIsTenant === false) {
-                axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailer)
-                    .then((resp) => setPackageFilterItems(resp.data));
-                setStatusFilterItems([
-                    { id: 'Pending', name: 'Pending' },
-                    { id: 'Failed', name: 'Failed' },
-                    { id: 'Success', name: 'Success' },
-                    { id: 'Cancel', name: 'Cancelled' },
-                ]);
-            } else if (context.selectedRetailerParentRemsServerId) {
-                axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer)
-                    .then((resp) => setPackageFilterItems(resp.data));
-                setStatusFilterItems([
-                    { id: 'Pending', name: 'Pending' },
-                    { id: 'Failed', name: 'Failed' },
-                    { id: 'Success', name: 'Success' },
-                    { id: 'Cancel', name: 'Cancelled' },
-                ]);
+        if (!isLoading) {
+            if (context.selectedRetailer) {
+                if (context.selectedRetailerIsTenant === false) {
+                    setIsLoading(true)
+                    axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailer)
+                        .then((resp) => setPackageFilterItems(resp.data));
+                    setStatusFilterItems([
+                        { id: 'Pending', name: 'Pending' },
+                        { id: 'Failed', name: 'Failed' },
+                        { id: 'Success', name: 'Success' },
+                        { id: 'Cancel', name: 'Cancelled' },
+                    ]);
+                } else if (context.selectedRetailerParentRemsServerId) {
+                    setIsLoading(true)
+                    axios.get('/api/REMS/deploy-configs?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer)
+                        .then((resp) => setPackageFilterItems(resp.data));
+                    setStatusFilterItems([
+                        { id: 'Pending', name: 'Pending' },
+                        { id: 'Failed', name: 'Failed' },
+                        { id: 'Success', name: 'Success' },
+                        { id: 'Cancel', name: 'Cancelled' },
+                    ]);
+                }
             }
         }
     }, [context])

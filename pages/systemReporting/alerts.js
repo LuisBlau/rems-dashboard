@@ -41,6 +41,13 @@ export default function alerts() {
             sortModel: ['asc', 'desc']
         },
         {
+            field: 'AlertLabel',
+            headerName: 'Subtype',
+            width: 100,
+            filterable: true,
+            sortModel: ['asc', 'desc']
+        },
+        {
             field: 'AlertCurrentReading',
             headerName: 'Value',
             width: 100,
@@ -99,9 +106,9 @@ export default function alerts() {
 
 
     function fetchAlerts(alertTypes) {
-        let url = `/api/REMS/getRsmpAlerts?retailerId=${context.selectedRetailer}`
+        let url = `/api/rsmpData/getAlerts?retailerId=${context.selectedRetailer}`
         if (context.selectedRetailerIsTenant === true) {
-            url = `/api/REMS/getRsmpAlerts?retailerId=${context.selectedRetailerParentRemsServerId}`
+            url = `/api/rsmpData/getAlerts?retailerId=${context.selectedRetailerParentRemsServerId}`
         }
         url = url + `&isLab=${retailerIsLab}`
 
@@ -125,7 +132,7 @@ export default function alerts() {
 
     useEffect(() => {
         if (context.selectedRetailer && context.selectedRetailerIsTenant !== null) {
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
                 // fetch configuration info
                 const configurationArray = res.data.configuration;
                 const configurationInfo = [];

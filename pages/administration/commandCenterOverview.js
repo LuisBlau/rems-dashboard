@@ -595,7 +595,7 @@ export default function CommandCenterOverview() {
     }, [places, allPlaces, allRetailers]);
 
     function handleSubmitMap() {
-        axios.post(`/api/REMS/userSettingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
+        axios.post(`/api/user/settingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,

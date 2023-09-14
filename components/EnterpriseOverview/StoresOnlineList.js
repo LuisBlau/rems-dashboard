@@ -3,7 +3,7 @@ import { Box, Card, LinearProgress, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
 
-export default function StoresOnlineList({ context, places, poorStoreStatusPercentage, goodStoreStatusPercentage, selectedRetailer }) {
+export default function StoresOnlineList({ context, disconnectTimeLimit, places, poorStoreStatusPercentage, goodStoreStatusPercentage, selectedRetailer }) {
     const [columns, setColumns] = useState([])
 
     //this is the little comment to link the store in the store overview
@@ -32,7 +32,7 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                 sortable: true,
                 type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
-                valueGetter: (params) => params.value,
+                valueGetter: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A',
                 renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             },
             {
@@ -73,7 +73,18 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                         <Typography variant='body2'>{`${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`}</Typography>
                     </Box>
                 },
-                valueGetter: (params) => `${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}/${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`,
+                valueGetter: (params) => `${params.row?.onlineAgents !== undefined ? params.row?.onlineAgents : 0}`,
+            },
+            {
+                field: 'totalAgents',
+                headerName: '',
+                width: 400,
+                sortingOrder: ['asc', 'desc'],
+                sortable: true,
+                renderCell: (params) => {
+                    return null
+                },
+                valueGetter: (params) => `${params.row?.totalAgents !== undefined ? params.row?.totalAgents : 0}`,
             }
         ])
     }, [poorStoreStatusPercentage, goodStoreStatusPercentage])
@@ -108,7 +119,14 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                             color: '#FA8128',
                             variant: 'alert'
                         }
-                        if (item?.online !== true) {
+                        if (item?.last_updated_sec && moment(item?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) {
+                            status = {
+                                id: 3,
+                                label: 'Disconnected',
+                                color: '#E7431F',
+                                variant: 'error'
+                            }
+                        } else if (item?.online !== true) {
                             status = {
                                 id: 4,
                                 label: 'Offline',
@@ -130,13 +148,6 @@ export default function StoresOnlineList({ context, places, poorStoreStatusPerce
                                 color: '#5BA52E',
                                 variant: 'success'
 
-                            }
-                        } else if (item?.last_updated_sec && moment(item?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
-                            status = {
-                                id: 3,
-                                label: 'Disconnected',
-                                color: '#E7431F',
-                                variant: 'error'
                             }
                         }
                         return { ...item, id: key, health: status.id, status, signal }

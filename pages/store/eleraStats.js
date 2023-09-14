@@ -34,7 +34,7 @@ const EleraStats = () => {
     useEffect(() => {
         if (context?.selectedRetailer) {
             axios
-                .get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`)
+                .get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`)
                 .then(function (res) {
                     // fetch configuration info
                     const configurationArray = res.data.configuration;
@@ -101,8 +101,7 @@ const EleraStats = () => {
     }, [selectedMenuItem]);
 
     const fetchRegisterSCOStats = (storeName) => {
-        axios
-            .get(`/api/REMS/agentsForStore?storeName=${storeName}&retailerId=${selectedRetailer}`)
+        axios.get(`/api/REMS/agentsForStore?storeName=${storeName}&retailerId=${context?.selectedRetailerParentRemsServerId === null ? selectedRetailer : context?.selectedRetailerParentRemsServerId}`)
             .then((response) => {
                 var regUp = 0;
                 var regDown = 0;

@@ -109,13 +109,13 @@ export default function RetailerSettings() {
             if (context.selectedRetailer) {
                 setSelectedRetailer(context.selectedRetailer)
                 if (context.userRoles.includes('toshibaAdmin') && context.userRoles.includes('commandCenterViewer')) {
-                    url = `/api/REMS/retailerConfiguration?isAdmin=true&ccv=true&retailerId=${context.selectedRetailer}`
+                    url = `/api/retailers/getConfiguration?isAdmin=true&ccv=true&retailerId=${context.selectedRetailer}`
                 } else if (context.userRoles.includes('toshibaAdmin')) {
-                    url = `/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`
+                    url = `/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`
                 } else if (context.userRoles.includes('commandCenterViewer')) {
-                    url = `/api/REMS/retailerConfiguration?ccv=true&retailerId=${context.selectedRetailer}`
+                    url = `/api/retailers/getConfiguration?ccv=true&retailerId=${context.selectedRetailer}`
                 } else {
-                    url = `/api/REMS/retailerConfiguration?&retailerId=${context.selectedRetailer}`
+                    url = `/api/retailers/getConfiguration?&retailerId=${context.selectedRetailer}`
                 }
             }
         }

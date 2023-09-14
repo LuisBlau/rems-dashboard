@@ -99,7 +99,10 @@ export default function CaptureGrid() {
             flex: 1,
             type: 'dateTime',
             sortable: true,
-            valueGetter: (params) => new Date(params.value)
+            valueGetter: (params) => {
+                var dateString = _.replace(params.value, /-/g, '/') // firefox doesn't like '-' in date strings
+                return new Date(dateString)
+            }
         },
         {
             field: 'SBreqLink',

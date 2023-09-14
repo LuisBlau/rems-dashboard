@@ -37,12 +37,10 @@ export const UserContextProvider = (props) => {
         if (!userRoles) {
             try {
                 const u = await axios
-                    .get('/api/REMS/getUserDetails?email=' + username)
+                    .get('/api/user/getDetails?email=' + username)
                     .then((resp) => resp.data || null);
-                if (u) {
-                    setUserDetails(u);
-                }
                 setUserDetails(u);
+                cookies.set('user', u.email, { path: '/' });
             } catch (e) {
                 console.log(e);
             }
@@ -106,7 +104,7 @@ export const UserContextProvider = (props) => {
         if (selectedRetailer !== '') {
             if (_.find(userRetailers, x => x.retailer_id === selectedRetailer).isTenant === true) {
                 setSelectedRetailerIsTenant(true)
-                axios.get(`/api/REMS/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
+                axios.get(`/api/retailers/retrieveTenantParentAndDescription?retailerId=${selectedRetailer}`).then(function (res) {
                     setSelectedRetailerDescription(res.data.description)
                     setSelectedRetailerParentRemsServerId(res.data.retailer_id)
                 })
@@ -115,7 +113,7 @@ export const UserContextProvider = (props) => {
                 setSelectedRetailerParentRemsServerId(null)
             }
             //FETCH RETAILER CONFIGURATION
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${selectedRetailer}`).then(function (res) {
                 let configs = res.data.configuration;
                 setRetailerConfigs(configs)
             })
@@ -135,7 +133,7 @@ export const UserContextProvider = (props) => {
             userRetailers.forEach(element => {
                 retailerIds.push(element.retailer_id)
             });
-            axios.post('/api/REMS/getSidebarConfiguration', { data: retailerIds }).then((results) => {
+            axios.post('/api/retailers/getSidebarConfiguration', { data: retailerIds }).then((results) => {
                 results.data.configuration.forEach(config => {
                     if (Object.values(config)[0].configCategory === 'Sidebar Items' && !_.some(localConfigs, function (x) { return x.name === Object.values(config)[0].configName })) {
                         localConfigs.push({ name: Object.values(config)[0].configName, value: Object.values(config)[0].configValue })

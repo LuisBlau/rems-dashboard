@@ -24,31 +24,31 @@ export default function EleraHealth() {
     let remsServerId = params.get('retailer_id');
     let storeName = params.get('storeName');
 
-    useEffect(() => {   
+    useEffect(() => {
         if (context?.selectedRetailer) {
-        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${remsServerId}&agentName=${params.get('agentName')}`).then((resp) => {
-            if (resp.data) {
-                setData(resp.data)
-            }
-        })
+            axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${remsServerId}&agentName=${params.get('agentName')}`).then((resp) => {
+                if (resp.data) {
+                    setData(resp.data)
+                }
+            })
 
-        axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`).then(function (res) {
-            // fetch configuration info
-            const configurationArray = res.data.configuration;
-            const configurationInfo = [];
-            configurationArray.forEach(configObject => {
-                const innerArray = Object.values(configObject)[0];
-                configurationInfo.push(innerArray);
-            });
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`).then(function (res) {
+                // fetch configuration info
+                const configurationArray = res.data.configuration;
+                const configurationInfo = [];
+                configurationArray.forEach(configObject => {
+                    const innerArray = Object.values(configObject)[0];
+                    configurationInfo.push(innerArray);
+                });
 
-            const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
-            const modifiedUrl = urlFromDatabase
-                .replace(/\${storeName}/g, storeName)
-                .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
-            setEleraHealthUrl(modifiedUrl)
+                const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
+                const modifiedUrl = urlFromDatabase
+                    .replace(/\${storeName}/g, storeName)
+                    .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
+                setEleraHealthUrl(modifiedUrl)
 
-        })
-    }
+            })
+        }
     }, [context?.selectedRetailer])
 
     const columns = [

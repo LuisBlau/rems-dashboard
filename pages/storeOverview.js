@@ -85,7 +85,7 @@ export default function StoreOverview() {
     useEffect(() => {
         if (context?.selectedRetailer) {
             let time = 24
-            axios.get(`/api/REMS/retailerConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
                 const configurationArray = res.data.configuration;
                 const configurationInfo = [];
                 configurationArray.forEach(configObject => {

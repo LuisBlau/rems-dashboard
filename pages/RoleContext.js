@@ -16,7 +16,7 @@ export const RoleContextProvider = (props) => {
     }
 
     const getRoles = async () => {
-        const u = await axios.get('/api/REMS/getRoleDetails?email=' + username).then((resp) => resp.data.role || null);
+        const u = await axios.get('/api/user/getRoleDetails?email=' + username).then((resp) => resp.data.role || null);
         setUserRoles(u);
         setCurrentPage(props.pageName);
     };

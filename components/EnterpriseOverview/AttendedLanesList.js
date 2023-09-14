@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Box, Card, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
-import axios from 'axios';
-import { filter, find, intersectionBy } from 'lodash';
 
-export default function AttendedLanesList({ context, places, selectedRetailer, attendedList }) {
+export default function AttendedLanesList({ context, disconnectTimeLimit, places, selectedRetailer, attendedList }) {
     const [columns, setColumns] = useState([])
     const [agents, setAgents] = useState([])
     const [loading, setLoading] = useState(true)
@@ -70,9 +68,9 @@ export default function AttendedLanesList({ context, places, selectedRetailer, a
                 sortingOrder: ['asc', 'desc'],
                 sortable: true,
                 renderCell: (params) => {
-                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < -24 ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline'}</Typography>
+                    return <Typography variant='body2' sx={{ marginRight: 4, width: '20%' }}>{moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline'}</Typography>
                 },
-                valueGetter: (params) => { return moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < -24 ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline' }
+                valueGetter: (params) => { return moment(params.row.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit ? 'Disconnected' : params.row?.online ? 'Online' : 'Offline' }
             },
             {
                 field: 'os',

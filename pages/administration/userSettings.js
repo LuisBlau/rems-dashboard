@@ -49,7 +49,7 @@ export default function UserSettings() {
             }
         }
 
-        axios.post(`/api/REMS/userSettingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: '' })
+        axios.post(`/api/user/settingsSubmission`, { email, firstName, lastName, userDefinedMapConfig: '' })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
@@ -71,7 +71,7 @@ export default function UserSettings() {
     }
 
     function handleSubmit() {
-        axios.post('/api/REMS/userSettingsSubmission', { email, firstName, lastName })
+        axios.post('/api/user/settingsSubmission', { email, firstName, lastName })
             .then(function (response) {
                 if (response.status !== 200) {
                     setToastFailure('Error Saving User Info!');

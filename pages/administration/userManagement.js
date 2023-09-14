@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import _ from 'lodash';
-import { Alert, AlertTitle, Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputLabel, MenuItem, Select, Snackbar, TextField } from '@mui/material';
+import { Alert, AlertTitle, Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, InputLabel, MenuItem, Select, Snackbar, TextField } from '@mui/material';
 import axios from 'axios';
+import UserContext from '../../pages/UserContext';
 
 export default function UserSettings() {
 
@@ -11,6 +12,7 @@ export default function UserSettings() {
     const SuccessToastDuration = 4000;
     /// Number of millisec to show Failure toast. Page does not reload after.
     const FailToastDuration = 10000;
+    const context = useContext(UserContext);
 
     const [retailers, setRetailers] = useState([])
     const [selectedRetailer, setSelectedRetailer] = useState(null)
@@ -25,7 +27,9 @@ export default function UserSettings() {
     const [toastSuccess, setToastSuccess] = useState('');
     const [openSuccess, setOpenSuccess] = useState(false);
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
-    const [newUserEmail, setNewUserEmail] = useState('')
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const ITEM_HEIGHT = 48;
     const ITEM_PADDING_TOP = 8;
     const MenuProps = {
@@ -46,7 +50,7 @@ export default function UserSettings() {
             setRetailers(tempResponse)
         });
 
-        axios.get('/api/REMS/getAllUserDetails').then(function (response) {
+        axios.get('/api/user/getAllUserDetails').then(function (response) {
             let localUsers = _.sortBy(response.data, ['email'])
             setUsers(localUsers)
             setFilteredUsers(localUsers)
@@ -139,7 +143,7 @@ export default function UserSettings() {
     };
 
     function handleSubmission() {
-        axios.post('/api/REMS/userManagementSubmission', { user: selectedUser, retailers: selectedUsersRetailers, roles: selectedUsersRoles })
+        axios.post('/api/user/managementSubmission', { user: selectedUser, retailers: selectedUsersRetailers, roles: selectedUsersRoles })
             .then(function (response) {
                 if (response.status !== 200) {
                     setToastFailure('Error Saving User Info!');
@@ -161,6 +165,31 @@ export default function UserSettings() {
             });
     }
 
+    function handleDeleteUser() {
+        axios.delete('/api/user/delete', { params: { email: selectedUser.email, authUserEmail: context.userDetails.email } })
+            .then(function (response) {
+                if (response.status !== 200) {
+                    const errorMessage = response?.data?.message ? response.data.message : 'Error deleting user!';
+                    setToastFailure(errorMessage);
+                    setOpenFailure(true);
+                    return;
+                }
+
+                setToastSuccess('User Successfully deleted!');
+                setOpenSuccess(true);
+
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, SuccessToastDuration + 500);
+            })
+            .catch(function (error) {
+                console.log('Error Details:', error);
+                setToastFailure('Error connecting to server!!');
+                setOpenFailure(true);
+            });
+    }
+
+
     function handleNewUserDialogClosed() {
         setNewUserDialogOpen(false)
     }
@@ -170,8 +199,8 @@ export default function UserSettings() {
     }
 
     function saveNewUser() {
-        if (isValidEmail(newUserEmail)) {
-            axios.post(`/api/REMS/insertUser?userEmail=${newUserEmail}`)
+        if (isValidEmail(newUserEmail) && firstName && lastName) {
+            axios.post(`/api/user/insert`, { userEmail: newUserEmail, firstName, lastName })
                 .then(function (response) {
                     if (response.status !== 200) {
                         setToastFailure('Error Saving New User!!');
@@ -182,7 +211,7 @@ export default function UserSettings() {
                         handleNewUserDialogClosed()
                         setTimeout(function () {
                             window.location.reload(true);
-                        }, SuccessToastDuration + 500);
+                        }, SuccessToastDuration);
                     }
                 })
                 .catch(function (error) {
@@ -195,8 +224,14 @@ export default function UserSettings() {
                     }
                 });
         } else {
-            setToastFailure('Not a valid email!')
-            setOpenFailure(true)
+            if (!newUserEmail || !firstName || !lastName) {
+                setToastFailure('All field are required')
+                setOpenFailure(true)
+            }
+            else {
+                setToastFailure('Not a valid email')
+                setOpenFailure(true)
+            }
         }
     }
 
@@ -240,52 +275,71 @@ export default function UserSettings() {
                 />
                 <Button sx={{ height: '70%', alignSelf: 'center' }} variant="contained" onClick={() => { setNewUserDialogOpen(!newUserDialogOpen) }}>Add a User</Button>
             </Box>
-            {selectedUser &&
-                <Box sx={{ display: 'flex', flexDirection: 'column', width: '80%', padding: 2, margin: 2 }}>
-                    <Box>
-                        <InputLabel id="roles-input-label">Role(s)</InputLabel>
-                        <Select
-                            labelId="roles-selector-label"
-                            id="roles-multi-select"
-                            multiple
-                            value={selectedUsersRoles}
-                            onChange={handleSelectedRolesChange}
-                            MenuProps={MenuProps}
-                            sx={{ margin: 2 }}
-                        >
-                            {availableRoles.map((role) => (
-                                <MenuItem
-                                    key={role.name}
-                                    value={role.name}
-                                >
-                                    {role.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Box>
+            {selectedUser && context.userRoles.includes('toshibaAdmin') &&
+                <Box sx={{ width: '85%' }} alignItems="center">
+                    <Grid container>
+                        <Grid xs={5}>
+                            <InputLabel id="roles-input-label">Role(s)</InputLabel>
+                            <Select
+                                labelId="roles-selector-label"
+                                id="roles-multi-select"
+                                multiple
+                                value={selectedUsersRoles}
+                                onChange={handleSelectedRolesChange}
+                                MenuProps={MenuProps}
+                                sx={{ margin: 2 }}
+                                fullWidth
+                            >
+                                {availableRoles.map((role) => (
+                                    <MenuItem
+                                        key={role.name}
+                                        value={role.name}
+                                    >
+                                        {role.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </Grid>
+                        <Grid xs={2} />
 
-                    <Box>
-                        <InputLabel id="retailers-input-label">Retailer(s)</InputLabel>
-                        <Select
-                            labelId="retailers-selector-label"
-                            id="retailers-multi-select"
-                            multiple
-                            value={selectedUsersRetailers}
-                            onChange={handleSelectedRetailersChange}
-                            MenuProps={MenuProps}
-                            sx={{ margin: 2, overflow: 'wrap' }}
-                        >
-                            {retailers.map((retailer) => (
-                                <MenuItem
-                                    key={retailer._id}
-                                    value={retailer.description}
-                                >
-                                    {retailer.description}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </Box>
-                    <Button sx={{ width: '5%', alignSelf: 'center' }} onClick={handleSubmission} variant='contained'>Submit</Button>
+                        <Grid xs={5}>
+                            <InputLabel id="retailers-input-label">Retailer(s)</InputLabel>
+                            <Select
+                                labelId="retailers-selector-label"
+                                id="retailers-multi-select"
+                                multiple
+                                value={selectedUsersRetailers}
+                                onChange={handleSelectedRetailersChange}
+                                MenuProps={MenuProps}
+                                sx={{ margin: 2, overflow: 'wrap' }}
+                                fullWidth
+                            >
+                                {retailers.map((retailer) => (
+                                    <MenuItem
+                                        key={retailer._id}
+                                        value={retailer.description}
+                                    >
+                                        {retailer.description}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </Grid>
+                        <Grid xs={12}>
+                            <Button
+                                onClick={handleSubmission} variant='contained'
+                                sx={{ marginRight: 2 }}
+                            >
+                                Submit</Button>
+
+                            <Button
+                                onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete:  ${selectedUser.email}?`)) {
+                                        handleDeleteUser();
+                                    }
+                                }}
+                                variant='contained'>Delete</Button>
+                        </Grid>
+                    </Grid>
                 </Box>
             }
             <Dialog open={newUserDialogOpen} onClose={handleNewUserDialogClosed}>
@@ -294,18 +348,51 @@ export default function UserSettings() {
                     <DialogContentText>
                         This screen allows you to create a new user, you will still need to assign their role(s)/retailer(s).
                     </DialogContentText>
-                    <TextField
-                        type={'email'}
-                        autoFocus
-                        margin="dense"
-                        label='Email Address'
-                        fullWidth
-                        variant='standard'
-                        value={newUserEmail}
-                        onChange={(event) => {
-                            setNewUserEmail(event.target.value);
-                        }}
-                    />
+                    <Grid container>
+                        <Grid xs={12}>
+                            <TextField
+                                required
+                                type='text'
+                                autoFocus
+                                margin="dense"
+                                label='First Name'
+                                fullWidth
+                                variant='standard'
+                                value={firstName}
+                                onChange={(event) => {
+                                    setFirstName(event.target.value);
+                                }}
+                            />
+                        </Grid>
+                        <Grid xs={12}>
+                            <TextField
+                                required
+                                type='text'
+                                margin="dense"
+                                label='Last Name'
+                                fullWidth
+                                variant='standard'
+                                value={lastName}
+                                onChange={(event) => {
+                                    setLastName(event.target.value);
+                                }}
+                            />
+                        </Grid>
+                        <Grid xs={12}>
+                            <TextField
+                                required
+                                type={'email'}
+                                margin="dense"
+                                label='Email Address'
+                                fullWidth
+                                variant='standard'
+                                value={newUserEmail}
+                                onChange={(event) => {
+                                    setNewUserEmail(event.target.value);
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleNewUserDialogClosed}>Cancel</Button>

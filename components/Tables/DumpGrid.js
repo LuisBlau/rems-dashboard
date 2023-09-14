@@ -17,7 +17,7 @@ export default function DumpGrid({ store, height }) {
             if (store) {
                 if (store.tenantId !== null) {
 
-                    axios.get(`/api/registers/dumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}`).then(function (res) {
+                    axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}`).then(function (res) {
                         const dumps = res.data.map((v, index) => {
                             return { ...v, id: index }
 
@@ -26,7 +26,7 @@ export default function DumpGrid({ store, height }) {
                         setStoreDumps(dumps);
                     });
                 } else {
-                    axios.get(`/api/registers/dumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}`).then(function (res) {
+                    axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}`).then(function (res) {
                         const dumps = res.data.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -39,7 +39,7 @@ export default function DumpGrid({ store, height }) {
                     // need to check for tenant
                     if (context.selectedRetailerIsTenant === false) {
 
-                        axios.get('/api/registers/dumps?retailerId=' + context.selectedRetailer).then(function (res) {
+                        axios.get('/api/dumps/getDumps?retailerId=' + context.selectedRetailer).then(function (res) {
                             const dumps = res.data.map((v, index) => {
                                 return { ...v, id: index }
 
@@ -48,7 +48,7 @@ export default function DumpGrid({ store, height }) {
                             setStoreDumps(dumps);
                         });
                     } else if (context.selectedRetailerParentRemsServerId) {
-                        axios.get('/api/registers/dumps?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
+                        axios.get('/api/dumps/getDumps?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
                             const dumps = res.data.map((v, index) => {
                                 return { ...v, id: index }
                             });
@@ -70,10 +70,9 @@ export default function DumpGrid({ store, height }) {
                 field: 'Timestamp',
                 headerName: 'Dump Timestamp',
                 flex: 3,
-                type: 'date',
+                type: 'datetime',
                 sortable: true,
-                valueGetter: (params) => params.value ? new Date(params.value) : null,
-                filterable: true
+                valueGetter: (params) => params.value ? new Date(params.value).toLocaleString() : null,
             },
             {
                 field: "Store",

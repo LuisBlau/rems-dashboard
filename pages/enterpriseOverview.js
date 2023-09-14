@@ -145,6 +145,7 @@ export default function EnterpriseOverview() {
     const [isPeripheralsListView, setIsPeripheralsListView] = useState(false)
     const [isAttendedLanesListView, setIsAttendedLanesListView] = useState(false)
     const [isDevicesListView, setIsDevicesListView] = useState(false)
+    const [disconnectTimeLimit, setDisconnectTimeLimit] = useState(24)
     const [isHandheldsListView, setIsHandheldsListView] = useState(false)
 
     useEffect(() => {
@@ -189,6 +190,17 @@ export default function EnterpriseOverview() {
             setTimeout(() => {
                 setSelectedRetailer(context.selectedRetailer);
             }, 500);
+        }
+        if (context?.selectedRetailer) {
+            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context.selectedRetailer}`).then(function (res) {
+                const configurationArray = res.data.configuration;
+                const configurationInfo = [];
+                configurationArray.forEach(configObject => {
+                    const innerArray = Object.values(configObject)[0];
+                    configurationInfo.push(innerArray);
+                });
+                setDisconnectTimeLimit(configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue)
+            })
         }
     }, [context?.selectedRetailer])
 
@@ -387,7 +399,7 @@ export default function EnterpriseOverview() {
                         //yellow
                         store.status = '#FFFF00';
                     }
-                    if (store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) {
+                    if (store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) {
                         // disconnected, red
                         store.status = '#FF0000'
                     }
@@ -511,7 +523,7 @@ export default function EnterpriseOverview() {
                 });
             }
             if (showHandheldsWidget === true || showHandheldsWidget === 'true') {
-                axios.get(`/api/REMS/getRsmpMobileAssets`, query).then(function (res) {
+                axios.get(`/api/rsmpData/getMobileAssets`, query).then(function (res) {
                     let totalHandhelds = 0
                     let onlineHandhelds = 0
                     let localHandhelds = []
@@ -532,7 +544,7 @@ export default function EnterpriseOverview() {
             }
 
             if (showPeripheralsWidget === true || showPeripheralsWidget === 'true') {
-                axios.get(`/api/REMS/getRsmpWirelessPeripherals`, query).then(function (res) {
+                axios.get(`/api/rsmpData/getWirelessPeripherals`, query).then(function (res) {
                     let totalPeripherals = 0
                     let onlinePeripherals = 0
                     let localPeripherals = []
@@ -629,7 +641,7 @@ export default function EnterpriseOverview() {
                     store.status = '#00FF00';
                 } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && store?.online) {
                     store.status = '#FFFF00';
-                } else if ((store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - 24) || store?.online === false) {
+                } else if ((store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) || store?.online === false) {
                     store.status = '#FF0000'
                 }
                 counter++;
@@ -670,7 +682,7 @@ export default function EnterpriseOverview() {
     }, [selectedStore]);
 
     function handleSubmitMap() {
-        axios.post(`/api/REMS/userSettingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
+        axios.post(`/api/user/settingsSubmission`, { email: username, firstName: context.userDetails?.firstName, lastName: context.userDetails?.lastName, userDefinedMapConfig: mapParams })
             .then(res => {
                 context.setUserDetails({
                     ...context.userDetails,
@@ -948,8 +960,8 @@ export default function EnterpriseOverview() {
                             </Card>
 
                         }
-                        {isStoresOnlineListView && <StoresOnlineList context={context} places={storesResult} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
-                        {isAttendedLanesListView && <AttendedLanesList context={context} places={placesResult} selectedRetailer={context.selectedRetailer} attendedList={attendedLanes} />}
+                        {isStoresOnlineListView && <StoresOnlineList context={context} disconnectTimeLimit={disconnectTimeLimit} places={storesResult} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
+                        {isAttendedLanesListView && <AttendedLanesList context={context} disconnectTimeLimit={disconnectTimeLimit} places={placesResult} selectedRetailer={context.selectedRetailer} attendedList={attendedLanes} />}
                         {isDevicesListView === true && <DeviceList devices={devicesResult} />}
                         {isHandheldsListView === true && <MobileHandheldsList handhelds={handhelds} />}
                         {isPeripheralsListView === true && <PeripheralsList peripherals={peripherals} />}

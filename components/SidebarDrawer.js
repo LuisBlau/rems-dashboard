@@ -6,7 +6,6 @@ import { Avatar, Button, Grid, IconButton, MenuItem, Paper, Select, Typography }
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
-import MenuIcon from '@mui/icons-material/Menu';
 import ToshibaLogo from '../public/toshibaicon.png';
 import ToshibaNameplate from '../public/Toshiba.png';
 import PasLogo from '../public/images/pas-logo.png';
@@ -16,7 +15,6 @@ import Image from 'next/image';
 import UserContext from '../pages/UserContext';
 import Cookies from 'universal-cookie';
 import { Box } from '@mui/system';
-import axios from 'axios';
 
 function AppNameplate({ open }) {
     if (open === true) {
@@ -27,26 +25,6 @@ function AppNameplate({ open }) {
         );
     } else {
         return null;
-    }
-}
-
-function DrawerOpenerBurger({ open, handleDrawerOpenAndClose, sidebarDisable }) {
-    if (open === true) {
-        return (
-            <div style={{ paddingTop: 20 }}>
-                <IconButton onClick={() => { if (!sidebarDisable) handleDrawerOpenAndClose() }}>
-                    <MenuIcon style={{ color: '#FFFFFF' }} />
-                </IconButton>
-            </div>
-        );
-    } else {
-        return (
-            <div>
-                <IconButton onClick={() => { handleDrawerOpenAndClose(); }}>
-                    <MenuIcon style={{ color: '#FFFFFF' }} />
-                </IconButton>
-            </div>
-        );
     }
 }
 
@@ -99,7 +77,6 @@ function RetailerSelector({ context, handleSelectedRetailerChanged, availableRet
 export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeatureClicked, handleNonDevelopedFeatureClicked }) {
     const cookies = new Cookies();
     const [open, setOpen] = useState(true);
-    const [sidebarDisable, setSidebarDisable] = useState(false);
     const [availableRetailers, setAvailableRetailers] = useState([]);
     const [pasSubscriptionTier, setPasSubscriptionTier] = useState('b2b');
     const [userInitials, setUserInitials] = useState('')
@@ -109,7 +86,6 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
 
     useEffect(() => {
         if (context?.retailerConfigs) {
-            //api/REMS/retailerConfiguration?isAdmin=true&ccv=true&retailerId=${selectedRetailer}      
             let configs = context?.retailerConfigs;
             Object.values(configs).forEach(config => {
                 if (Object.keys(config)[0] === 'alertsEnabled') {
@@ -159,17 +135,6 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                         setUserDisplayName(context.userDetails.firstName + " " + context.userDetails.lastName)
                     }
                 }
-                if (context.currentPage) {
-                    if (context.currentPage === 'CommandCenterOverview' && open === true) {
-                        setOpen(false)
-                    }
-                }
-                if (context.hasChildren) {
-                    setSidebarDisable(true);
-                    setOpen(true);
-                } else {
-                    setSidebarDisable(false);
-                }
             }
 
         }, [context]);
@@ -181,11 +146,6 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                 }
             }
         }, [context, open]);
-    }
-
-    function handleDrawerOpenAndClose() {
-        setOpen(prev => !prev);
-
     }
 
     function SignInButton() {
@@ -331,8 +291,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                                 <AppNameplate open={open} />
                             </div>
                         </Link>
-                        {open === false && <DrawerOpenerBurger open={open} handleDrawerOpenAndClose={handleDrawerOpenAndClose} sidebarDisable={sidebarDisable} />}
-                        {open && <DrawerOpenerBurger open={open} handleDrawerOpenAndClose={handleDrawerOpenAndClose} sidebarDisable={true} />}
+                        <Box sx={{ marginLeft: 3 }} />
                     </div>
                 </DrawerHeader>
                 <AuthenticatedTemplate>
@@ -413,8 +372,6 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                             </Box>
                             <SignOutButton />
                         </Box>}
-
-
                     </AuthenticatedTemplate>
                     <UnauthenticatedTemplate>
                         <SignInButton />
