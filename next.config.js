@@ -3,6 +3,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 })
 
 module.exports = withBundleAnalyzer({
+    staticPageGenerationTimeout: 1000,
     async rewrites() {
         const server = process.env.NEXT_PUBLIC_NODE_ENDPOINT;
 

@@ -20,7 +20,7 @@ stages: # List of stages for jobs, and their order of execution
 image: node
 
 cache:
-    key: $CI_COMMIT_REF_SLUG
+    key: ${CI_COMMIT_REF_SLUG}
     paths:
         - .npm/
         - node_modules/

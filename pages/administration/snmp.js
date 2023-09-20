@@ -88,7 +88,7 @@ export default function snmp() {
             if (context.selectedRetailerParentRemsServerId) {
                 stringParams = `retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
             }
-            axios.get(`/api/REMS/stores?${stringParams}`).then(function (res) {
+            axios.get(`/api/stores/getForRetailer?${stringParams}`).then(function (res) {
                 const packages = [];
                 res.data.forEach((v) => {
                     packages.push(v.storeName);

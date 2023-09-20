@@ -348,7 +348,7 @@ export default function EnterpriseOverview() {
 
     useEffect(() => {
         async function fetchData() {
-            await axios.get(`/api/REMS/getAllRetailerDetails`).then(function (res) {
+            await axios.get(`/api/retailers/getAllDetails`).then(function (res) {
                 setAllRetailers(res.data);
             })
         }
@@ -365,7 +365,7 @@ export default function EnterpriseOverview() {
         const localStores = [];
 
         setLoading(true);
-        axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
+        axios.get(`/api/stores/getForRetailer?retailerId=${selectedRetailer}&isTenant=${context.selectedRetailerIsTenant}`).then(function (res) {
             setLoading(false);
             let counter = 0;
             let onlineCounter = 0;

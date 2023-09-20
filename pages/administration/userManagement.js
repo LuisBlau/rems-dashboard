@@ -43,7 +43,7 @@ export default function UserSettings() {
 
     useEffect(() => {
 
-        axios.get('/api/REMS/getAllRetailerDetails').then(function (response) {
+        axios.get('/api/retailers/getAllDetails').then(function (response) {
             let tempResponse = response.data
             tempResponse.push({ description: 'All' })
             tempResponse = _.sortBy(tempResponse, ['description'])

@@ -414,6 +414,12 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 enabled: roles.includes('toshibaAdmin')
                             },
                             {
+                                name: 'REMS Management',
+                                route: '/administration/remsManagement',
+                                icon: null,
+                                enabled: roles.includes('toshibaAdmin')
+                            },
+                            {
                                 name: 'Administrative Settings',
                                 route: '/administration/toshibaAdminSettings',
                                 enabled: roles.includes('toshibaAdmin')

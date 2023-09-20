@@ -65,7 +65,7 @@ const EleraStats = () => {
 
     useEffect(() => {
         if (selectedRetailer !== '' && selectedRetailer !== null) {
-            axios.get(`/api/REMS/stores?retailerId=${selectedRetailer}&isTenant=${context?.selectedRetailerIsTenant}`)
+            axios.get(`/api/stores/getForRetailer?retailerId=${selectedRetailer}&isTenant=${context?.selectedRetailerIsTenant}`)
                 .then(function (response) {
                     setStoreList(response.data);
                 })

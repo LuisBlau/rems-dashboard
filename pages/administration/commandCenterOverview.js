@@ -231,12 +231,12 @@ export default function CommandCenterOverview() {
         const localRetailers = [];
         const localStores = [];
         if (allRetailers.length === 0) {
-            await axios.get('/api/REMS/getAllRetailerDetails').then(function (res) {
+            await axios.get('/api/retailers/getAllDetails').then(function (res) {
                 setAllRetailers(res.data);
             })
         }
 
-        await axios.get('/api/REMS/allStores').then(function (res) {
+        await axios.get('/api/stores/getAll').then(function (res) {
             setLoading(false);
             let totalStoreCount = 0;
             let onlineStoreCount = 0;

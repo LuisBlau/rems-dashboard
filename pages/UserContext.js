@@ -52,7 +52,7 @@ export const UserContextProvider = (props) => {
             try {
                 let u = userDetails.retailer
 
-                const allRetailerDetails = await axios.get('/api/REMS/getAllRetailerDetails').then((resp) => resp.data)
+                const allRetailerDetails = await axios.get('/api/retailers/getAllDetails').then((resp) => resp.data)
                 allRetailerDetails.sort((a, b) => a.description.localeCompare(b.description))
                 if (u[0] === 'All') {
                     u = allRetailerDetails
