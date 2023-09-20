@@ -1,65 +1,141 @@
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useContext } from 'react'
-import { DataGrid } from '@mui/x-data-grid';
-import Box from '@mui/material/Box'
+import React, { useState, useEffect, useContext } from 'react';
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Cloud } from '@mui/icons-material';
 import axios from 'axios';
-import {
-    Typography,
-} from '@mui/material';
-import Divider from '@mui/material/Divider';
+import { DataGrid } from '@mui/x-data-grid';
 import UserContext from '../UserContext';
 
-const PREFIX = 'eleraHealth'
-
-export default function EleraHealth() {
-
+const EleraHealth = () => {
     const context = useContext(UserContext);
-    const [data, setData] = useState('')
-    const [eleraHealthUrl, setEleraHealthUrl] = useState('')
-    let par = '';
+    const [eleraHealthUrl, setEleraHealthUrl] = useState('');
+    const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+    const [filter, setFilter] = useState('');
+    const [storeList, setStoreList] = useState([]);
+    const [selectedRetailer, setSelectedRetailer] = useState('');
+    const [containerData, setContainerData] = useState([]); // State for container data
+
+    var par = '';
     if (typeof window !== 'undefined') {
         par = window.location.search;
     }
     const params = new URLSearchParams(par);
-    let remsServerId = params.get('retailer_id');
-    let storeName = params.get('storeName');
+
+    var initialStoreName = params.get('storeName');
 
     useEffect(() => {
         if (context?.selectedRetailer) {
-            axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${storeName}&retailerId=${remsServerId}&agentName=${params.get('agentName')}`).then((resp) => {
-                if (resp.data) {
-                    setData(resp.data)
+            setSelectedRetailer(context.selectedRetailer);
+        }
+    }, [context?.selectedRetailer]);
+
+    useEffect(() => {
+        if (context?.retailerConfigs.length > 0 && context?.selectedRetailer) {
+            const configurationArray = context.retailerConfigs;
+            const configurationInfo = [];
+            configurationArray.forEach(configObject => {
+                const innerArray = Object.values(configObject)[0];
+                configurationInfo.push(innerArray);
+            });
+
+            if (selectedMenuItem) {
+                const selectedStore = storeList.find(store => store.storeName === selectedMenuItem);
+                const storeName = selectedStore.storeName;
+                if (selectedStore) {
+                    const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
+                    const modifiedUrl = urlFromDatabase
+                        .replace(/\${storeName}/g, storeName)
+                        .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
+                    setEleraHealthUrl(modifiedUrl);
+                }
+            }
+        }
+    }, [context?.selectedRetailer, storeList, selectedMenuItem, selectedRetailer]);
+
+    useEffect(() => {
+        if (selectedRetailer !== '' && selectedRetailer !== null) {
+            axios.get(`/api/stores/getForRetailer?retailerId=${selectedRetailer}&isTenant=${context?.selectedRetailerIsTenant}`)
+                .then(function (response) {
+                    setStoreList(response.data);
+                })
+                .catch(function (error) {
+                    console.log('Error fetching store list:', error);
+                });
+        }
+    }, [context?.selectedRetailerIsTenant, selectedRetailer]);
+
+    useEffect(() => {
+        if (storeList.length > 0) {
+            const defaultMenuItem = storeList.find((store) => store.storeName === initialStoreName);
+            if (defaultMenuItem) {
+                setSelectedMenuItem(defaultMenuItem.storeName);
+            }
+        }
+    }, [storeList, initialStoreName]);
+
+    const handleMenuItemClick = (menuItem) => {
+        setSelectedMenuItem(menuItem);
+
+        // Fetch container data when a new store is selected
+        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${menuItem}&retailerId=${selectedRetailer}&agentName=${params.get('agentName')}`)
+            .then((resp) => {
+                if (resp.data && resp.data.docker) {
+                    const arr = Object.values(resp.data.docker);
+                    const rows = [];
+                    for (let i = 0; i < arr.length; i++) {
+                        arr[i] = JSON.parse(arr[i]);
+                        arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
+                        if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
+                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
+                                rows.push(
+                                    objectifyRow(
+                                        i + 1,
+                                        arr[i].Names,
+                                        arr[i].Read,
+                                        arr[i].State,
+                                        arr[i].Status
+                                    )
+                                );
+                            }
+                        }
+                    }
+                    setContainerData(rows);
+                } else {
+                    // Handle the case where resp.data is empty or doesn't contain the expected data
+                    setContainerData([]); // Clear the container data or set it to an appropriate default value
                 }
             })
+            .catch(function (error) {
+                console.log('Error fetching container data:', error);
+            });
+    };
 
-            axios.get(`/api/retailers/getConfiguration?isAdmin=true&retailerId=${context?.selectedRetailer}`).then(function (res) {
-                // fetch configuration info
-                const configurationArray = res.data.configuration;
-                const configurationInfo = [];
-                configurationArray.forEach(configObject => {
-                    const innerArray = Object.values(configObject)[0];
-                    configurationInfo.push(innerArray);
-                });
+    const handleFilterChange = (event) => {
+        setFilter(event.target.value);
+    };
 
-                const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
-                const modifiedUrl = urlFromDatabase
-                    .replace(/\${storeName}/g, storeName)
-                    .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
-                setEleraHealthUrl(modifiedUrl)
+    const filteredMenuItems = storeList
+        .filter((store) => store.storeName.toLowerCase().includes(filter.toLowerCase()))
+        .map((store) => ({
+            id: store.storeName,
+            label: `${store.storeName}`,
+            icon: <Cloud />,
+        }));
 
-            })
+    useEffect(() => {
+        if (selectedRetailer && initialStoreName) {
+            handleMenuItemClick(initialStoreName);
         }
-    }, [context?.selectedRetailer])
+    }, [selectedRetailer, initialStoreName]);
 
     const columns = [
         {
             field: 'name',
-            headerName: 'ContainerName',
+            headerName: 'Container Name',
             flex: 1
         },
         {
             field: 'lastupd',
-            headerName: 'LastUpdated',
+            headerName: 'Last Updated',
             sortable: true,
             filterable: true,
             type: 'dateTime',
@@ -73,67 +149,71 @@ export default function EleraHealth() {
         },
         {
             field: 'uptime',
-            headerName: 'UpTime',
+            headerName: 'Up Time',
             flex: 1
         },
     ];
 
-    const rows = [];
-
-    function objectifyRow(id, name, lastupd, state, uptime) {
+    const objectifyRow = (id, name, lastupd, state, uptime) => {
         return { id, name, lastupd, state, uptime };
-    }
+    };
 
-
-    if (data) {
-        const arr = Object.values(data.docker);
-        for (let i = 0; i < arr.length; i++) {
-            arr[i] = JSON.parse(arr[i]);
-            arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
-            if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
-                if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
-                    rows.push(
-                        objectifyRow(
-                            i + 1,
-                            arr[i].Names,
-                            arr[i].Read,
-                            arr[i].State,
-                            arr[i].Status
-                        )
-                    );
-                }
-            }
-        }
-
-        return (
-            <Box sx={{ display: 'flex', flexGrow: 1, height: '100vh', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-                <Typography variant="h3">ELERA - {params.get('storeName')} - {params.get('agentName')}</Typography>
-                <Box sx={{ height: 200, width: '90%' }}>
-                    <DataGrid
-                        rows={rows}
-                        columns={columns}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 5,
-                                },
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 15]}
-                        disableRowSelectionOnClick
+    return (
+        <Box display="flex" height="100vh" width="80vw">
+            <Box width="200px" borderRight="1px solid #ccc">
+                <Box padding="10px">
+                    <Typography variant="h6" textAlign="center" marginBottom="10px" fontSize="1.5rem">
+                        Stores
+                    </Typography>
+                    <input
+                        type="text"
+                        value={filter}
+                        onChange={handleFilterChange}
+                        placeholder="Filter stores"
+                        style={{ width: '100%' }}
                     />
                 </Box>
-                <Divider sx={{ mb: 2 }} />
-                <Box sx={{ width: '100%', flex: 1 }}>
-                    <div style={{ display: 'flex', width: '100%', height: '100%' }}>
-                        <iframe
-                            style={{ paddingTop: 4, flexGrow: 1, border: 'none' }}
-                            src={eleraHealthUrl}
-                        />
-                    </div>
+                <Box sx={{ minHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+                    <List component="nav">
+                        {filteredMenuItems.map((menuItem) => (
+                            <ListItem
+                                key={menuItem.id}
+                                button
+                                onClick={() => handleMenuItemClick(menuItem.id)}
+                                style={{
+                                    backgroundColor: selectedMenuItem === menuItem.id ? '#bdbdbd' : 'inherit',
+                                }}
+                            >
+                                <ListItemIcon>{menuItem.icon}</ListItemIcon>
+                                <ListItemText primary={menuItem.label} />
+                            </ListItem>
+                        ))}
+                    </List>
                 </Box>
             </Box>
-        );
+            <Box flex={1} padding="20px" display="flex" flexDirection="column">
+                <Typography variant="h5" textAlign="center" marginBottom="10px" fontSize="1.5rem">
+                    Elera Container Data
+                </Typography>
+                <div>
+                    <DataGrid
+                        rows={containerData}
+                        columns={columns}
+                        pageSize={5}
+                        autoHeight
+                    />
+                </div>
 
-    }
-}
+                <iframe
+                    title="Elera Health"
+                    src={eleraHealthUrl}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                ></iframe>
+            </Box>
+        </Box>
+    );
+};
+
+export default EleraHealth;
