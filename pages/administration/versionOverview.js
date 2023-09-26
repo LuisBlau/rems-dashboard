@@ -10,6 +10,7 @@ import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/materi
 import UserContext from '../../pages/UserContext'
 import _ from 'lodash';
 import Copyright from '../../components/Copyright';
+import moment from 'moment';
 
 const PREFIX = 'versionOverview';
 
@@ -17,6 +18,18 @@ const classes = {
     content: `${PREFIX}-content`,
     container: `${PREFIX}-container`,
 };
+
+const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+    '& .super-app-theme--deadContainer': {
+        backgroundColor: getBackgroundColor('red'),
+        '&:hover': {
+            background: "#ff5252"
+        }
+    },
+}));
+
+const getBackgroundColor = (color) =>
+    color === 'red' ? '#E7431F' : '#FFFFFF';
 
 const Root = styled('main')(({ theme }) => ({
     [`&.${classes.content}`]: {
@@ -58,6 +71,10 @@ function TabPanel(props) {
     );
 }
 
+function cleanUpContainers() {
+    axios.delete('/api/bus-monitor/cleanUpOldContainers')
+}
+
 export default function versionOverview() {
     const [allAgents, setAllAgents] = useState([])
     const [agents, setAgents] = useState([]);
@@ -67,6 +84,7 @@ export default function versionOverview() {
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [userIsAdmin, setUserIsAdmin] = useState(false)
     const [selectedTab, setSelectedTab] = useState(0)
+    const [containers, setContainers] = useState([])
 
     const handleChangeTab = (event, newValue) => {
         if (newValue === 1) {
@@ -103,6 +121,15 @@ export default function versionOverview() {
         { field: 'JavaPOS', headerName: 'Java POS Version', sortable: true, flex: 1 }
     ];
 
+    const dockerColumns = [
+        { field: 'hostName', headerName: 'Host Name', sortable: true, flex: 1 },
+        { field: 'os', headerName: 'OS', sortable: true, flex: 1 },
+        { field: 'host_server', headerName: 'Host Server', sortable: true, flex: 1 },
+        { field: 'count', headerName: 'Count', sortable: true, flex: 1 },
+        { field: 'version', headerName: 'Version', sortable: true, flex: 1 },
+        { field: 'LastUpdatedSec', headerName: 'Last Update', sortable: true, flex: 1, renderCell: (params) => params.row.LastUpdatedSec ? moment(params.row.LastUpdatedSec).fromNow() : 'N/A' }
+    ];
+
     useEffect(() => {
         if (context) {
             setSelectedRetailer(context.selectedRetailer)
@@ -113,6 +140,15 @@ export default function versionOverview() {
             }
         }
     }, [context])
+
+    useEffect(() => {
+        axios.get('/api/bus-monitor/getAll').then((x) => {
+            x.data.forEach(container => {
+                container.id = container._id
+            });
+            setContainers(x.data)
+        })
+    }, [])
 
     useEffect(() => {
         if (context.selectedRetailerIsTenant !== null) {
@@ -163,6 +199,17 @@ export default function versionOverview() {
         );
     }
 
+    function CustomDockerToolbar() {
+        return (
+            <GridToolbarContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                    <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+                    <Button onClick={cleanUpContainers} sx={{ marginLeft: 2 }}>Clean Up</Button>
+                </Box>
+            </GridToolbarContainer>
+        );
+    }
+
     return (
         <Root className={classes.content}>
             <Typography align="center" variant="h3">
@@ -171,6 +218,9 @@ export default function versionOverview() {
             <Tabs value={selectedTab} onChange={handleChangeTab} centered>
                 <Tab label="REMS" {...a11yProps(0)} />
                 <Tab label="CHEC" {...a11yProps(1)} />
+                {context.userRoles.includes('toshibaAdmin') &&
+                    <Tab label="Docker" {...a11yProps(2)} />
+                }
             </Tabs>
             <TabPanel value={selectedTab} index={0}>
                 <Paper elevation={5} sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
@@ -230,6 +280,26 @@ export default function versionOverview() {
                         style={{ backgroundColor: '#5BA52E' }}
                     />
                 </Snackbar>
+            </TabPanel>
+            <TabPanel value={selectedTab} index={2}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
+                    <StyledDataGrid
+                        slots={{ toolbar: CustomDockerToolbar }}
+                        initialState={{
+                            pagination: { paginationModel: { pageSize: 10 } },
+                        }}
+                        rows={containers}
+                        columns={dockerColumns}
+                        pageSizeOptions={[5, 10, 15]}
+                        getRowClassName={(row) => {
+                            let oldData = false
+                            if (moment(row.row.LastUpdatedSec).diff(Date.now(), 'days') < -7) {
+                                oldData = true
+                            }
+                            return !oldData ? 'super-app-theme--good' : 'super-app-theme--deadContainer';
+                        }}
+                    />
+                </Box>
             </TabPanel>
             <Copyright />
         </Root>
