@@ -6,13 +6,18 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Box } from '@mui/system';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import { Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
+import { Alert, AlertTitle, Button, Paper, Snackbar, SnackbarContent, Tab, Tabs } from '@mui/material';
 import UserContext from '../../pages/UserContext'
 import _ from 'lodash';
 import Copyright from '../../components/Copyright';
 import moment from 'moment';
 
 const PREFIX = 'versionOverview';
+
+/// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
+const SuccessToastDuration = 4000;
+/// Number of millisec to show Failure toast. Page does not reload after.
+const FailToastDuration = 10000;
 
 const classes = {
     content: `${PREFIX}-content`,
@@ -71,10 +76,6 @@ function TabPanel(props) {
     );
 }
 
-function cleanUpContainers() {
-    axios.delete('/api/bus-monitor/cleanUpOldContainers')
-}
-
 export default function versionOverview() {
     const [allAgents, setAllAgents] = useState([])
     const [agents, setAgents] = useState([]);
@@ -85,6 +86,10 @@ export default function versionOverview() {
     const [userIsAdmin, setUserIsAdmin] = useState(false)
     const [selectedTab, setSelectedTab] = useState(0)
     const [containers, setContainers] = useState([])
+    const [toastFailure, setToastFailure] = useState('');
+    const [openFailure, setOpenFailure] = useState(false);
+    const [toastSuccess, setToastSuccess] = useState('');
+    const [openSuccess, setOpenSuccess] = useState(false);
 
     const handleChangeTab = (event, newValue) => {
         if (newValue === 1) {
@@ -95,6 +100,30 @@ export default function versionOverview() {
         }
         setSelectedTab(newValue);
     };
+
+    function cleanUpContainers() {
+        axios.delete('/api/bus-monitor/cleanUpOldContainers')
+            .then(function (response) {
+                if (response.status !== 200) {
+                    const errorMessage = response?.data?.message ? response.data.message : 'Error deleting dead containers!';
+                    setToastFailure(errorMessage);
+                    setOpenFailure(true);
+                    return;
+                }
+
+                setToastSuccess('Dead Containers Successfully deleted!');
+                setOpenSuccess(true);
+
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, SuccessToastDuration + 500);
+            })
+            .catch(function (error) {
+                console.log('Error Details:', error);
+                setToastFailure('Error connecting to server!!');
+                setOpenFailure(true);
+            });
+    }
 
     const pasVersionRenderer = (value) => {
         const installPas = (e) => {
@@ -122,7 +151,7 @@ export default function versionOverview() {
     ];
 
     const dockerColumns = [
-        { field: 'hostName', headerName: 'Host Name', sortable: true, flex: 1 },
+        { field: 'hostName', headerName: 'Host Name', sortable: true, flex: 2 },
         { field: 'os', headerName: 'OS', sortable: true, flex: 1 },
         { field: 'host_server', headerName: 'Host Server', sortable: true, flex: 1 },
         { field: 'count', headerName: 'Count', sortable: true, flex: 1 },
@@ -293,7 +322,7 @@ export default function versionOverview() {
                         pageSizeOptions={[5, 10, 15]}
                         getRowClassName={(row) => {
                             let oldData = false
-                            if (moment(row.row.LastUpdatedSec).diff(Date.now(), 'days') < -7) {
+                            if (moment(row.row.LastUpdatedSec).diff(Date.now(), 'days') < -7 || row.row.LastUpdatedSec === undefined) {
                                 oldData = true
                             }
                             return !oldData ? 'super-app-theme--good' : 'super-app-theme--deadContainer';
@@ -301,6 +330,32 @@ export default function versionOverview() {
                     />
                 </Box>
             </TabPanel>
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={openSuccess}
+                autoHideDuration={SuccessToastDuration}
+                onClose={(event) => {
+                    setOpenSuccess(false);
+                }}
+            >
+                <Alert variant="filled" severity="success">
+                    <AlertTitle>Success!</AlertTitle>
+                    {toastSuccess}
+                </Alert>
+            </Snackbar>
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={openFailure}
+                autoHideDuration={FailToastDuration}
+                onClose={(event) => {
+                    setOpenFailure(false);
+                }}
+            >
+                <Alert variant="filled" severity="error">
+                    <AlertTitle>Error!!!</AlertTitle>
+                    {toastFailure}
+                </Alert>
+            </Snackbar>
             <Copyright />
         </Root>
     );
