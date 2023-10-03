@@ -39,12 +39,11 @@ const EleraHealth = () => {
 
             if (selectedMenuItem) {
                 const selectedStore = storeList.find(store => store.storeName === selectedMenuItem);
-                const storeName = selectedStore.storeName;
                 if (selectedStore) {
                     const urlFromDatabase = configurationInfo.find(item => item.configName === 'eleraDashboardHealthUrl').configValue;
                     const modifiedUrl = urlFromDatabase
-                        .replace(/\${storeName}/g, storeName)
-                        .replace(/\${selectedRetailer}/g, context?.selectedRetailer);
+                        .replace(/\${storeName}/g, selectedStore.storeName)
+                        .replace(/\${selectedRetailer}/g, selectedRetailer);
                     setEleraHealthUrl(modifiedUrl);
                 }
             }
