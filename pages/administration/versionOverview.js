@@ -79,7 +79,7 @@ function TabPanel(props) {
 export default function versionOverview() {
     const [allAgents, setAllAgents] = useState([])
     const [agents, setAgents] = useState([]);
-    const [rem, setRem] = useState({});
+    const [rem, setRem] = useState([])
     const [open, setOpen] = useState(false);
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
@@ -159,6 +159,24 @@ export default function versionOverview() {
         { field: 'LastUpdatedSec', headerName: 'Last Update', sortable: true, flex: 1, renderCell: (params) => params.row.LastUpdatedSec ? moment(params.row.LastUpdatedSec).fromNow() : 'N/A' }
     ];
 
+    const headerColumns = [
+        { field: 'remsId', headerName: 'REMS Id', sortable: true, flex: 2 },
+        { field: 'remsVersion', headerName: 'REMS Version', sortable: true, flex: 1 },
+        { field: 'pasKarVersion', headerName: 'PAS Kar Version', sortable: true, flex: 1 },
+        { field: 'cfVersion', headerName: 'CF Version', sortable: true, flex: 1 },
+        { field: 'lastUpdated', headerName: 'Last Updated', sortable: true, flex: 1 },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            sortable: false,
+            width: 100,
+            disableClickEventBubbling: true,
+            renderCell: (params) => {
+                return <Button variant='contained' onClick={() => handleDelete(params.row.id)}>Delete</Button>;
+            },
+        },
+    ];
+
     useEffect(() => {
         if (context) {
             setSelectedRetailer(context.selectedRetailer)
@@ -201,22 +219,60 @@ export default function versionOverview() {
                     if (selectedRetailer && selectedRetailer !== '') {
                         let url = `/api/REMS/versionsData?retailer_id=${context.selectedRetailerParentRemsServerId}&tenant_id=${selectedRetailer}`;
                         axios.get(url).then((x) => {
-                            setRem(x.data.rem);
-                            setAgents(x.data.agents.map((agent) => ({
-                                ...agent,
-                                id: agent._id
-                            })));
-                            setAllAgents(x.data.agents.map((agent) => ({
-                                ...agent,
-                                id: agent._id
-                            })));
+                            setRem(
+                                x.data.rem.map((rems) => ({
+                                    ...rems,
+                                    id: rems._id
+                                }))
+                            );
+                            setAgents(
+                                x.data.agents.map((agent) => ({
+                                    ...agent,
+                                    id: agent._id
+                                }))
+                            );
+                            setAllAgents(
+                                x.data.agents.map((agent) => ({
+                                    ...agent,
+                                    id: agent._id
+                                }))
+                            );
                         });
                     }
                 }
             }
         }
-
     }, [selectedRetailer, context.selectedRetailerParentRemsServerId]);
+
+    const remsRows = rem
+        ? rem.map((singleRem) => {
+            let lastUpdate = 'Not Available';
+            let lastUpdateUnix = null;
+            if ('last_heartbeat_sec' in singleRem && singleRem.last_heartbeat_sec != null) {
+                lastUpdate = moment.unix(singleRem.last_heartbeat_sec).fromNow();
+                lastUpdateUnix = singleRem.last_heartbeat_sec;
+            }
+            return {
+                id: singleRem._id,
+                remsId: singleRem.remsId ?? 'Not Available',
+                remsVersion: singleRem.rems_version ?? 'Not Available',
+                lastUpdated: lastUpdate ?? 'Not Available',
+                lastUpdateUnix: lastUpdateUnix,
+                pasKarVersion: `${singleRem.pas_version}_${singleRem.build_number}`,
+                cfVersion: singleRem.cloudforwarder_version ?? 'Not Available',
+            };
+        })
+        : [];
+
+    remsRows.sort((a, b) => {
+        if (b.lastUpdateUnix && a.lastUpdateUnix) {
+            return b.lastUpdateUnix - a.lastUpdateUnix;
+        } else if (b.lastUpdateUnix) {
+            return -1;
+        } else {
+            return 1;
+        }
+    });
 
     function CustomToolbar() {
         return (
@@ -239,6 +295,30 @@ export default function versionOverview() {
         );
     }
 
+    const handleDelete = async (_id) => {
+        axios
+            .delete(`/api/REMS/deleteRemsDoc?_id=${_id}`)
+            .then(function (response) {
+                if (response.status !== 200) {
+                    setToastFailure('Error Deleting Rems Info!');
+                    setOpenFailure(true);
+                    return;
+                }
+
+                setToastSuccess('Rems Info Successfully Deleted.');
+                setOpenSuccess(true);
+
+                setTimeout(function () {
+                    window.location.reload(true);
+                }, SuccessToastDuration + 500);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setToastFailure('Error connecting to server!!');
+                setOpenFailure(true);
+            });
+    };
+
     return (
         <Root className={classes.content}>
             <Typography align="center" variant="h3">
@@ -247,23 +327,21 @@ export default function versionOverview() {
             <Tabs value={selectedTab} onChange={handleChangeTab} centered>
                 <Tab label="REMS" {...a11yProps(0)} />
                 <Tab label="CHEC" {...a11yProps(1)} />
+                <Tab label="AGENTS" {...a11yProps(2)} />
                 {context.userRoles.includes('toshibaAdmin') &&
-                    <Tab label="Docker" {...a11yProps(2)} />
+                    <Tab label="Docker" {...a11yProps(3)} />
                 }
             </Tabs>
-            <TabPanel value={selectedTab} index={0}>
-                <Paper elevation={5} sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-                    <Typography variant="h5" sx={{ padding: 1 }}>
-                        REMS version: {rem?.rems_version}
-                    </Typography>
-                    <Typography variant="h5" sx={{ padding: 1 }}>
-                        PAS kar version: {rem?.pas_version}_{rem?.build_number}
-                    </Typography>
-                    <Typography variant="h5" sx={{ padding: 1 }}>
-                        CF version: {rem?.cloudforwarder_version}
-                    </Typography>
-                </Paper>
-                <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
+            <TabPanel value={selectedTab} index={2}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        marginTop: 1,
+                        height: 600,
+                        width: '100%',
+                    }}
+                >
                     <DataGrid
                         slots={{ toolbar: CustomToolbar }}
                         initialState={{
@@ -287,7 +365,15 @@ export default function versionOverview() {
                 </Snackbar>
             </TabPanel>
             <TabPanel value={selectedTab} index={1}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        marginTop: 1,
+                        height: 600,
+                        width: '100%',
+                    }}
+                >
                     <DataGrid
                         slots={{ toolbar: CustomToolbar }}
                         initialState={{
@@ -304,13 +390,10 @@ export default function versionOverview() {
                     onClose={() => setOpen(false)}
                     anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 >
-                    <SnackbarContent
-                        message={"Sent install request"}
-                        style={{ backgroundColor: '#5BA52E' }}
-                    />
+                    <SnackbarContent message={'Sent install request'} style={{ backgroundColor: '#5BA52E' }} />
                 </Snackbar>
             </TabPanel>
-            <TabPanel value={selectedTab} index={2}>
+            <TabPanel value={selectedTab} index={3}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
                     <StyledDataGrid
                         slots={{ toolbar: CustomDockerToolbar }}
@@ -356,6 +439,53 @@ export default function versionOverview() {
                     {toastFailure}
                 </Alert>
             </Snackbar>
+            <TabPanel value={selectedTab} index={0}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        marginTop: 1,
+                        height: 600,
+                        width: '100%',
+                    }}
+                >
+                    <StyledDataGrid rows={remsRows} columns={headerColumns} pageSizeOptions={[5, 10, 15]} pageSize={10}
+                        getRowClassName={(row) => {
+                            let oldData = false
+                            console.log(row.row)
+                            if (moment(row.row.lastUpdateUnix).diff(Date.now(), 'hours') > -1 || row.row.lastUpdateUnix === null) {
+                                oldData = true
+                            }
+                            return !oldData ? 'super-app-theme--good' : 'super-app-theme--deadContainer';
+                        }} />
+                </Box>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openSuccess}
+                    autoHideDuration={SuccessToastDuration}
+                    onClose={(event) => {
+                        setOpenSuccess(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="success">
+                        <AlertTitle>Success!</AlertTitle>
+                        {toastSuccess}
+                    </Alert>
+                </Snackbar>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openFailure}
+                    autoHideDuration={FailToastDuration}
+                    onClose={(event) => {
+                        setOpenFailure(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="error">
+                        <AlertTitle>Error!!!</AlertTitle>
+                        {toastFailure}
+                    </Alert>
+                </Snackbar>
+            </TabPanel>
             <Copyright />
         </Root>
     );

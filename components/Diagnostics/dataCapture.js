@@ -3,13 +3,12 @@ import React, { useContext } from 'react';
 import Container from '@mui/material/Container';
 import ExtractRequestGrid from '../../components/Tables/ExtractRequestGrid';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import axios from 'axios';
 import UserContext from '../../pages/UserContext'
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { Alert, AlertTitle, Snackbar } from '@mui/material';
 import Copyright from '../../components/Copyright';
+import RemsDataCaptureGrid from '../Tables/RemsDataCaptureGrid';
 const PREFIX = 'dataCapture';
 
 const classes = {
@@ -79,31 +78,11 @@ export default function DataCapture() {
             <Typography align="center" variant="h4" marginBottom={1}>
                 Trigger Data Capture
             </Typography>
-            {remsDataCaptureEnabled && <Button
-                style={{ float: 'right', marginRight: 10, padding: 10 }}
-                variant="contained"
-                onClick={() => {
-                    if (context.selectedRetailerIsTenant === true) {
-                        axios.post('/api/registers/requestRemsDump', { retailer: context.selectedRetailerParentRemsServerId, dataCapture: 'REMS' })
-                            .then((res) => {
-                                processSuccessfulResponse(res, 'REMS Data');
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, 'REMS Data');
-                            });
-                    } else {
-                        axios.post('/api/registers/requestRemsDump', { retailer: selectedRetailer, dataCapture: 'REMS' })
-                            .then((res) => {
-                                processSuccessfulResponse(res, 'REMS Data');
-                            })
-                            .catch((res) => {
-                                processFailedResponse(res, 'REMS Data');
-                            });
-                    }
-                }}
-            >
-                Create Rems Data Capture
-            </Button>}
+            {remsDataCaptureEnabled &&
+                <Container className={classes.container}>
+                    <RemsDataCaptureGrid selectedretailer={selectedRetailer} />
+                </Container>
+            }
 
             <Container className={classes.container}>
                 <ExtractRequestGrid selectedRetailer={selectedRetailer} />

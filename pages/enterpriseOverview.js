@@ -15,10 +15,10 @@ import {
     Chip,
     Button,
     CircularProgress,
-    Snackbar, SnackbarContent,
+    Snackbar, SnackbarContent, Tooltip, Fade,
 } from '@mui/material';
 import axios from 'axios';
-import { isEmpty, now } from 'lodash';
+import _, { isEmpty, now } from 'lodash';
 import Copyright from '../components/Copyright';
 import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
@@ -27,9 +27,11 @@ import { useMsal } from '@azure/msal-react';
 import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
 import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
 import DeviceList from '../components/EnterpriseOverview/DeviceList';
-import moment from 'moment';
+import moment, { unix } from 'moment';
 import MobileHandheldsList from '../components/EnterpriseOverview/MobileHandheldsList';
+import WifiOffIcon from '@mui/icons-material/WifiOff';
 import PeripheralsList from '../components/EnterpriseOverview/PeripheralsList';
+import Link from 'next/link';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -64,7 +66,7 @@ function AppliedFilterDisplay({ filtersApplied, handleFilterDelete }) {
 };
 
 export default function EnterpriseOverview() {
-    let par = '';
+    let par = ''
     if (typeof window !== 'undefined') {
         par = window.location.search;
     }
@@ -147,6 +149,7 @@ export default function EnterpriseOverview() {
     const [isDevicesListView, setIsDevicesListView] = useState(false)
     const [disconnectTimeLimit, setDisconnectTimeLimit] = useState(24)
     const [isHandheldsListView, setIsHandheldsListView] = useState(false)
+    const [remsAreGood, setRemsAreGood] = useState(true)
 
     useEffect(() => {
         setSelectedRetailer('');
@@ -350,6 +353,19 @@ export default function EnterpriseOverview() {
         async function fetchData() {
             await axios.get(`/api/retailers/getAllDetails`).then(function (res) {
                 setAllRetailers(res.data);
+            })
+            await axios.get(`/api/REMS/versionsData?retailer_id=T0BGBBL`).then(function (res) {
+                let allRemsAreGood = true
+                res.data.rem.forEach(remsServer => {
+                    let lastUpdateUnix = remsServer.last_heartbeat_sec
+                    let oneHourAgo = moment().subtract(1, 'hours').unix()
+                    if (lastUpdateUnix === undefined) {
+                        allRemsAreGood = false
+                    } else if (moment.unix(lastUpdateUnix) < oneHourAgo) {
+                        allRemsAreGood = false
+                    }
+                })
+                setRemsAreGood(allRemsAreGood)
             })
         }
         fetchData()
@@ -902,7 +918,24 @@ export default function EnterpriseOverview() {
                         )}
                     </Box>
                     <Box sx={{ display: 'flex', width: '86%', flexDirection: 'column', height: '100%' }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                            {!remsAreGood &&
+                                <Tooltip title="REMS Connection is Disrupted" arrow TransitionComponent={Fade} TransitionProps={{ timeout: 400 }}>
+                                    <Link href={'/administration/versionOverview'}>
+                                        <Paper elevation={5} sx={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            width: 50,
+                                            height: 50,
+                                            justifyContent: 'center',
+                                            marginRight: 2
+                                        }}>
+                                            <WifiOffIcon color='error' fontSize='large' />
+                                        </Paper>
+                                    </Link>
+                                </Tooltip>
+                            }
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
@@ -933,7 +966,6 @@ export default function EnterpriseOverview() {
                                     }} />}
                             />
                             <Typography sx={{ alignSelf: 'center' }}>Only Stores with Problems</Typography>
-
                             <Switch
                                 sx={{ alignSelf: 'center' }}
                                 onChange={toggleShowOnlyDownStores}
