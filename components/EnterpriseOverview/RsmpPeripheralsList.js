@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Card } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import moment from 'moment';
 
-export default function PeripheralsList({ peripherals }) {
+export default function RsmpPeripheralsList({ peripherals }) {
     const [columns, setColumns] = useState([])
 
     useEffect(() => {
@@ -12,42 +11,91 @@ export default function PeripheralsList({ peripherals }) {
             {
                 field: 'storeName',
                 headerName: 'Store',
+                width: 100,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'model',
+                headerName: 'Model',
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
             {
-                field: 'agentName',
-                headerName: 'Agent',
-                width: 200,
-                sortable: true,
-                sortingOrder: ['asc', 'desc'],
-            },
-            {
-                field: 'deviceType',
-                headerName: 'Device Type',
+                field: 'firmware',
+                headerName: 'Firmware',
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
             {
-                field: 'online',
-                headerName: 'Status',
+                field: 'osVersion',
+                headerName: 'OS Version',
+                width: 100,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'bluetoothId',
+                headerName: 'Bluetooth Id',
                 width: 150,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
-                renderCell: (params) => params.row.online === 'true' ? 'Online' : 'Offline',
-                valueGetter: (params) => { return params.row.online === 'true' ? 'Online' : 'Offline' }
             },
             {
-                field: 'last_updated',
-                headerName: 'Last Update',
+                field: 'bluetoothAddress',
+                headerName: 'Bluetooth Address',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc']
+            },
+            {
+                field: 'bluetoothLibraryVersion',
+                headerName: 'Bluetooth Library',
+                width: 125,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'bluetoothRadioVersion',
+                headerName: 'Bluetooth Radio',
+                width: 125,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'freeFlash',
+                headerName: 'Free Flash',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'totalFlash',
+                headerName: 'Total Flash',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'freeRam',
+                headerName: 'Free RAM',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'totalRam',
+                headerName: 'Total RAM',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
+            {
+                field: 'deviceUptime',
+                headerName: 'Uptime',
                 width: 250,
-                sortable: true,
-                type: 'datetime',
-                sortingOrder: ['asc', 'desc'],
-                valueGetter: (params) => params.value,
-                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
             }
         ])
     }, [])

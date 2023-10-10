@@ -27,11 +27,12 @@ import { useMsal } from '@azure/msal-react';
 import StoresOnlineList from '../components/EnterpriseOverview/StoresOnlineList';
 import AttendedLanesList from '../components/EnterpriseOverview/AttendedLanesList';
 import DeviceList from '../components/EnterpriseOverview/DeviceList';
-import moment, { unix } from 'moment';
+import moment from 'moment';
 import MobileHandheldsList from '../components/EnterpriseOverview/MobileHandheldsList';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
-import PeripheralsList from '../components/EnterpriseOverview/PeripheralsList';
 import Link from 'next/link';
+import RsmpPeripheralsList from '../components/EnterpriseOverview/RsmpPeripheralsList';
+import PeripheralsList from '../components/EnterpriseOverview/PeripheralsList';
 const PREFIX = 'enterpriseOverview';
 
 const classes = {
@@ -74,6 +75,7 @@ export default function EnterpriseOverview() {
     const [devices, setDevices] = useState([])
     const [handhelds, setHandhelds] = useState([])
     const [peripherals, setPeripherals] = useState([])
+    const [rsmpPeripherals, setRsmpPeripherals] = useState([])
     const [attendedLanes, setAttendedLanes] = useState([])
     const [allPlaces, setAllPlaces] = useState([]);
     const [selectedContinent, setSelectedContinent] = useState(null);
@@ -90,6 +92,7 @@ export default function EnterpriseOverview() {
     const [devicesUp, setDevicesUp] = useState(null);
     const [handheldsUp, setHandheldsUp] = useState(null)
     const [peripheralsUp, setPeripheralsUp] = useState(null)
+    const [rsmpPeripheralsUp, setRsmpPeripheralsUp] = useState(null)
     const [pullStorePeriodically, setPullStorePeriodically] = useState(0);
     const [isFilterSelect, setIsFilterSelect] = useState(false);
     const [showStoreOnlineWidget, setShowStoreOnlineWidget] = useState(false);
@@ -97,6 +100,7 @@ export default function EnterpriseOverview() {
     const [loading, setLoading] = useState(false);
     const [showAttendedLanesWidget, setShowAttendedLanesWidget] = useState(false);
     const [showDevicesWidget, setShowDevicesWidget] = useState(false);
+    const [showRsmpPeripheralsWidget, setShowRsmpPeripheralsWidget] = useState(false);
     const [showPeripheralsWidget, setShowPeripheralsWidget] = useState(false);
     const [showHandheldsWidget, setShowHandheldsWidget] = useState(false);
     const [devicesWidgetErrorPercentage, setDevicesWidgetErrorPercentage] = useState(0)
@@ -106,6 +110,7 @@ export default function EnterpriseOverview() {
     const [allStores, setAllStores] = useState([]);
     const [filteredStores, setFilteredStores] = useState([]);
     const [filteredDevices, setFilteredDevices] = useState([]);
+    const [filteredPeripherals, setFilteredPeripherals] = useState([])
     const [onlineStoreWidget, setOnlineStoreWidget] = useState({
         onlineStore: 0,
         onlineStoreText: null,
@@ -127,6 +132,11 @@ export default function EnterpriseOverview() {
         handheldsUpText: null,
         handheldsUpColor: 'success'
     })
+    const [rsmpPeripheralsUpWidget, setRsmpPeripheralsUpWidget] = useState({
+        rsmpPeripheralsUp: 0,
+        rsmpPeripheralsUpText: null,
+        rsmpPeripheralsUpColor: 'success'
+    })
     const [peripheralsUpWidget, setPeripheralsUpWidget] = useState({
         peripheralsUp: 0,
         peripheralsUpText: null,
@@ -144,6 +154,7 @@ export default function EnterpriseOverview() {
     const [goodStoreStatusPercentage, setGoodStoreStatusPercentage] = useState(0);
     const [poorStoreStatusPercentage, setPoorStoreStatusPercentage] = useState(0);
     const [isStoresOnlineListView, setIsStoresOnlineListView] = useState(false)
+    const [isRsmpPeripheralsListView, setIsRsmpPeripheralsListView] = useState(false)
     const [isPeripheralsListView, setIsPeripheralsListView] = useState(false)
     const [isAttendedLanesListView, setIsAttendedLanesListView] = useState(false)
     const [isDevicesListView, setIsDevicesListView] = useState(false)
@@ -154,6 +165,7 @@ export default function EnterpriseOverview() {
     useEffect(() => {
         setSelectedRetailer('');
         setPeripheralsUp(null)
+        setRsmpPeripheralsUp(null)
         setHandheldsUp(null)
         setDevicesUp(null);
         setLaneUpWidget({
@@ -172,11 +184,13 @@ export default function EnterpriseOverview() {
         setAttendedLanes([])
         setDevices([])
         setPeripherals([])
+        setRsmpPeripherals([])
         setHandhelds([])
         setFilteredFilters([])
         setShowAttendedLanesWidget(false);
         setShowDevicesWidget(false);
         setShowStoreOnlineWidget(false);
+        setShowRsmpPeripheralsWidget(false)
         setShowPeripheralsWidget(false);
         setConfigInfo([]);
         setSelectedContinent(null);
@@ -243,6 +257,7 @@ export default function EnterpriseOverview() {
                 configurationInfo.push(innerArray);
             });
             setConfigInfo(configurationInfo)
+            setShowRsmpPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewRsmpPeripheralsWidget').configValue)
             setShowPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewPeripheralsWidget').configValue)
             setShowHandheldsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewHandheldsWidget').configValue)
             setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
@@ -304,6 +319,14 @@ export default function EnterpriseOverview() {
             peripheralsUpColor: peripheralsUp?.percentUp > 50 ? 'success' : 'error'
         })
     }, [peripheralsUp])
+
+    useEffect(() => {
+        setRsmpPeripheralsUpWidget({
+            rsmpPeripheralsUp: rsmpPeripheralsUp?.percentUp,
+            rsmpPeripheralsUpText: `${rsmpPeripheralsUp?.online}/${rsmpPeripheralsUp?.total}`,
+            rsmpPeripheralsUpColor: rsmpPeripheralsUp?.percentUp > 50 ? 'success' : 'error'
+        })
+    }, [rsmpPeripheralsUp])
 
     const handleFilterSelected = (e, selectedValue) => {
         setLoading(true);
@@ -526,7 +549,7 @@ export default function EnterpriseOverview() {
             }
 
             if (showDevicesWidget === true || showDevicesWidget === 'true') {
-                axios.get(`/api/REMS/devices`, query).then(function (res) {
+                axios.get(`/api/devices/getDevices`, query).then(function (res) {
                     let localDevices = []
                     if (res.data.length > 0) {
                         res.data.forEach((device, index) => {
@@ -538,6 +561,21 @@ export default function EnterpriseOverview() {
                     setFilteredDevices(res?.data)
                 });
             }
+
+            if (showPeripheralsWidget === true || showPeripheralsWidget === 'true') {
+                axios.get(`/api/devices/getPeripherals`, query).then(function (res) {
+                    let localPeripherals = []
+                    if (res.data.length > 0) {
+                        res.data.forEach((device, index) => {
+                            device.id = index
+                            localPeripherals.push(device)
+                        });
+                    }
+                    setPeripherals(localPeripherals)
+                    setFilteredPeripherals(res?.data)
+                });
+            }
+
             if (showHandheldsWidget === true || showHandheldsWidget === 'true') {
                 axios.get(`/api/rsmpData/getMobileAssets`, query).then(function (res) {
                     let totalHandhelds = 0
@@ -575,8 +613,8 @@ export default function EnterpriseOverview() {
                             totalPeripherals++
                         });
                     }
-                    setPeripherals(localPeripherals)
-                    setPeripheralsUp({ 'online': onlinePeripherals, 'total': totalPeripherals, 'percentUp': ((onlinePeripherals / totalPeripherals) * 100) })
+                    setRsmpPeripherals(localPeripherals)
+                    setRsmpPeripheralsUp({ 'online': onlinePeripherals, 'total': totalPeripherals, 'percentUp': ((onlinePeripherals / totalPeripherals) * 100) })
                 });
             }
 
@@ -600,6 +638,24 @@ export default function EnterpriseOverview() {
             setDevicesUp({ 'online': 0, 'total': 0, 'percentUp': 0 })
         }
     }, [filteredDevices])
+
+    useEffect(() => {
+        let totalPeripherals = 0;
+        let onlinePeripherals = 0;
+        if (filteredPeripherals.length > 0) {
+            filteredPeripherals.map(device => {
+                device.id = device._id
+                if (device.online == 'true') {
+                    onlinePeripherals++
+                }
+                totalPeripherals++
+            });
+            const percentUp = (onlinePeripherals / totalPeripherals) * 100;
+            setPeripheralsUp({ 'online': onlinePeripherals, 'total': totalPeripherals, 'percentUp': isNaN(percentUp) ? 0 : percentUp })
+        } else {
+            setPeripheralsUp({ 'online': 0, 'total': 0, 'percentUp': 0 })
+        }
+    }, [filteredPeripherals])
 
     useEffect(() => {
         if (attendedLanes?.length > 0) {
@@ -751,11 +807,16 @@ export default function EnterpriseOverview() {
         let filteredPlaces = [...allPlaces];
         let filteredStores = [...allStores];
         let filteredDevices = [...devices];
+        let filteredPeripherals = [...peripherals]
         let tempFiltersFiltered = [];
         if (selectedContinent) {
             filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
             filteredStores = filteredStores.filter((x) => x.continent === selectedContinent.id);
             filteredDevices = filteredDevices.filter((x) => {
+                const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
+                return findStore ? true : false;
+            })
+            filteredPeripherals = filteredPeripherals.filter((x) => {
                 const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
                 return findStore ? true : false;
             })
@@ -768,18 +829,24 @@ export default function EnterpriseOverview() {
                 const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
                 return findStore ? true : false;
             })
+            filteredPeripherals = filteredPeripherals.filter((x) => {
+                const findStore = filteredPlaces.find(p => p.storeName === x.storeName);
+                return findStore ? true : false;
+            })
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'continent' && x.type !== 'country' && x.country === selectedCountry.id);
         }
         if (selectedStore) {
             filteredPlaces = filteredPlaces.filter((x) => x._id === selectedStore.id);
             filteredStores = filteredStores.filter((x) => x._id === selectedStore.id);
             filteredDevices = filteredDevices.filter((x) => x.storeName === selectedStore.name);
+            filteredPeripherals = filteredPeripherals.filter((x) => x.storeName === selectedStore.name);
         }
         if (filtersApplied.length === 0) {
             tempFiltersFiltered = [...allFilters];
         }
         setFilteredStores(filteredStores)
         setFilteredFilters(tempFiltersFiltered);
+        setFilteredPeripherals(filteredPeripherals)
         setPlaces(filteredPlaces);
         setFilteredDevices(filteredDevices)
     }, [allPlaces, filtersApplied, isRefetch]);
@@ -795,24 +862,35 @@ export default function EnterpriseOverview() {
             setIsDevicesListView(false)
             setIsAttendedLanesListView(false)
             setIsHandheldsListView(false)
+            setIsRsmpPeripheralsListView(false)
             setIsPeripheralsListView(false)
         }
         if (viewName === 'attendedLanes' && value === false) {
             setIsDevicesListView(false)
             setIsStoresOnlineListView(false)
             setIsHandheldsListView(false)
+            setIsRsmpPeripheralsListView(false)
             setIsPeripheralsListView(false)
         }
         if (viewName === 'devices' && value === false) {
             setIsAttendedLanesListView(false)
             setIsStoresOnlineListView(false)
             setIsHandheldsListView(false)
+            setIsRsmpPeripheralsListView(false)
             setIsPeripheralsListView(false)
         }
         if (viewName === 'handhelds' && value === false) {
             setIsAttendedLanesListView(false)
             setIsStoresOnlineListView(false)
             setIsDevicesListView(false)
+            setIsRsmpPeripheralsListView(false)
+            setIsPeripheralsListView(false)
+        }
+        if (viewName === 'rsmpPeripherals' && value === false) {
+            setIsAttendedLanesListView(false)
+            setIsStoresOnlineListView(false)
+            setIsDevicesListView(false)
+            setIsHandheldsListView(false)
             setIsPeripheralsListView(false)
         }
         if (viewName === 'peripherals' && value === false) {
@@ -820,6 +898,8 @@ export default function EnterpriseOverview() {
             setIsStoresOnlineListView(false)
             setIsDevicesListView(false)
             setIsHandheldsListView(false)
+            setIsRsmpPeripheralsListView(false)
+            setIsDevicesListView(false)
         }
 
         setter(prev => !prev)
@@ -828,10 +908,12 @@ export default function EnterpriseOverview() {
     let placesResult = [...places];
     let storesResult = [...filteredStores];
     let devicesResult = [...filteredDevices];
+    let peripheralsResult = [...filteredPeripherals]
     if (showOnlyDownStores) {
         placesResult = places.filter((x) => x.online === false);
         storesResult = filteredStores.filter((x) => x.online === false)
         devicesResult = filteredDevices.filter((x) => x.online == 'false');
+        peripheralsResult = filteredPeripherals.filter((x) => x.online === 'false')
     }
 
     return (
@@ -892,6 +974,18 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
+                        {(showPeripheralsWidget === true && peripheralsUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isPeripheralsListView, setIsPeripheralsListView, 'peripherals')} sx={[isPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {!isEmpty(peripheralsUpWidget?.peripheralsUpText) ?
+                                    <CustomLinearProgress
+                                        title="Peripherals"
+                                        subTitle={peripheralsUpWidget?.peripheralsUpText}
+                                        value={peripheralsUpWidget?.peripheralsUp}
+                                        color={peripheralsUpWidget?.peripheralsUpColor}
+                                    /> : <CircularProgress sx={{ margin: 2 }} />
+                                }
+                            </Paper>
+                        )}
                         {(showHandheldsWidget === true && handheldsUp) && (
                             <Paper onClick={() => handleListViewPaperClicked(isHandheldsListView, setIsHandheldsListView, 'handhelds')} sx={[isHandheldsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isHandheldsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {!isEmpty(handheldsUpWidget?.handheldsUpText) ?
@@ -904,14 +998,14 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
-                        {(showPeripheralsWidget === true && peripheralsUp) && (
-                            <Paper onClick={() => handleListViewPaperClicked(isPeripheralsListView, setIsPeripheralsListView, 'peripherals')} sx={[isPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
-                                {!isEmpty(peripheralsUpWidget?.peripheralsUpText) ?
+                        {(showRsmpPeripheralsWidget === true && rsmpPeripheralsUp) && (
+                            <Paper onClick={() => handleListViewPaperClicked(isRsmpPeripheralsListView, setIsRsmpPeripheralsListView, 'rsmpPeripherals')} sx={[isRsmpPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isRsmpPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
+                                {!isEmpty(rsmpPeripheralsUpWidget?.rsmpPeripheralsUpText) ?
                                     <CustomLinearProgress
                                         title="Mobile Printers"
-                                        subTitle={peripheralsUpWidget?.peripheralsUpText}
-                                        value={peripheralsUpWidget?.peripheralsUp}
-                                        color={peripheralsUpWidget?.peripheralsUpColor}
+                                        subTitle={rsmpPeripheralsUpWidget?.rsmpPeripheralsUpText}
+                                        value={rsmpPeripheralsUpWidget?.rsmpPeripheralsUp}
+                                        color={rsmpPeripheralsUpWidget?.rsmpPeripheralsUpColor}
                                     /> : <CircularProgress sx={{ margin: 2 }} />
                                 }
                             </Paper>
@@ -995,8 +1089,9 @@ export default function EnterpriseOverview() {
                         {isStoresOnlineListView && <StoresOnlineList context={context} disconnectTimeLimit={disconnectTimeLimit} places={storesResult} poorStoreStatusPercentage={poorStoreStatusPercentage} goodStoreStatusPercentage={goodStoreStatusPercentage} selectedRetailer={context.selectedRetailer} />}
                         {isAttendedLanesListView && <AttendedLanesList context={context} disconnectTimeLimit={disconnectTimeLimit} places={placesResult} selectedRetailer={context.selectedRetailer} attendedList={attendedLanes} />}
                         {isDevicesListView === true && <DeviceList devices={devicesResult} />}
+                        {isPeripheralsListView === true && <PeripheralsList peripherals={peripheralsResult} />}
                         {isHandheldsListView === true && <MobileHandheldsList handhelds={handhelds} />}
-                        {isPeripheralsListView === true && <PeripheralsList peripherals={peripherals} />}
+                        {isRsmpPeripheralsListView === true && <RsmpPeripheralsList peripherals={rsmpPeripherals} />}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>
