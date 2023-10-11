@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Typography from '@mui/material/Typography';
 import MuiLink from '@mui/material/Link';
 import appInfo from '../package.json';
+import Link from 'next/link';
 
 export default function Copyright() {
     const [appVersion, setAppVersion] = useState('');
@@ -23,7 +24,9 @@ export default function Copyright() {
                 </MuiLink>{' '}
                 {new Date().getFullYear()}
                 {' -- '}
-                Version: {appVersion}
+                <Link key={'releaseNotes'} href={'/releaseNotes'}>
+                    Version: {appVersion}
+                </Link>
             </Typography>
         </div>
     );

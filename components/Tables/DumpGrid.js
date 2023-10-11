@@ -64,7 +64,6 @@ export default function DumpGrid({ store, height }) {
     if (loading) {
         return <div>loading...</div>;
     } else {
-
         const columns = [
             {
                 field: 'Timestamp',
@@ -72,7 +71,8 @@ export default function DumpGrid({ store, height }) {
                 flex: 3,
                 type: 'datetime',
                 sortable: true,
-                valueGetter: (params) => params.value ? new Date(params.value).toLocaleString() : null,
+                valueGetter: (params) => params.value ? new Date(params.value) : null,
+                renderCell: (params) => params.value ? new Date(params.value).toLocaleString() : null
             },
             {
                 field: "Store",
