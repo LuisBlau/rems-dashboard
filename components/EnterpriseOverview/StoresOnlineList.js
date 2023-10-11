@@ -30,9 +30,8 @@ export default function StoresOnlineList({ context, disconnectTimeLimit, places,
                 headerName: 'Last Update',
                 width: 300,
                 sortable: true,
-                type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
-                valueGetter: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A',
+                valueGetter: (params) => params.row.last_updated_sec ? params.row.last_updated_sec : null,
                 renderCell: (params) => params.row.last_updated_sec ? moment(params.row.last_updated_sec * 1000).fromNow() : 'N/A'
             },
             {
