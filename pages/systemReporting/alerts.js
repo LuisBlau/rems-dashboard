@@ -178,7 +178,7 @@ export default function alerts() {
                     <Box sx={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'row' }}>
                         <Box sx={{ flexDirection: 'column', display: 'flex', height: '90vh', width: '20%', justifyContent: 'space-around', alignItems: 'center' }}>
                             {alertTypes.map((alert, index) => (
-                                <Paper onClick={() => handleAlertTypeClicked(alert.type)} key={index} elevation={10} sx={[alert.filterApplied === false ? { margin: 1, padding: 2, width: '60%', justifyItems: 'center' } : { margin: 1, padding: 2, width: '60%', justifyItems: 'center', backgroundColor: '#ddd' }]}>
+                                <Paper onClick={() => handleAlertTypeClicked(alert.type)} key={index} elevation={10} sx={[alert.filterApplied === false ? { margin: 1, padding: 2, width: '70%', justifyItems: 'center' } : { margin: 1, padding: 2, width: '70%', justifyItems: 'center', backgroundColor: '#ddd' }]}>
                                     <Typography variant='h6'>{alert.type} - {alert.count}</Typography>
                                 </Paper>
                             ))}
