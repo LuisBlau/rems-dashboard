@@ -39,7 +39,8 @@ export default function ReleaseNotes() {
         { text: '- Added.... this page!', level: 1 },
         { text: 'Bugfix', level: 0 },
         { text: '- Fixed issue where deployment status appeared to do an infinite load if there were simply no deployments', level: 1 },
-        { text: '- Fixed a bug where occasionally Elera Stats page would not retrieve the stores list', level: 1 }]
+        { text: '- Fixed a bug where occasionally Elera Stats page would not retrieve the stores list', level: 1 },
+        { text: '- Fixed a bug where file upload would fail silently if the format yielded no results', level: 1 }]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
             <Typography variant='h2'>Release Notes - 4.2.31</Typography>

@@ -188,6 +188,8 @@ export default function snmp() {
                         id += 1
                     });
                     setUploadedRows(deviceList)
+                } else {
+                    alert('Invalid file uploaded, validate that the format matches the sample.')
                 }
             };
         } else {
