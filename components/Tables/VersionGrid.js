@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -9,18 +10,16 @@ import { Box } from '@mui/system';
 import { DataGrid } from '@mui/x-data-grid';
 import { CircularProgress } from '@mui/material';
 
-
 const PREFIX = 'VersionGrid';
 
 const approvedVersions = [
-    { "rems": "1.5.1", "rma": "4.3.1", "cf": "2.1.2" },
-    { "rems": "1.4.1", "rma": "4.2.0", "cf": "2.1.0" },
-    { "rems": "1.3", "rma": "4.1.1", "cf": "2.0.5" }
-]
+    { rems: '1.5.1', rma: '4.3.1', cf: '2.1.2' },
+    { rems: '1.4.1', rma: '4.2.0', cf: '2.1.0' },
+    { rems: '1.3', rma: '4.1.1', cf: '2.0.5' },
+];
 const classes = {
     content: `${PREFIX}-content`,
     container: `${PREFIX}-container`,
-
 };
 
 const Root = styled('div')(({ theme }) => ({
@@ -36,55 +35,58 @@ const Root = styled('div')(({ theme }) => ({
     },
 }));
 
-const getBackgroundColor = (color) =>
-    color === 'green' ? '#5BA52E' : '#E7431F';
+const getBackgroundColor = (color) => (color === 'green' ? '#5BA52E' : '#E7431F');
 
 const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
     '& .super-app-theme--Approved': {
         backgroundColor: getBackgroundColor('green'),
         '&:hover': {
-            background: "#097a18"
-        }
+            background: '#097a18',
+        },
     },
     '& .super-app-theme--NotApproved': {
         backgroundColor: getBackgroundColor('red'),
         '&:hover': {
-            background: "#ff5252"
-        }
+            background: '#ff5252',
+        },
     },
 }));
 
 export default function VersionGrid({ height }) {
     const [versions, setVersions] = useState([]);
     const [showAllRetailers, setShowAllRetailers] = useState(false);
-    const context = useContext(UserContext)
+    const context = useContext(UserContext);
     const [loading, setLoading] = useState(false);
 
     const changeShownRetailers = (event) => {
-        setShowAllRetailers(event.target.checked)
-        setVersions([])
-    }
+        setShowAllRetailers(event.target.checked);
+        setVersions([]);
+    };
 
     const versionColumns = [
         { field: 'rems', headerName: 'REMS', sortable: true, flex: 1 },
         { field: 'rma', headerName: 'RMA', sortable: true, flex: 1 },
         { field: 'cf', headerName: 'CF', sortable: true, flex: 1 },
         { field: 'count', headerName: 'Count', sortable: true, flex: 1 },
-        { field: 'retailer', headerName: 'Retailer', sortable: true, flex: 1 }
+        { field: 'retailer', headerName: 'Retailer', sortable: true, flex: 1 },
     ];
-
 
     useEffect(() => {
         if (context.selectedRetailer || showAllRetailers) {
             setLoading(true);
             if (context.selectedRetailerIsTenant !== null) {
-                let retailerParam = ''
+                let retailerParam = '';
                 if (context.selectedRetailerIsTenant === false) {
-                    retailerParam = showAllRetailers ? 'allRetailers=true' : `allRetailers=false&retailerId=${context.selectedRetailer}`
+                    retailerParam = showAllRetailers
+                        ? 'allRetailers=true'
+                        : `allRetailers=false&retailerId=${context.selectedRetailer}`;
                 } else {
-                    retailerParam = showAllRetailers ? `allRetailers=true` : `allRetailers=false&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`;
+                    retailerParam = showAllRetailers
+                        ? `allRetailers=true`
+                        : `allRetailers=false&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`;
                 }
-                axios.get(`/api/REMS/versionCombinations?${retailerParam}`)
+                axios
+                    .get(`/api/REMS/versionCombinations?${retailerParam}`)
                     .then((res) => {
                         setVersions(res.data);
                         setLoading(false);
@@ -123,7 +125,6 @@ export default function VersionGrid({ height }) {
                     <CircularProgress />
                 ) : (
                     <StyledDataGrid
-
                         rows={versions.map((version) => ({
                             id: getRowId(version),
                             rems: version.rems,
@@ -148,21 +149,21 @@ export default function VersionGrid({ height }) {
                         getRowId={(row) => row.id}
                         className={`${PREFIX}-container`}
                         getRowClassName={(row) => {
-                            const isApproved = approvedVersions.some(
-                                approvedVersion => {
-                                    let approvedRemsMajor = approvedVersion.rems.split('.').join('')
-                                    let approvedRmaMajor = approvedVersion.rma.split('.').join('')
-                                    let approvedCfMajor = approvedVersion.cf.split('.').join('')
+                            const isApproved = approvedVersions.some((approvedVersion) => {
+                                let approvedRemsMajor = approvedVersion.rems.split('.').join('');
+                                let approvedRmaMajor = approvedVersion.rma.split('.').join('');
+                                let approvedCfMajor = approvedVersion.cf.split('.').join('');
 
-                                    let rowRemsMajor = row.row.rems ? row.row.rems.split('.').join('') : ""
-                                    let rowRmaMajor = row.row.rma ? row.row.rma.split('.').join('') : ""
-                                    let rowCfMajor = row.row.cf ? row.row.cf.split('.').join('') : ""
+                                let rowRemsMajor = row.row.rems ? row.row.rems.split('.').join('') : '';
+                                let rowRmaMajor = row.row.rma ? row.row.rma.split('.').join('') : '';
+                                let rowCfMajor = row.row.cf ? row.row.cf.split('.').join('') : '';
 
-                                    return (rowRemsMajor === approvedRemsMajor) &&
-                                        (rowRmaMajor === approvedRmaMajor || rowRmaMajor.includes(approvedRmaMajor)) &&
-                                        (rowCfMajor === approvedCfMajor);
-                                }
-                            );
+                                return (
+                                    rowRemsMajor === approvedRemsMajor &&
+                                    (rowRmaMajor === approvedRmaMajor || rowRmaMajor.includes(approvedRmaMajor)) &&
+                                    rowCfMajor === approvedCfMajor
+                                );
+                            });
                             return isApproved ? 'super-app-theme--Approved' : 'super-app-theme--NotApproved';
                         }}
                         components={{
@@ -172,5 +173,5 @@ export default function VersionGrid({ height }) {
                 )}
             </Box>
         </div>
-    )
-};
+    );
+}

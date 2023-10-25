@@ -341,7 +341,7 @@ export default function ExtractRequestGrid(props) {
     };
 
     return (
-        <Box sx={{ height: '80vh', width: '100%' }}>
+        <Box sx={{ height: 400, width: '100%' }}>
             <DataGrid
                 loading={loading}
                 rows={agentsList}

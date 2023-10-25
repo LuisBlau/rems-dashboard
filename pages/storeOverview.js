@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -150,7 +151,7 @@ export default function StoreOverview() {
                                                             let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
                                                             let stat = JSON.parse(statStr)["State"]
                                                             container_status[containerName] = stat
-                                                            if (stat == "running") workingContainers++
+                                                            if (stat === "running") workingContainers++
                                                         }
 
                                                         if (Object.keys(container_status).length > 0) {
@@ -215,7 +216,7 @@ export default function StoreOverview() {
                                                             let statStr = agent["status"]["docker"]["Container-[/" + containerName + "]"]
                                                             let stat = JSON.parse(statStr)["State"]
                                                             container_status[containerName] = stat
-                                                            if (stat == "running") workingContainers++
+                                                            if (stat === "running") workingContainers++
                                                         }
 
                                                         if (Object.keys(container_status).length > 0) {
@@ -299,7 +300,7 @@ export default function StoreOverview() {
     if (userHasAccess) {
         return (
             <Root className={classes.content}>
-                <Box sx={{ display: 'flex', height: '100%', flexDirection: 'column', background: '#f6f6f6' }}>
+                <Box sx={{ display: 'flex', overflow: 'auto', height: '100%', flexDirection: 'column', background: '#f6f6f6' }}>
                     <Box
                         sx={{
                             display: 'flex',
@@ -431,24 +432,22 @@ export default function StoreOverview() {
                             <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                         </Box>
                     }
-                    <Box sx={{ height: '23%', width: '100%' }}>
-                        <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
-                                <TabList onChange={handleTabChange}>
-                                    <Tab label="dumps" value="dumps" />
-                                    <Tab label="extracts" value="extracts" />
-                                </TabList>
-                            </Box>
-                            <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
-                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                            </TabPanel>
-                            <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
-                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                            </TabPanel>
-                        </TabContext>
-                        <Box pt={1} pb={1}>
-                            <Copyright />
+                    <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
+                            <TabList onChange={handleTabChange}>
+                                <Tab label="dumps" value="dumps" />
+                                <Tab label="extracts" value="extracts" />
+                            </TabList>
                         </Box>
+                        <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
+                            <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
+                        </TabPanel>
+                        <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
+                            <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
+                        </TabPanel>
+                    </TabContext>
+                    <Box sx={{ padding: 1 }}>
+                        <Copyright />
                     </Box>
                 </Box>
                 <Dialog

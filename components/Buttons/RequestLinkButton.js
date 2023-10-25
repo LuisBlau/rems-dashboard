@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Alert, AlertTitle, Box, Button, Snackbar } from "@mui/material";
 import axios from "axios";
 import React from "react";

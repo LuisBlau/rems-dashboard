@@ -15,6 +15,7 @@ import Image from 'next/image';
 import UserContext from '../pages/UserContext';
 import Cookies from 'universal-cookie';
 import { Box } from '@mui/system';
+import _ from 'lodash';
 
 function AppNameplate({ open }) {
     if (open === true) {

@@ -10,6 +10,7 @@ import moment from 'moment';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Papa from 'papaparse';
+import Copyright from '../../components/Copyright'
 
 export default function RemsManagement() {
 
@@ -636,6 +637,9 @@ export default function RemsManagement() {
                     {toastFailure}
                 </Alert>
             </Snackbar>
+            <Box sx={{ alignItems: 'center' }}>
+                <Copyright />
+            </Box>
         </Box >
     )
 }

@@ -1,8 +1,8 @@
+/* eslint-disable react/prop-types */
 import React, { useContext, useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
-import _ from 'lodash';
 import UserContext from '../UserContext';
 import { Alert, AlertTitle, Button, Snackbar } from '@mui/material';
 import axios from 'axios';
@@ -40,6 +40,7 @@ export default function UserSettings() {
     const handleLastNameChange = (event) => {
         setLastName(event.target.value)
     }
+
     function handleSubmitMap() {
         const mapParams = {
             userMapZoom: 3,
@@ -56,14 +57,14 @@ export default function UserSettings() {
                     userDefinedMapConfig: ''
                 });
 
-                setToastSuccess(' Map View Reset successfully');
+                setToastSuccess('Map View Reset successfully');
                 setOpenSuccess(true);
                 setTimeout(function () {
                     window.location.reload(true);
                 }, SuccessToastDuration + 500);
             })
             .catch(err => {
-                setToastSuccess('Error Resetting Map View');
+                setToastSuccess('Error Resetting map view');
                 setOpenSuccess(true);
 
                 console.log('Error:', err);
@@ -74,12 +75,12 @@ export default function UserSettings() {
         axios.post('/api/user/settingsSubmission', { email, firstName, lastName })
             .then(function (response) {
                 if (response.status !== 200) {
-                    setToastFailure('Error Saving User Info!');
+                    setToastFailure("Error Saving User Info!");
                     setOpenFailure(true);
                     return;
                 }
 
-                setToastSuccess('User Info Successfully Saved.');
+                setToastSuccess("User Info Successfully Saved.");
                 setOpenSuccess(true);
 
                 setTimeout(function () {
@@ -88,7 +89,7 @@ export default function UserSettings() {
             })
             .catch(function (error) {
                 console.log(error);
-                setToastFailure('Error connecting to server!!');
+                setToastFailure("Error connecting to server!!");
                 setOpenFailure(true);
             });
     }
@@ -99,12 +100,12 @@ export default function UserSettings() {
                 User Settings
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '80vh', width: '90%', margin: 1 }}>
-                <Typography variant="h4">Account: {email}</Typography>
+                <Typography variant="h4">{'Account: ' + email}</Typography>
                 <Box sx={{ marginTop: 2 }}>
                     <Typography variant="h5" sx={{ marginRight: 1, alignSelf: 'center' }}>First Name: </Typography>
                     <TextField onChange={handleFirstNameChange} value={firstName} />
                 </Box>
-                <Box>
+                <Box sx={{ marginTop: 2 }}>
                     <Typography variant="h5" sx={{ marginRight: 1, alignSelf: 'center' }}>Last Name: </Typography>
                     <TextField onChange={handleLastNameChange} value={lastName} />
                 </Box>
@@ -123,7 +124,7 @@ export default function UserSettings() {
                 }}
             >
                 <Alert variant="filled" severity="success">
-                    <AlertTitle>Success!</AlertTitle>
+                    <AlertTitle>Success</AlertTitle>
                     {toastSuccess}
                 </Alert>
             </Snackbar>
@@ -136,7 +137,7 @@ export default function UserSettings() {
                 }}
             >
                 <Alert variant="filled" severity="error">
-                    <AlertTitle>Error!!!</AlertTitle>
+                    <AlertTitle>Error</AlertTitle>
                     {toastFailure}
                 </Alert>
             </Snackbar>

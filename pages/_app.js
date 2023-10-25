@@ -5,7 +5,6 @@ import { ThemeProvider } from '@emotion/react';
 import Container from '@mui/material/Container';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import axios from 'axios';
 import 'semantic-ui-css/semantic.min.css';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
@@ -93,10 +92,10 @@ export default function MyApp(props) {
                      */
                     console.log(event.payload);
                     if (event.payload.idTokenClaims.acr === b2cPolicies.names.forgotPassword) {
-                        window.alert('Password has been reset successfully. \nPlease sign-in with your new password.');
+                        window.alert(t("app.passreset"));
                         // return instance.logout();
                     } else if (event.payload.idTokenClaims.acr === b2cPolicies.names.editProfile) {
-                        window.alert('Profile has been edited successfully. \nPlease sign-in again.');
+                        window.alert(t("app.profileedit"));
                         return instance.logout();
                     }
                 }
@@ -135,22 +134,22 @@ export default function MyApp(props) {
                                 <Dialog open={disabledFeatureDialogOpen}>
                                     <DialogTitle id="alert-dialog-title">Selected Feature Unavailable</DialogTitle>
                                     <Typography sx={{ width: '70%', alignSelf: 'center' }}>
-                                        To enable this <strong>PAS Advanced</strong> feature, contact your Toshiba sales representative and inquire about upgrading your subscription.
+                                        PAS advanced
                                     </Typography>
                                     <DialogActions>
                                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleDisabledFeatureDialogClose}>
-                                            Okay
+                                            Sign in to access the portal
                                         </Button>
                                     </DialogActions>
                                 </Dialog>
                                 <Dialog open={nonDevelopedFeatureDialogOpen}>
                                     <DialogTitle id="alert-dialog-title">Selected Feature Unavailable</DialogTitle>
                                     <Typography sx={{ width: '70%', alignSelf: 'center' }}>
-                                        This feature is <strong>under development</strong>!  Check back at a later date!
+                                        This feature is under development!  Check back at a later date!
                                     </Typography>
                                     <DialogActions>
                                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleNonDevelopedFeatureDialogClose}>
-                                            Okay
+                                            Sign in to access the portal
                                         </Button>
                                     </DialogActions>
                                 </Dialog>

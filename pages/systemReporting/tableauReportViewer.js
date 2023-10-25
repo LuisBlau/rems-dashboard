@@ -32,7 +32,7 @@ export default function tableauReportViewer(props) {
     useEffect(() => {
         if (context.selectedRetailer && context.selectedRetailer !== '') {
             if (jwt === '') {
-                axios.get(`/api/REMS/getTableauJwt?retailerId=${context.selectedRetailer}`).then(function (res) {
+                axios.get(`/api/REMS/getTableauJwt?retailerId=${context.selectedRetailer}&env=${queryParameters.query["env"]}`).then(function (res) {
                     setJwt(res.data)
                 });
             }

@@ -105,7 +105,36 @@ export default function RemsDataCaptureGrid(props) {
     };
 
     return (
-        <Box sx={{ height: '50vh', width: '100%' }}>
+        <Box sx={{ height: 300, width: '100%' }}>
+            <Box>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openSuccess}
+                    autoHideDuration={successHideDuration}
+                    onClose={(event) => {
+                        setOpenSuccess(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="success">
+                        <AlertTitle>Success!</AlertTitle>
+                        {toastSuccess}
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={openFailure}
+                    autoHideDuration={failHideDuration}
+                    onClose={(event) => {
+                        setOpenFailure(false);
+                    }}
+                >
+                    <Alert variant="filled" severity="error">
+                        <AlertTitle>Error!!!</AlertTitle>
+                        {toastFailure}
+                    </Alert>
+                </Snackbar>
+            </Box>
             <DataGrid
                 loading={loading}
                 rows={servers}
@@ -126,35 +155,6 @@ export default function RemsDataCaptureGrid(props) {
                 disableSelectionOnClick
                 onGridReady={sortGrid}
             />
-
-
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={openSuccess}
-                autoHideDuration={successHideDuration}
-                onClose={(event) => {
-                    setOpenSuccess(false);
-                }}
-            >
-                <Alert variant="filled" severity="success">
-                    <AlertTitle>Success!</AlertTitle>
-                    {toastSuccess}
-                </Alert>
-            </Snackbar>
-
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={openFailure}
-                autoHideDuration={failHideDuration}
-                onClose={(event) => {
-                    setOpenFailure(false);
-                }}
-            >
-                <Alert variant="filled" severity="error">
-                    <AlertTitle>Error!!!</AlertTitle>
-                    {toastFailure}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 }

@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Alert, AlertTitle, Snackbar, Switch } from '@mui/material';
 import { useContext } from 'react';
-import UserContext from '../../pages/UserContext'
+import UserContext from '../../pages/UserContext';
 import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import _ from 'lodash';
 
 const PREFIX = 'UploadGrid';
 
@@ -53,21 +54,21 @@ export default function UploadGrid() {
     const [openFailure, setOpenFailure] = useState(false);
     const [toastSuccess, setToastSuccess] = useState('');
     const [openSuccess, setOpenSuccess] = useState(false);
-    const [uploadData, setUploadData] = useState([])
-    const context = useContext(UserContext)
+    const [uploadData, setUploadData] = useState([]);
+    const context = useContext(UserContext);
 
     const columns = [
         {
             field: 'description',
             headerName: 'Description',
-            flex: 1
+            flex: 1,
         },
         {
             field: 'filename',
             headerName: 'File Name',
             flex: 1,
             sortable: true,
-            filterable: true
+            filterable: true,
         },
         {
             field: 'timestamp',
@@ -82,7 +83,7 @@ export default function UploadGrid() {
             field: 'retailer_id',
             headerName: 'File Origin',
             flex: 1,
-            renderCell: (params) => params.value === 'COMMON' ? params.value : 'RETAILER',
+            renderCell: (params) => (params.value === 'COMMON' ? params.value : 'RETAILER'),
         },
 
         {
@@ -94,7 +95,7 @@ export default function UploadGrid() {
                     onChange={(e) => {
                         changeArchiveStatus(e, params.row?.uuid);
                     }}
-                    checked={params.value == "true" ? true : false}
+                    checked={params.value == 'true' ? true : false}
                     disabled={params.row.retailer_id === 'COMMON' && !context?.userRoles?.includes('toshibaAdmin')}
                     color="success"
                 />
@@ -126,18 +127,18 @@ export default function UploadGrid() {
             flex: 1,
             renderCell: (params) => {
                 return (
-                    params.row.retailer_id === 'COMMON' && <Switch
-                        onChange={(e) => {
-                            changeForProdStatus(e, params.row?.uuid);
-                        }}
-                        checked={params.value === "true" ? true : false}
-                        color="success"
-                    />
-                )
-            }
-
-
-        })
+                    params.row.retailer_id === 'COMMON' && (
+                        <Switch
+                            onChange={(e) => {
+                                changeForProdStatus(e, params.row?.uuid);
+                            }}
+                            checked={params.value === 'true' ? true : false}
+                            color="success"
+                        />
+                    )
+                );
+            },
+        });
     } else if (context?.userRoles?.includes('Administrator')) {
         columns.push({
             field: 'delete',
@@ -151,7 +152,11 @@ export default function UploadGrid() {
                             deleteFile(params.row.retailer_id, params.row?.uploadId);
                         }
                     }}
-                    disabled={context.selectedRetailerIsTenant === false ? params.row.retailer_id !== context.selectedRetailer : params.row.tenant_id !== context.selectedRetailer}
+                    disabled={
+                        context.selectedRetailerIsTenant === false
+                            ? params.row.retailer_id !== context.selectedRetailer
+                            : params.row.tenant_id !== context.selectedRetailer
+                    }
                 >
                     <DeleteIcon />
                 </IconButton>
@@ -162,7 +167,8 @@ export default function UploadGrid() {
     function deleteFile(retailerId, id) {
         var url = `/api/REMS/deletefile`;
         var data = { retailerId, id };
-        axios.delete(url, { data })
+        axios
+            .delete(url, { data })
             .then(function (data) {
                 setToastSuccess('File deletion was successful');
                 setOpenSuccess(true);
@@ -173,53 +179,55 @@ export default function UploadGrid() {
             .catch(function (error) {
                 setToastFailure('There has been a problem with your fetch operation:');
                 setOpenFailure(true);
-                FailToastDuration
+                FailToastDuration;
                 window.location.reload();
             });
     }
 
-
     function fetchUploadData() {
         if (context.selectedRetailerParentRemsServerId) {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`)
+            axios
+                .get(
+                    `/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`
+                )
                 .then((response) => {
                     if (!_.includes(context.userRoles, 'toshibaAdmin')) {
-                        const prodList = []
-                        response.data.forEach(element => {
-                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
-                                prodList.push(element)
+                        const prodList = [];
+                        response.data.forEach((element) => {
+                            if (element.retailer_id !== 'COMMON' || element.forProd === 'true') {
+                                prodList.push(element);
                             }
                         });
-                        setUploadData(prodList)
+                        setUploadData(prodList);
                     } else {
-                        setUploadData(response.data)
+                        setUploadData(response.data);
                     }
-                })
+                });
         } else {
-            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`)
-                .then((response) => {
-                    if (!_.includes(context.userRoles, 'toshibaAdmin')) {
-                        const prodList = []
-                        response.data.forEach(element => {
-                            if (element.retailer_id !== "COMMON" || element.forProd === 'true') {
-                                prodList.push(element)
-                            }
-                        });
-                        setUploadData(prodList)
-                    } else {
-                        setUploadData(response.data)
-                    }
-                })
+            axios.get(`/api/REMS/uploads?archived=true&retailerId=${context.selectedRetailer}`).then((response) => {
+                if (!_.includes(context.userRoles, 'toshibaAdmin')) {
+                    const prodList = [];
+                    response.data.forEach((element) => {
+                        if (element.retailer_id !== 'COMMON' || element.forProd === 'true') {
+                            prodList.push(element);
+                        }
+                    });
+                    setUploadData(prodList);
+                } else {
+                    setUploadData(response.data);
+                }
+            });
         }
     }
     useEffect(() => {
         if (context.selectedRetailer) {
-            fetchUploadData()
+            fetchUploadData();
         }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId])
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId]);
 
     const changeArchiveStatus = (e, id) => {
-        axios.get('/api/REMS/setArchive?uuid=' + id + '&archived=' + (e.target.checked).toString())
+        axios
+            .get('/api/REMS/setArchive?uuid=' + id + '&archived=' + e.target.checked.toString())
             .then((response) => {
                 if (response.status !== 200) {
                     setToastFailure('Error changing archive info!');
@@ -238,7 +246,8 @@ export default function UploadGrid() {
     };
 
     const changeForProdStatus = (e, id) => {
-        axios.get('/api/REMS/setForProd?uuid=' + id + '&forProd=' + (e.target.checked).toString())
+        axios
+            .get('/api/REMS/setForProd?uuid=' + id + '&forProd=' + e.target.checked.toString())
             .then((response) => {
                 if (response.status !== 200) {
                     setToastFailure('Error changing production enablement!');
@@ -254,7 +263,7 @@ export default function UploadGrid() {
                 setToastFailure('Error connecting to server!!');
                 setOpenFailure(true);
             });
-    }
+    };
 
     if (uploadData.length > 0) {
         return (
@@ -262,7 +271,7 @@ export default function UploadGrid() {
                 <DataGrid
                     initialState={{
                         sorting: {
-                            sortModel: [{ field: 'timestamp', sort: 'desc' }]
+                            sortModel: [{ field: 'timestamp', sort: 'desc' }],
                         },
                         pagination: { paginationModel: { pageSize: 25 } },
                     }}
@@ -302,4 +311,3 @@ export default function UploadGrid() {
         );
     }
 }
-

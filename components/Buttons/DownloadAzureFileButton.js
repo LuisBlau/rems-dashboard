@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Alert, AlertTitle, Box, Button, Snackbar } from "@mui/material";
 import React from "react";
 import { useState } from "react";

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
@@ -452,7 +453,6 @@ export default function versionOverview() {
                     <StyledDataGrid rows={remsRows} columns={headerColumns} pageSizeOptions={[5, 10, 15]} pageSize={10}
                         getRowClassName={(row) => {
                             let oldData = false
-                            console.log(row.row)
                             if (moment(row.row.lastUpdateUnix).diff(Date.now(), 'hours') > -1 || row.row.lastUpdateUnix === null) {
                                 oldData = true
                             }

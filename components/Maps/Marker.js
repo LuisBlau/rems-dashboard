@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 
 import React, { useContext, useState } from 'react';
 import UserContext from '../../pages/UserContext';
+import _ from 'lodash';
 
 function StoreInfoPanel({ text }) {
     const infoWindowStyle = {
@@ -53,8 +54,8 @@ const Marker = ({ text, markerColor, storeId, retailer_id, pointCount, isCluster
         } else if (_.some(context.userRetailers, retailer => retailer.configuration && retailer.configuration.pas_subscription_tier === 'advanced')) {
             return (
                 <div
-                    onClick={() =>router.push('/storeOverview?storeName=' + storeId + '&retailer_id=' + retailer_id + '&tenant_id=' + tenant_id)}
-                    
+                    onClick={() => router.push('/storeOverview?storeName=' + storeId + '&retailer_id=' + retailer_id + '&tenant_id=' + tenant_id)}
+
                     style={markerStyle}
                     onMouseEnter={(e) => { setShowStoreInfo(true); e.currentTarget.parentElement.style['z-index'] = 1; }}
                     onMouseLeave={(e) => { setShowStoreInfo(false); e.currentTarget.parentElement.style['z-index'] = 0; }}

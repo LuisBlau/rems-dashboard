@@ -16,8 +16,8 @@
     "extends": [
         "eslint:recommended",
         "plugin:prettier/recommended",
-        "plugin:react/recommended",
-        "next"
+        "plugin:react/recommended"
+        // "next"
     ],
     "overrides": [],
     "parserOptions": {

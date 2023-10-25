@@ -2,6 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import UserContext from '../pages/UserContext';
 import { AccessDenied } from './AccessDenied';
+import _ from 'lodash';
 
 export const Guard = ({ children }) => {
     const context = useContext(UserContext);

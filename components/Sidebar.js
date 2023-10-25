@@ -26,7 +26,6 @@ import { Collapse, Divider, ListItemButton, Typography } from '@mui/material';
 import Link from 'next/link';
 import _ from 'lodash';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import axios from 'axios';
 
 const ListItemIcon = styled(MuiListItemIcon, {})(({ theme }) => ({
     minWidth: '30px'
@@ -216,7 +215,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'assetInventory',
                                 name: 'Asset Inventory',
-                                route: '/systemReporting/tableauReportViewer?reportName=assetInventory',
+                                route: '/systemReporting/tableauReportViewer?reportName=assetInventory&env=prod',
                                 enabled: true
                             })
                         }
@@ -232,7 +231,15 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'systemEvents',
                                 name: 'Events',
-                                route: '/systemReporting/tableauReportViewer?reportName=systemEvents',
+                                route: '/systemReporting/tableauReportViewer?reportName=systemEvents&env=prod',
+                                enabled: pasSubscriptionTier === 'advanced'
+                            })
+                        }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'sidebarEventQuery' && x.value === true)) {
+                            tmp.items.push({
+                                id: 'eventQuery',
+                                name: 'Event Query',
+                                route: '/systemReporting/tableauReportViewer?reportName=eventQuery&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
@@ -240,7 +247,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'reloadTrends',
                                 name: 'Reload Trends',
-                                route: '/systemReporting/tableauReportViewer?reportName=registerReloads',
+                                route: '/systemReporting/tableauReportViewer?reportName=registerReloads&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
@@ -248,7 +255,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'checkExtractAnalysis',
                                 name: 'CHEC Extract Analysis',
-                                route: '/systemReporting/tableauReportViewer?reportName=extracts',
+                                route: '/systemReporting/tableauReportViewer?reportName=extracts&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
@@ -256,7 +263,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'softwareVersions',
                                 name: 'Software Versions',
-                                route: '/systemReporting/tableauReportViewer?reportName=softwareVersions',
+                                route: '/systemReporting/tableauReportViewer?reportName=softwareVersions&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
@@ -276,7 +283,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                         tmp = {
                             id: 'incidents',
                             name: 'Incidents',
-                            route: '/systemReporting/tableauReportViewer?reportName=incidents',
+                            route: '/systemReporting/tableauReportViewer?reportName=incidents&env=prod',
                             enabled: enableIncidents,
                             icon: <Image src={DataCaptureIcon} alt="DataCaptureIcon" />
 
@@ -295,7 +302,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             tmp.items.push({
                                 id: 'storeClose',
                                 name: 'Store Close',
-                                route: '/systemReporting/tableauReportViewer?reportName=storeClose',
+                                route: '/systemReporting/tableauReportViewer?reportName=storeClose&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
@@ -444,6 +451,70 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                             route: '/administration/commandCenterOverview',
                             enabled: roles.includes('commandCenterViewer'),
                             icon: <Image src={DumpsIcon} alt="DumpsIcon" />
+                        };
+                        MenuItems.push(tmp)
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarClientAdvocate' && x.value === true)) {
+                        tmp = {
+                            id: 'clientAdvocate',
+                            name: 'Client Advocate',
+                            icon: <Image src={ChecExtractsIcon} alt="ClientAdvocateIcon" />,
+                            enabled: true,
+                            items: [
+                                {
+                                    id: 'caReport1',
+                                    name: 'Closed Call Data',
+                                    route: '/systemReporting/tableauReportViewer?reportName=closedCallData&env=staging',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'caReport2',
+                                    name: 'Parts Usage Data',
+                                    route: '/systemReporting/tableauReportViewer?reportName=partsUsageData&env=staging',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'caReport3',
+                                    name: 'Report 3',
+                                    route: '/',
+                                    enabled: false
+                                }
+                            ]
+                        };
+                        MenuItems.push(tmp)
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSales' && x.value === true)) {
+                        tmp = {
+                            id: 'sales',
+                            name: 'Sales',
+                            icon: <Image src={DumpsIcon} alt="SalesIcon" />,
+                            enabled: true,
+                            items: [
+                                {
+                                    id: 'sales1',
+                                    name: 'Architecture',
+                                    route: '/sales/architecture',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'sales2',
+                                    name: 'Command Center',
+                                    route: '/sales/commandCenterImage',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'sales3',
+                                    name: 'Stats',
+                                    route: '/sales/pasStatistics',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'sales4',
+                                    name: 'Sales Collateral',
+                                    route: 'https://tgcs04.toshibacommerce.com/cs/groups/marketing/documents/document/cmvm/zxjl/~edisp/pascollateralreference.pdf',
+                                    enabled: true
+                                }
+                            ]
                         };
                         MenuItems.push(tmp)
                     }

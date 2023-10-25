@@ -55,19 +55,19 @@ export default function SnmpCommand(props) {
                         value={getval('DeviceType') || ''}
                         onChange={setval('DeviceType')}
                         sx={{ marginRight: 2 }}
-                        label="Type"
+                        label='Type'
                         autoWidth
                     >
-                        <MenuItem value={'Printer'}>Toshiba POS Printer</MenuItem>
-                        <MenuItem value={'Scale'}>Hobert Scale</MenuItem>
-                        <MenuItem value={'Ups'}>Spectra UPS</MenuItem>
+                        <MenuItem value={'Printer'}>Printer</MenuItem>
+                        <MenuItem value={'Scale'}>Scale</MenuItem>
+                        <MenuItem value={'Ups'}>UPS</MenuItem>
                     </Select>
                 </FormControl>
 
                 <TextField
                     defaultValue={getval('ipaddress')}
                     onBlur={setval('ipaddress')}
-                    label="IP Address"
+                    label='IP Address'
                     required
                     variant="outlined"
                     sx={{ marginRight: 2 }}
@@ -79,8 +79,7 @@ export default function SnmpCommand(props) {
                 endIcon={<RemoveDoneIcon />}
                 onClick={() => props.onRemove(props.id)}
             >
-                {' '}
-                Remove Task{' '}
+                {' ' + 'Remove Task' + ' '}
             </Button>
         </Grid>
     );

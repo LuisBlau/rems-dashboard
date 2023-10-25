@@ -1,20 +1,21 @@
 import { Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import React from 'react';
+import Copyright from '../components/Copyright';
 
 export default function ReleaseNotes() {
 
     let notes = [
         { text: 'Elera Health (updated)', level: 0 },
-        { text: '- Has select menu functionality to match Elera Stats', level: 1 },
+        { text: '- Has select-menu functionality to match Elera Stats', level: 1 },
         { text: 'REMS Management Page (new)', level: 0 },
-        { text: '- Add tenant to REMS server', level: 1 },
-        { text: '- Can create new tenant REMS server, if not previously tenant setup', level: 2 },
-        { text: '- Remove Tenants from REMS Server', level: 1 },
-        { text: '- Can rever to non-tenant REMS server if no tenants remain on the configuration', level: 2 },
-        { text: '- Assign stores to a tenant', level: 1 },
-        { text: '- Delete store from REMS server', level: 1 },
-        { text: '- Bulk assign tenants for stores', level: 1 },
+        { text: '- Can add tenant(s) to REMS server', level: 1 },
+        { text: '- Can create new tenant REMS server, if not previously a tenant setup', level: 2 },
+        { text: '- Remove Tenant(s) from REMS Server', level: 1 },
+        { text: '- Can revert to non-tenant REMS server if no tenants remain on the configuration', level: 2 },
+        { text: '- Can assign stores to a tenant', level: 1 },
+        { text: '- Can delete store from REMS server', level: 1 },
+        { text: '- Can bulk assign tenants for stores', level: 1 },
         { text: 'Versions Overview', level: 0 },
         { text: '- Docker Management Tab (new)', level: 1 },
         { text: '- For toshiba only, allows you to see (and clean up dangling) containers we have running/suspended/dead', level: 2 },
@@ -22,9 +23,9 @@ export default function ReleaseNotes() {
         { text: '- Shows version information for all REMS servers reporting to the TORICO matching the retailer you have selected', level: 2 },
         { text: '- Toshiba Admins can delete these rows - to clean up dangling REMS information that is outdated (will be re-populated on next update push from REMS)', level: 2 },
         { text: 'Enterprise Overview', level: 0 },
-        { text: '- New notification icon (next to filter bar above map) to identify when your REMS server(s) is having connectivity issues.', level: 1 },
+        { text: '- New notification icon (next to filter bar, above map) to identify when your REMS server(s) have connectivity issues.', level: 1 },
+        { text: '- The icon will show up, and be red, when you have a REMS server that has not sent updates in at least an hour - clicking it will take you to the new REMS tab of the versions overview so you can asses which REMS server has the issue', level: 2 },
         { text: '- Fixed stores online list view (from widget) to correctly sort by last update time', level: 1 },
-        { text: '- The icon will show up, and be red, when you have a REMS server that has not sent updates in at least an hour - clicking it will take you to the new REMS tab of the versions overview so you can asses which REMS server has the issue', level: 1 },
         { text: 'Peripherals Widget', level: 0 },
         { text: '- Split devices information to only include objects that have an IP Address (SNMP Devices)', level: 1 },
         { text: '- Peripherals will be "attached" peripherals on registers, for example: scanner, keyboard, etc.', level: 1 },
@@ -66,6 +67,9 @@ export default function ReleaseNotes() {
                 }
             })
             }
+            <Box sx={{ paddingTop: 2, alignItems: 'center' }}>
+                <Copyright />
+            </Box>
         </Box>
     )
 }

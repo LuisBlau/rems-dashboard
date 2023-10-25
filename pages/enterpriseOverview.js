@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
@@ -76,7 +78,7 @@ export default function EnterpriseOverview() {
     const [handhelds, setHandhelds] = useState([])
     const [peripherals, setPeripherals] = useState([])
     const [rsmpPeripherals, setRsmpPeripherals] = useState([])
-    const [attendedLanes, setAttendedLanes] = useState([])
+    const [attendedLanes, setAttendedLanes] = useState(null)
     const [allPlaces, setAllPlaces] = useState([]);
     const [selectedContinent, setSelectedContinent] = useState(null);
     const [selectedCountry, setSelectedCountry] = useState(null);
@@ -382,9 +384,7 @@ export default function EnterpriseOverview() {
                 res.data.rem.forEach(remsServer => {
                     let lastUpdateUnix = remsServer.last_heartbeat_sec
                     let oneHourAgo = moment().subtract(1, 'hours').unix()
-                    if (lastUpdateUnix === undefined) {
-                        allRemsAreGood = false
-                    } else if (moment.unix(lastUpdateUnix) < oneHourAgo) {
+                    if (lastUpdateUnix < oneHourAgo) {
                         allRemsAreGood = false
                     }
                 })
@@ -586,7 +586,7 @@ export default function EnterpriseOverview() {
                             handheld.id = index
                             handheld.os = handheld.OsType + '-' + handheld.OsVersion
                             localHandhelds.push(handheld)
-                            if (handheld.online == 'Operational') {
+                            if (handheld.online === 'Operational') {
                                 onlineHandhelds++
                             }
                             totalHandhelds++
@@ -606,8 +606,7 @@ export default function EnterpriseOverview() {
                         res.data.forEach((peripheral, index) => {
                             peripheral.id = index
                             localPeripherals.push(peripheral)
-                            // todo: lol wtf is this
-                            if (true === true) {
+                            if (peripheral.online === true || peripheral.online === "true") {
                                 onlinePeripherals++
                             }
                             totalPeripherals++
@@ -627,7 +626,7 @@ export default function EnterpriseOverview() {
         if (filteredDevices.length > 0) {
             filteredDevices.map(device => {
                 device.id = device._id
-                if (device.online == 'true') {
+                if (device.online === 'true') {
                     onlineDevices++
                 }
                 totalDevices++
@@ -645,7 +644,7 @@ export default function EnterpriseOverview() {
         if (filteredPeripherals.length > 0) {
             filteredPeripherals.map(device => {
                 device.id = device._id
-                if (device.online == 'true') {
+                if (device.online === 'true') {
                     onlinePeripherals++
                 }
                 totalPeripherals++
@@ -658,7 +657,7 @@ export default function EnterpriseOverview() {
     }, [filteredPeripherals])
 
     useEffect(() => {
-        if (attendedLanes?.length > 0) {
+        if (attendedLanes?.length >= 0) {
             let placesResult = allStores ?? [];
             if (filtersApplied.length > 0) {
                 placesResult = places
@@ -670,7 +669,7 @@ export default function EnterpriseOverview() {
             let totalAttendedLanes = 0
             let onlineAttendedLanes = 0
             response.map(agent => {
-                if (agent.online == true) {
+                if (agent.online === true) {
                     onlineAttendedLanes++
                 }
                 totalAttendedLanes++
@@ -912,7 +911,7 @@ export default function EnterpriseOverview() {
     if (showOnlyDownStores) {
         placesResult = places.filter((x) => x.online === false);
         storesResult = filteredStores.filter((x) => x.online === false)
-        devicesResult = filteredDevices.filter((x) => x.online == 'false');
+        devicesResult = filteredDevices.filter((x) => x.online === 'false');
         peripheralsResult = filteredPeripherals.filter((x) => x.online === 'false')
     }
 
@@ -938,7 +937,7 @@ export default function EnterpriseOverview() {
                     >
                         {showStoreOnlineWidget === true && (
                             <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10} >
-                                {!isEmpty(onlineStoreWidget?.onlineStoreText) && filteredStores.length > 0 ?
+                                {!isEmpty(onlineStoreWidget?.onlineStoreText) ?
                                     <CustomLinearProgress
                                         title="Stores Online"
                                         subTitle={onlineStoreWidget?.onlineStoreText}

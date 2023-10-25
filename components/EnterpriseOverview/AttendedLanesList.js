@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import { Box, Card, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
@@ -18,19 +19,13 @@ export default function AttendedLanesList({ context, disconnectTimeLimit, places
 
     useEffect(() => {
         setLoading(true);
-        if (context.selectedRetailerIsTenant === false) {
-            const placesData = places.map(p => ({ ...p, id: p._id }));
-            const response = attendedList?.filter(store => placesData?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
-            setAgents(response);
-            setLoading(false);
-
-        } else {
-            const placesData = places.map(p => ({ ...p, id: p._id }));
-            const response = attendedList?.filter(store => placesData?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
-            setAgents(response);
-            setLoading(false);
-
-        }
+        // need to fix places to include all stores.... it seems to currently just show stuff on the map if we want this to filter with the map
+        // granted, the table itself has filtering as well...
+        const placesData = places.map(p => ({ ...p, id: p._id }));
+        // const response = attendedList?.filter(store => placesData?.find(x => x?.storeName === store?.storeName)).map(r => ({ ...r, id: r._id }));
+        const response = attendedList?.map(r => ({ ...r, id: r._id }));
+        setAgents(response);
+        setLoading(false);
 
         setColumns([
             {

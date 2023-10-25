@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react'
 import { Box, Typography } from "@mui/material";
 import LinearProgress from '@mui/material/LinearProgress';

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Box, Paper } from "@mui/material";
 import React from 'react';
 import EleraInfoPaper from "../Connection/EleraInfoPaper";

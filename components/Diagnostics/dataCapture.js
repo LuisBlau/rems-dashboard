@@ -9,11 +9,11 @@ import { useEffect } from 'react';
 import { Alert, AlertTitle, Snackbar } from '@mui/material';
 import Copyright from '../../components/Copyright';
 import RemsDataCaptureGrid from '../Tables/RemsDataCaptureGrid';
+import _ from 'lodash';
 const PREFIX = 'dataCapture';
 
 const classes = {
     content: `${PREFIX}-content`,
-    container: `${PREFIX}-container`,
 };
 
 const successHideDuration = 2500;
@@ -21,14 +21,11 @@ const failHideDuration = 8000;
 
 const Root = styled('main')(({ theme }) => ({
     [`&.${classes.content}`]: {
-        flexGrow: 1,
-        height: '100vh',
+        height: '80vh',
         overflow: 'auto',
-    },
-
-    [`& .${classes.container}`]: {
-        paddingBottom: 4,
-    },
+        display: 'flex',
+        flexDirection: 'column'
+    }
 }));
 
 export default function DataCapture() {
@@ -79,12 +76,12 @@ export default function DataCapture() {
                 Trigger Data Capture
             </Typography>
             {remsDataCaptureEnabled &&
-                <Container className={classes.container}>
+                <Container sx={{ display: 'flex', flexGrow: 1, paddingBottom: 2 }}>
                     <RemsDataCaptureGrid selectedretailer={selectedRetailer} />
                 </Container>
             }
 
-            <Container className={classes.container}>
+            <Container sx={{ display: 'flex', flexGrow: 2 }}>
                 <ExtractRequestGrid selectedRetailer={selectedRetailer} />
             </Container>
 
