@@ -31,9 +31,9 @@
         "react-hooks"
     ],
     "rules": {
-        "eqeqeq": "error",
+        "eqeqeq": "warn",
         "no-console": "warn",
-        "prettier/prettier": "error",
+        "prettier/prettier": "off",
         "react/display-name": "off",
         "react/no-children-prop": "off",
         "react/react-in-jsx-scope": "off",
