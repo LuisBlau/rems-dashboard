@@ -31,6 +31,7 @@ import DockerInfoModal from './InformationModals/DockerInfoModal';
 import Image from 'next/image';
 import OfflineImage from '../../public/images/offline.png';
 import _ from 'lodash';
+import moment from 'moment';
 
 // TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper';
@@ -118,6 +119,12 @@ function DisplaySystemType(props) {
                         <Typography fontWeight='bold' variant='h7'>Server</Typography>
                     </Grid>
                 )
+            } else if (props.data.isSco === true) {
+                return (
+                    <Grid item xs={12}>
+                        <Typography fontWeight='bold' variant="h7">SCO</Typography>
+                    </Grid>
+                );
             } else {
                 return (
                     <Grid item xs={12}>
@@ -610,7 +617,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
           </Grid> */}
                     <Grid container spacing={1}>
                         <Grid className={classes.barHeight} item xs={12}>
-                            <Typography>Last Update: {timeSince(data.last_updated_sec)}</Typography>
+                            <Typography>Last Update: {moment(data.last_updated_sec * 1000).fromNow()}</Typography>
                         </Grid>
                     </Grid>
                     {/*

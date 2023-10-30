@@ -43,13 +43,13 @@ export default function AttendedLanesList({ context, disconnectTimeLimit, places
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
             },
-            // {
-            //     field: 'type',
-            //     headerName: 'Type',
-            //     width: 150,
-            //     sortable: true,
-            //     sortingOrder: ['asc', 'desc'],
-            // },
+            {
+                field: 'type',
+                headerName: 'Type',
+                width: 150,
+                sortable: true,
+                sortingOrder: ['asc', 'desc'],
+            },
             {
                 field: 'ipaddress',
                 headerName: 'IP',
