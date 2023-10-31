@@ -138,7 +138,7 @@ export default function MyApp(props) {
                                     </Typography>
                                     <DialogActions>
                                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleDisabledFeatureDialogClose}>
-                                            Sign in to access the portal
+                                            Close
                                         </Button>
                                     </DialogActions>
                                 </Dialog>
@@ -149,7 +149,7 @@ export default function MyApp(props) {
                                     </Typography>
                                     <DialogActions>
                                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleNonDevelopedFeatureDialogClose}>
-                                            Sign in to access the portal
+                                            Close
                                         </Button>
                                     </DialogActions>
                                 </Dialog>
