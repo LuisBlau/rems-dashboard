@@ -935,7 +935,7 @@ export default function EnterpriseOverview() {
                         justifyContent: 'space-around'
                     }}
                     >
-                        {showStoreOnlineWidget === true && (
+                        {(showStoreOnlineWidget === true || showStoreOnlineWidget === 'true') && (
                             <Paper onClick={() => handleListViewPaperClicked(isStoresOnlineListView, setIsStoresOnlineListView, 'storesOnline')} sx={[isStoresOnlineListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isStoresOnlineListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10} >
                                 {!isEmpty(onlineStoreWidget?.onlineStoreText) ?
                                     <CustomLinearProgress
@@ -948,7 +948,7 @@ export default function EnterpriseOverview() {
 
                             </Paper>
                         )}
-                        {showAttendedLanesWidget === true && (
+                        {(showAttendedLanesWidget === true || showAttendedLanesWidget === 'true') && (
                             <Paper onClick={() => handleListViewPaperClicked(isAttendedLanesListView, setIsAttendedLanesListView, 'attendedLanes')} sx={[isAttendedLanesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isAttendedLanesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {laneUpWidget?.loading && <CircularProgress sx={{ margin: 2 }} />}
                                 {!laneUpWidget?.loading && !isEmpty(laneUpWidget?.laneUpText) &&
@@ -961,7 +961,7 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
-                        {(showDevicesWidget === true && devicesUp) && (
+                        {((showDevicesWidget === true || showDevicesWidget === 'true') && devicesUp) && (
                             <Paper onClick={() => handleListViewPaperClicked(isDevicesListView, setIsDevicesListView, 'devices')} sx={[isDevicesListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isDevicesListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {!isEmpty(devicesUpWidget?.devicesUpText) ?
                                     <CustomLinearProgress
@@ -973,7 +973,7 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
-                        {(showPeripheralsWidget === true && peripheralsUp) && (
+                        {((showPeripheralsWidget === true || showPeripheralsWidget === 'true') && peripheralsUp) && (
                             <Paper onClick={() => handleListViewPaperClicked(isPeripheralsListView, setIsPeripheralsListView, 'peripherals')} sx={[isPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {!isEmpty(peripheralsUpWidget?.peripheralsUpText) ?
                                     <CustomLinearProgress
@@ -985,7 +985,7 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
-                        {(showHandheldsWidget === true && handheldsUp) && (
+                        {((showHandheldsWidget === true || showHandheldsWidget === 'true') && handheldsUp) && (
                             <Paper onClick={() => handleListViewPaperClicked(isHandheldsListView, setIsHandheldsListView, 'handhelds')} sx={[isHandheldsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isHandheldsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {!isEmpty(handheldsUpWidget?.handheldsUpText) ?
                                     <CustomLinearProgress
@@ -997,7 +997,7 @@ export default function EnterpriseOverview() {
                                 }
                             </Paper>
                         )}
-                        {(showRsmpPeripheralsWidget === true && rsmpPeripheralsUp) && (
+                        {((showRsmpPeripheralsWidget === true || showRsmpPeripheralsWidget === 'true') && rsmpPeripheralsUp) && (
                             <Paper onClick={() => handleListViewPaperClicked(isRsmpPeripheralsListView, setIsRsmpPeripheralsListView, 'rsmpPeripherals')} sx={[isRsmpPeripheralsListView === false && { width: '90%', marginTop: 1, backgroundColor: '#FFFFFF', display: 'flex', justifyContent: 'center' }, isRsmpPeripheralsListView === true && { width: '90%', marginTop: 1, backgroundColor: '#ddd', display: 'flex', justifyContent: 'center' }]} elevation={10}>
                                 {!isEmpty(rsmpPeripheralsUpWidget?.rsmpPeripheralsUpText) ?
                                     <CustomLinearProgress
