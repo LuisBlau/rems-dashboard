@@ -11,9 +11,6 @@ import {
     Paper,
     Switch,
     Typography,
-    DialogContent,
-    ListItem,
-    Divider,
     LinearProgress,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -31,6 +28,7 @@ import Copyright from '../components/Copyright';
 import UserContext from './UserContext';
 import EleraInfoRegion from '../components/StoreOverview/EleraInfoRegion';
 import moment from 'moment';
+import Alerts from '../components/EnterpriseOverview/StoreAlerts';
 
 const PREFIX = 'storeOverview';
 
@@ -251,9 +249,9 @@ export default function StoreOverview() {
 
                     const fetchAlerts = async () => {
                         async function getStoreAlerts() {
-                            let alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
+                            let alertsUrl = `/api/alerts/getForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`
                             if (context.selectedRetailerIsTenant === true) {
-                                alertsUrl = `/api/REMS/stores/alerts?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
+                                alertsUrl = `/api/alerts/getForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`
                             }
                             await axios.get(alertsUrl).then((resp) => {
                                 if (resp.data) {
@@ -296,6 +294,10 @@ export default function StoreOverview() {
         }
 
     }, [storeAgents])
+
+    const updateAlerts = (updatedAlerts) => {
+        setStoreAlerts(updatedAlerts);
+    };
 
     if (userHasAccess) {
         return (
@@ -417,7 +419,7 @@ export default function StoreOverview() {
                             <div onClick={handleAlertsConfirmationOpen} style={{ display: 'flex', flexDirection: 'row' }}>
                                 <NotificationsIcon fontSize="large" />
                                 <Typography fontSize={'150%'} fontWeight={'bold'}>
-                                    {storeAlerts.length}
+                                    {storeAlerts.filter((alert) => alert.alertAcknowledged === false).length}
                                 </Typography>
                             </div>
                         </Paper>
@@ -455,25 +457,16 @@ export default function StoreOverview() {
                     onClose={handleAlertsConfirmationClose}
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
+                    PaperProps={{
+                        style: {
+                            maxWidth: '100%'
+                        }
+                    }}
                 >
-                    <DialogTitle fontSize={24} fontWeight={'bold'} id="alert-dialog-title">
+                    <DialogTitle fontSize={36} fontWeight={'bold'} id="alert-dialog-title" style={{ textAlign: 'center' }} >
                         Alerts
                     </DialogTitle>
-                    <DialogContent sx={{ padding: 3 }}>
-                        {storeAlertDescriptions.map((alert, index) => {
-                            return (
-                                <div key={index}>
-                                    <ListItem dense>
-                                        <NotificationsIcon sx={{ marginRight: 2 }} />
-                                        <Typography fontWeight={400} sx={{ color: '#000000' }}>
-                                            {alert}
-                                        </Typography>
-                                    </ListItem>
-                                    <Divider />
-                                </div>
-                            );
-                        })}
-                    </DialogContent>
+                    <Alerts alerts={storeAlerts} updateAlerts={updateAlerts}></Alerts>
                     <DialogActions>
                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleAlertsConfirmationClose}>
                             Close

@@ -157,7 +157,14 @@ export default function versionOverview() {
         { field: 'host_server', headerName: 'Host Server', sortable: true, flex: 1 },
         { field: 'count', headerName: 'Count', sortable: true, flex: 1 },
         { field: 'version', headerName: 'Version', sortable: true, flex: 1 },
-        { field: 'LastUpdatedSec', headerName: 'Last Update', sortable: true, flex: 1, renderCell: (params) => params.row.LastUpdatedSec ? moment(params.row.LastUpdatedSec).fromNow() : 'N/A' }
+        {
+            field: 'LastUpdatedSec',
+            headerName: 'Last Update',
+            sortable: true,
+            flex: 1,
+            renderCell: (params) => params.row.LastUpdatedSec ? moment(params.row.LastUpdatedSec).fromNow() : 'N/A',
+            valueGetter: (params) => { return params.row.LastUpdatedSec }
+        }
     ];
 
     const headerColumns = [
