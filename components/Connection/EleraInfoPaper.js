@@ -29,6 +29,7 @@ export default function EleraInfoPaper({ elera, agent }) {
             <Box sx={{ display: 'flex', flexDirection: 'row' }} >
                 <Button variant="contained" sx={{ margin: 1, width: '25%' }} onClick={() => router.push('/store/eleraHealth?storeName=' + params.get("storeName") + '&retailer_id=' + params.get("retailer_id") + '&agentName=' + agent)} disableElevation>Health</Button>
                 <Button variant="contained" sx={{ margin: 1, width: '25%' }} onClick={() => router.push('/store/eleraStats?storeName=' + params.get("storeName"))} disableElevation>Stats</Button>
+
             </Box>
         </Paper>
     );

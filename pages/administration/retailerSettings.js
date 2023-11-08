@@ -15,6 +15,7 @@ import _ from 'lodash';
 import UserContext from '../UserContext';
 import { Tabs, Tab } from '@mui/material';
 import Copyright from '../../components/Copyright';
+import ElasticSearchRuleComponent from '../../components/ElasticSearchRuleManagement';
 
 /// Number of millisec to show Successful toast. Page will reload 1/2 second after to clear it.
 const SuccessToastDuration = 4000;
@@ -150,6 +151,12 @@ export default function RetailerSettings() {
                         )}
                     </Tabs>
                 </Box>
+
+                <Box sx={{ width: '90%', height: '75%', paddingTop: 5, paddingBottom: 5 }}>
+                    {/* Render ElasticSearchRuleComponent only if activeCategory is "Elastic Search" */}
+                    {activeCategory === 'Elastic Search' && <ElasticSearchRuleComponent />}
+                </Box>
+
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {activeCategory &&
                         configurationItems.filter(c => c.configCategory === activeCategory).map((element) => (

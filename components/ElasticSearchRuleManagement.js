@@ -1,0 +1,1117 @@
+/* eslint-disable react/prop-types */
+import React, { useState, useEffect, useContext } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
+import axios from 'axios';
+import UserContext from '../pages/UserContext';
+import base64 from 'base-64';
+import { Modal, Typography, Button, TextField, Switch, Chip, Select, MenuItem, FormControl, InputLabel, Tooltip, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
+import HelpIcon from '@mui/icons-material/Help';
+
+const LabelWithTooltip = ({ label, tooltip }) => (
+  <div>
+    {label}
+    <Tooltip title={tooltip} arrow>
+      <IconButton size="small">
+        <HelpIcon />
+      </IconButton>
+      <style>{`
+        .MuiTooltip-tooltip {
+          font-size: 14px;
+        }
+      `}</style>
+    </Tooltip>
+  </div>
+);
+
+const ElasticSearchRuleComponent = () => {
+  const context = useContext(UserContext);
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
+  const [token, setToken] = useState(''); // Initialize with empty string
+  const [baseURI, setBaseURI] = useState(''); // Initialize with empty string
+  const [minInterval, setMinInterval] = useState(''); // Initialize with empty string
+  const [selectedRowData, setSelectedRowData] = useState(null); // State to store the data of the selected row for updating
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [rows, setRows] = useState([]);
+
+  const [openModal, setOpenModal] = useState(false);
+  const [tagInput, setTagInput] = useState(''); // State to manage individual tags
+  const [tags, setTags] = useState([]); // State to store tags as an array
+  const [isLoading, setIsLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  //Set defaults
+  const [newRowData, setNewRowData] = useState({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
+
+  //Validations
+  const [isIntervalValid, setIsIntervalValid] = useState(false);
+  const [isNameValid, setIsNameValid] = useState(false);
+  const [isThresholdValid, setIsThresholdValid] = useState(false);
+  const [isLastValid, setIsLastValid] = useState(false);
+
+  useEffect(() => {
+    if (context?.retailerConfigs.length > 0 && context?.selectedRetailer) {
+      const configurationArray = context.retailerConfigs;
+      const configurationInfo = [];
+      configurationArray.forEach(configObject => {
+        const innerArray = Object.values(configObject)[0];
+        configurationInfo.push(innerArray);
+      });
+
+      //Need to do create the encoded credentials
+      const user = configurationInfo.find(item => item.configName === 'elasticSearchServiceAccName').configValue;
+      const pass = configurationInfo.find(item => item.configName === 'elasticSearchServiceAccPass').configValue;
+      const encodedToken = base64.encode(`${user}:${pass}`)
+
+      //Grab the baseURI from the config, we'll use this for our API calls
+      const configBaseURI = configurationInfo.find(item => item.configName === 'elasticSearchBaseURI').configValue;
+
+      //Grab the min allowable interval from the config
+      const configMinInterval = configurationInfo.find(item => item.configName === 'elasticSearchRuleMinInterval').configValue;
+
+      //Set values
+      setToken(encodedToken);
+      setBaseURI(configBaseURI);
+      setMinInterval(configMinInterval);
+
+      //Set flag to let us know that the data loaded
+      setDataLoaded(true);
+    }
+  }, [context?.selectedRetailer, context?.retailerConfigs]);
+
+  const fetchDataFromElasticsearch = () => {
+    setIsLoading(true); // Set loading state to true when fetching data
+    axios
+      .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
+      .then(function (response) {
+        const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
+        const esQueryAlerts = response.data.filter(o => o.rule_type_id === '.es-query');
+
+        const initRowsData = new Set();
+        const initRowsIdSet = new Set();
+        let hasDuplicates = false;
+
+        metricThresholdAlerts.forEach((alert) => {
+          const data = {
+            id: alert.id,
+            Name: alert.name,
+            FilterQuery: alert.params.filterQueryText,
+            AggType: alert.params.criteria[0].aggType,
+            Comparator: alert.params.criteria[0].comparator,
+            Threshold: alert.params.criteria[0].threshold[0],
+            TimeSize: alert.params.criteria[0].timeSize,
+            TimeUnit: alert.params.criteria[0].timeUnit,
+            Tags: alert.tags.join(', '),
+            ConnectorName: alert.actions.map(i => i.connector_type_id).join(', '),
+            Type: alert.rule_type_id,
+            Enabled: alert.enabled,
+            Interval: alert.schedule.interval,
+            LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
+            Last: alert.params.criteria[0].timeSize + alert.params.criteria[0].timeUnit
+          }
+
+          //This handles my conversion between key/value. I need these data to be in certain forms depending on what I'm doing
+          //If I'm presenting the information, I want that in a form that is readable. Example: Less than or equal to instead of <=
+          var matchingQuery = filterQueries.find((queryObj) => queryObj.query === data.FilterQuery.trim());
+          data.FilterQueryLabel = matchingQuery.name;
+
+          var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
+          data.Comparator = comparatorObj.label;
+
+          if (addUniqueItem(data, initRowsData, initRowsIdSet)) {
+            hasDuplicates = true;
+          }
+        });
+
+        esQueryAlerts.forEach((alert) => {
+          const data = {
+            id: alert.id,
+            Name: alert.name,
+            AggType: 'count',
+            FilterQuery: alert.params.searchConfiguration.query.query,
+            Comparator: alert.params.thresholdComparator,
+            Threshold: alert.params.threshold[0],
+            TimeSize: alert.params.timeWindowSize,
+            TimeUnit: alert.params.timeWindowUnit,
+            Tags: alert.tags.join(', '),
+            ConnectorName: alert.actions.map(i => i.connector_type_id).join(', '),
+            Type: alert.rule_type_id,
+            Enabled: alert.enabled,
+            Interval: alert.schedule.interval,
+            LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
+            Last: alert.params.timeWindowSize + alert.params.timeWindowUnit
+          }
+
+          var matchingQuery = filterQueries.find((queryObj) => queryObj.query === data.FilterQuery.trim());
+          data.FilterQueryLabel = matchingQuery.name;
+
+          var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
+          data.Comparator = comparatorObj.label;
+
+          if (addUniqueItem(data, initRowsData, initRowsIdSet)) {
+            hasDuplicates = true;
+          }
+        });
+
+        if (hasDuplicates) {
+          // If duplicates were found, call the function again to fetch the data.
+          // Looks like ES has a bug where it will sometimes send a duplicated rule
+          // Rather than handling that duplicated id, i'd rather re-pull to ensure that our data is good
+          fetchDataFromElasticsearch();
+        } else {
+          // Set the state with the data for multiple rows
+          setRows(Array.from(initRowsData));
+        }
+      })
+      .catch(function (error) {
+        console.error('Error:', error)
+      }).finally(() => {
+        setIsLoading(false); // Set loading state to false when the operation is completed to remove loading animation
+      });
+  };
+
+  useEffect(() => {
+    if (dataLoaded) {
+      // Fetch data from Elasticsearch initially
+      fetchDataFromElasticsearch();
+    }
+  }, [baseURI, token, dataLoaded, context?.retailerConfigs]);
+
+  const addUniqueItem = (item, initRowsData, initRowsIdSet) => {
+    const id = item.id;
+    if (!initRowsIdSet.has(id)) {
+      initRowsIdSet.add(id);
+      initRowsData.add(item);
+      return false;
+    }
+    return true;
+  };
+
+  const columns = [
+    {
+      field: 'Name',
+      headerName: 'Name',
+      flex: 1,
+    },
+    {
+      field: 'AggType',
+      headerName: 'Aggregate Type',
+      flex: 1,
+    },
+    {
+      field: 'Comparator',
+      headerName: 'Comparator',
+      flex: 1,
+    },
+    {
+      field: 'Threshold',
+      headerName: 'Threshold',
+      flex: 1,
+    },
+    {
+      field: 'Last',
+      headerName: 'During Last',
+      flex: 1,
+    },
+    {
+      field: 'Interval',
+      headerName: 'Periodic Check',
+      flex: 1,
+    },
+
+    {
+      field: 'Tags',
+      headerName: 'Tags',
+      flex: 1,
+    },
+    {
+      field: 'ConnectorName',
+      headerName: 'Action',
+      flex: 1,
+    },
+    {
+      field: 'LastExec',
+      headerName: 'Last Executed',
+      flex: 1,
+    },
+    {
+      field: 'Enabled',
+      headerName: 'Enabled',
+      flex: 1,
+      renderCell: (params) => (
+        <Switch
+          checked={params.row.Enabled}
+          onChange={() => handleToggleEnable(params.row.id, !params.row.Enabled)}
+          name={`enabled-${params.row.id}`}
+          color="primary"
+        />
+      ),
+    },
+    {
+      field: 'Edit',
+      headerName: 'Edit',
+      sortable: false,
+      width: 100,
+      renderCell: (params) => (
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => handleEditRow(params.row)}
+        >
+          Edit
+        </Button>
+      ),
+    },
+    {
+      field: 'Delete',
+      headerName: 'Delete',
+      sortable: false,
+      width: 100,
+      renderCell: (params) => (
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => handleDeleteRow(params.row.id)}
+        >
+          Delete
+        </Button>
+      ),
+    }
+  ];
+
+  //These are my select options
+
+  //TODO: Probably store these into a mongoDB collection so we can add/remove without deployment. 
+  // Adds another layer of management though. How often are we actually adding/removing from this list?
+  // I'll think about it
+  const filterQueries = [
+    { name: 'Aborted Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/void" and url.path : *' },
+    { name: 'Failed Login', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *' },
+    { name: 'Container Down', query: 'data_stream.dataset : "apm.app.unknown" and container.image.name: *' },
+    { name: 'Successfully Completed Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *' },
+    { name: 'Suspended Transaction', query: 'labels.http_route: "/pos/order/{orderId}/{version}/suspend" and url.path : *' },
+    { name: 'Tender Error', query: 'labels.http_route: "/pos/order/{orderId}/{version}/payment/add" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *' },
+  ];
+
+  const comparators = [
+    { value: '>', label: 'Greater than' },
+    { value: '<', label: 'Less than' },
+    { value: '>=', label: 'Greater than or equal to' },
+    { value: '<=', label: 'Less than or equal to' },
+  ];
+
+  //Created a ticket to expand these
+  const aggTypeOptions = [
+    { value: 'count', label: 'Count' },
+  ];
+
+  const handleIntervalChange = (value) => {
+    if (selectedRowData) {
+      setSelectedRowData({ ...selectedRowData, Interval: value })
+    } else {
+      setNewRowData({ ...newRowData, Interval: value });
+    }
+    setIsIntervalValid(isValidInterval(value));
+  };
+
+  const handleNameChange = (value) => {
+    if (selectedRowData) {
+      setSelectedRowData({ ...selectedRowData, Name: value })
+    } else {
+      setNewRowData({ ...newRowData, Name: value });
+    }
+
+    setIsNameValid(value.trim() !== '');
+  };
+
+  const handleThresholdChange = (value) => {
+    if (selectedRowData) {
+      setSelectedRowData({ ...selectedRowData, Threshold: value })
+    } else {
+      setNewRowData({ ...newRowData, Threshold: value });
+    }
+
+    var isValid = true;
+    if (value === "" || isNaN(Number(value))) {
+      isValid = false;
+    }
+    setIsThresholdValid(isValid);
+  };
+
+  const handleLastChange = (value) => {
+    if (selectedRowData) {
+      setSelectedRowData({ ...selectedRowData, TimeSize: value })
+    } else {
+      setNewRowData({ ...newRowData, TimeSize: value });
+    }
+    setIsLastValid(isValidLast(value));
+  };
+
+
+  const handleOpenSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    sanitizeForms();
+  };
+
+  const handleDeleteRow = (id) => {
+    setIsLoading(true);
+    axios
+      .delete(`/api/esalert/rules?ruleId=${id}&baseURI=${baseURI}&token=${token}`)
+      .then(function (response) {
+        if (response.status === 204) {
+          // Remove the deleted row from the state
+          setRows((prevRows) => prevRows.filter((row) => row.id !== id));
+          handleOpenSnackbar(`Rule has been successfully deleted.`, 'success');
+        } else {
+          console.error(`Failed to delete rule`);
+          handleOpenSnackbar(`Failed to delete rule`, 'error');
+        }
+
+      })
+      .catch(function (error) {
+        console.error('Error:', error.response.data);
+        handleOpenSnackbar(`Error: ${error.response.data}`, 'error');
+      }).finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const sanitizeForms = () => {
+    setTags([]);
+    setTagInput('');
+    setSelectedRowData(null);
+    setNewRowData({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
+
+    setIsNameValid(false);
+    setIsIntervalValid(false);
+    setIsLastValid(false);
+    setIsThresholdValid(false);
+  }
+
+  const handleAddRow = () => {
+    //Append the tags
+    var appendedTags;
+    if (tagInput.trim() === '') {
+      appendedTags = tags;
+    } else {
+      appendedTags = [...tags, tagInput.trim()];
+    }
+    setTags(appendedTags);
+
+    //Prepare the object 
+    const requestData = {
+      id: '',
+      name: newRowData.Name,
+      connectorName: 'ServiceBus Alert',
+      interval: newRowData.Interval,
+      aggType: newRowData.AggType,
+      timeUnit: newRowData.TimeUnit,
+      comparator: newRowData.Comparator,
+      timeSize: newRowData.TimeSize,
+      threshold: newRowData.Threshold,
+      tags: appendedTags,
+      filterQuery: newRowData.FilterQuery,
+      groupByFields: ['labels.storeName', 'labels.retailer'],
+      esToken: token,
+      esBaseURI: baseURI,
+      type: 'metrics.alert.threshold'
+    };
+
+    // Use a regular expression to split the string
+    const match = requestData.timeSize.match(/^(\d+)([hm])$/);
+
+    //TimeSize and TimeUnit are not in forms that ES will accept. We need to perform some parsing
+    //Number is placed at index 1, and the unit is placed at index 2
+    requestData.timeSize = match[1];
+    requestData.timeUnit = match[2];
+
+    //Show the loading animation
+    setIsLoading(true);
+
+    // Make the HTTP request
+    axios.post('/api/esalert/rules/upsert', requestData)
+      .then(response => {
+        //Adjustments before placing into the grid
+        newRowData.id = response.data.id;
+        newRowData.Enabled = true;
+        newRowData.Tags = appendedTags.join(',');
+        newRowData.Last = requestData.timeSize + requestData.timeUnit;
+
+        //Convert to more readable forms
+        var matchingQuery = filterQueries.find((queryObj) => queryObj.query === requestData.filterQuery.trim());
+        newRowData.FilterQueryLabel = matchingQuery.name;
+
+        var comparatorObj = comparators.find((queryObj) => queryObj.value === requestData.comparator);
+        newRowData.Comparator = comparatorObj.label;
+
+        //TODO: hardcoded. Not sure if we want allow users to set 'email' as one of the connectors. We'll see
+        newRowData.ConnectorName = '.webhook';
+
+        setRows((prevRows) => [...prevRows, newRowData]);
+        handleOpenSnackbar(`Rule has been successfully created.`, 'success');
+      })
+      .catch(error => {
+        console.error('Error:', error.response.data);
+        handleOpenSnackbar(`Failed to create rule ${error.response.data}`, 'error');
+      }).finally(() => {
+        sanitizeForms();
+        setIsLoading(false);
+      });
+
+    //I don't want this to be async
+    handleCloseModal();
+  };
+
+  const handleEditRow = (rowData) => {
+    //Let's reset our validations
+    //For an edit, we know that these will all be true by default
+    setIsIntervalValid(true);
+    setIsLastValid(true);
+    setIsNameValid(true);
+    setIsThresholdValid(true);
+
+    //Convert the compator to use its value instead of label
+    var comparatorObj = comparators.find((queryObj) => queryObj.label === rowData.Comparator);
+    rowData.Comparator = comparatorObj.value;
+
+    //Trim any whitespaces. Doing this so that the string matches what's in the array
+    rowData.FilterQuery = rowData.FilterQuery.trim();
+
+    //We want the TimeSize to take the value of Last here, so that it populates appropriately on the modal
+    rowData.TimeSize = rowData.Last;
+
+    //Set
+    setSelectedRowData(rowData);
+    setIsEditModalOpen(true);
+
+    // Set the tags state with the tags from the selected row
+    if (rowData.Tags === '') {
+      setTags([]);
+    } else {
+      setTags(rowData.Tags.split(','));
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    //Re-convert the comparator back to a more readable version
+    var comparatorObj = comparators.find((queryObj) => queryObj.value === selectedRowData.Comparator);
+    selectedRowData.Comparator = comparatorObj.label;
+
+    setIsEditModalOpen(false);
+
+    // Reset our forms to default
+    sanitizeForms();
+  };
+
+  const handleUpdateRow = () => {
+    var appendedTags;
+    if (tagInput.trim() === '') {
+      appendedTags = tags;
+    } else {
+      appendedTags = [...tags, tagInput.trim()];
+    }
+
+    setTags(appendedTags);
+
+    const updatedData = {
+      id: selectedRowData.id,
+      name: selectedRowData.Name,
+      filterQuery: selectedRowData.FilterQuery,
+      aggType: selectedRowData.AggType,
+      comparator: selectedRowData.Comparator,
+      threshold: selectedRowData.Threshold,
+      timeSize: selectedRowData.TimeSize,
+      timeUnit: selectedRowData.TimeUnit,
+      tags: appendedTags,
+      connectorName: 'ServiceBus Alert',
+      type: selectedRowData.Type,
+      enabled: selectedRowData.Enabled,
+      interval: selectedRowData.Interval,
+      groupByFields: ['labels.storeName', 'labels.retailer'],
+      esToken: token,
+      esBaseURI: baseURI,
+    };
+
+    // Use a regular expression to split the string
+    const match = updatedData.timeSize.match(/^(\d+)([hm])$/);
+
+    //Number is placed at index 1, and the unit is placed at index 2
+    updatedData.timeSize = match[1];
+    updatedData.timeUnit = match[2];
+
+    //Show the loading animation
+    setIsLoading(true);
+
+    // Make the HTTP request to update the row
+    axios.post('/api/esalert/rules/upsert', updatedData)
+      .then(response => {
+        try {
+          const rowIndex = rows.findIndex(row => row.id === selectedRowData.id);
+          if (rowIndex !== -1) {
+            // Create a copy of the rows
+            const updatedRows = [...rows];
+
+            var matchingQuery = filterQueries.find((queryObj) => queryObj.query === updatedData.filterQuery.trim());
+            var comparatorObj = comparators.find((queryObj) => queryObj.value === updatedData.comparator);
+
+            // Update the row with the new data
+            updatedRows[rowIndex] = {
+              id: updatedData.id,
+              Name: updatedData.name,
+              FilterQuery: updatedData.filterQuery,
+              AggType: updatedData.aggType,
+              Comparator: comparatorObj.label,
+              Threshold: updatedData.threshold,
+              TimeSize: updatedData.timeSize,
+              TimeUnit: updatedData.timeUnit,
+              Tags: appendedTags.join(','),
+              ConnectorName: '.webhook',
+              Type: updatedData.type,
+              Enabled: updatedData.enabled,
+              Interval: updatedData.interval,
+              LastExec: formatTimeAgo(selectedRowData.LastExec),
+              Last: updatedData.timeSize + updatedData.timeUnit,
+              FilterQueryLabel: matchingQuery.name
+            };
+
+            // Update the state with the new rows
+            setRows(updatedRows);
+
+            console.log(`Rule with ID ${response.data.id} has been successfully updated.`);
+            handleOpenSnackbar(`Rule with ID ${response.data.id} has been successfully updated.`, 'success');
+          } else {
+            handleOpenSnackbar(`Row with ID ${response.data.id} not found in the rows.`, 'error');
+          }
+        } catch (ex) {
+          console.log(ex)
+          handleOpenSnackbar(`Failed to update rule ${ex}`, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error.response.data);
+        handleOpenSnackbar(`Failed to update rule ${error.response.data}`, 'error');
+      }).finally(() => {
+        sanitizeForms();
+        setIsLoading(false);
+      });
+
+    // Close the update modal. I don't want this to be async
+    setIsEditModalOpen(false);
+  };
+
+  const handleToggleEnable = (id, enabled) => {
+    setIsLoading(true);
+    axios
+      .post(`/api/esalert/rules/toggle?ruleId=${id}&baseURI=${baseURI}&token=${token}`, { enabled })
+      .then((response) => {
+        if (response.status === 204) {
+          setRows((prevRows) =>
+            prevRows.map((row) => (row.id === id ? { ...row, Enabled: enabled } : row))
+          );
+          console.log(`Rule with ID ${id} has been successfully ${enabled ? 'enabled' : 'disabled'}.`);
+        } else {
+          console.error('Unexpected response status:', response.status);
+          handleOpenSnackbar(`Failed to change rule status: Unexpected response status ${response.status}`, 'error');
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        if (error.response) {
+          handleOpenSnackbar(`Failed to change rule status: ${error.response.data}`, 'error');
+        } else {
+          handleOpenSnackbar('Failed to change rule status: Network error', 'error');
+        }
+      }).finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+
+  const handleRemoveTag = (index) => {
+    const updatedTags = [...tags];
+    updatedTags.splice(index, 1);
+    setTags(updatedTags);
+  };
+
+  const isValidLast = (value) => {
+    const regex = /^[0-9]+[hm]$/;
+    return regex.test(value);
+  }
+
+  const isValidInterval = (value) => {
+    const regex = /^[0-9]+[mh]$/;
+    if (!regex.test(value)) {
+      return false; // Must match the format
+    }
+
+    const [valueNumber, valueUnit] = value.match(/(\d+)([mh])/).slice(1);
+    const [minIntervalValue, minIntervalUnit] = minInterval.match(/(\d+)([mh])/).slice(1);
+
+    if (valueUnit === 'h' && minIntervalUnit === 'm') {
+      // Convert hours to minutes for comparison
+      const valueInMinutes = parseInt(valueNumber, 10) * 60;
+      return valueInMinutes >= parseInt(minIntervalValue, 10);
+    } else if (valueUnit === 'm' && minIntervalUnit === 'h') {
+      // Convert minutes to hours for comparison
+      const valueInHours = parseInt(valueNumber, 10) / 60;
+      return valueInHours >= parseInt(minIntervalValue, 10);
+    } else {
+      // Units are the same, perform a regular comparison
+      return parseInt(valueNumber, 10) >= parseInt(minIntervalValue, 10);
+    }
+  };
+
+  function formatTimeAgo(timestamp) {
+    if (timestamp === null || timestamp === undefined) {
+      return;
+    }
+
+    // Regular expression to match the various time formats
+    const timeAgoRegex = /^(\d+)\s(seconds|minutes|hours|days)\sago$/;
+    const match = timestamp.match(timeAgoRegex);
+
+    if (match) {
+      // If it matches the format, return the timestamp as is
+      return timestamp;
+    }
+
+    // If it doesn't match the format, proceed with the conversion logic
+    const currentDate = new Date();
+    const date = new Date(timestamp);
+    const timeDifference = currentDate - date;
+
+    const seconds = Math.floor(timeDifference / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 1) {
+      return `${days} days ago`;
+    } else if (hours > 1) {
+      return `${hours} hours ago`;
+    } else if (minutes > 1) {
+      return `${minutes} minutes ago`;
+    } else {
+      return `${seconds} seconds ago`;
+    }
+  }
+
+  return (
+    <div style={{ height: 500, width: '100%' }}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ marginTop: 50, marginLeft: 20 }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      {isLoading && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '35%',
+            left: '55%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1,
+          }}
+        >
+          <CircularProgress />
+        </div>
+      )}
+
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        headerHeight={60}
+        components={{
+          Toolbar: () => (
+            <div style={{ position: 'relative' }}>
+              <Typography
+                variant="h5"
+                textAlign="center"
+                marginBottom="10px"
+                fontSize="1.5rem"
+                style={{ padding: '10px' }}
+              >
+                Elastic Search Rules
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={handleOpenModal}
+                style={{
+                  position: 'absolute',
+                  bottom: 10,
+                  right: 75,
+                }}
+              >
+                Create Rule
+              </Button>
+            </div>
+          ),
+        }}
+      />
+
+      <Modal open={openModal} onClose={handleCloseModal}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 700,
+            background: 'white',
+            padding: 20,
+          }}
+        >
+          <Typography sx={{ margin: 1 }} variant='h5'>Add New Rule</Typography>
+
+          <TextField
+            label="Name"
+            fullWidth
+            style={{ marginBottom: '16px' }}
+            value={newRowData.Name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            error={!isNameValid}
+            helperText={isNameValid ? '' : 'Name is required'}
+          />
+          <Tooltip title="Select the filter query" arrow>
+            <FormControl fullWidth>
+              <InputLabel id="filterQuery-label">Filter Query</InputLabel>
+              <Select
+                label='Filter Query'
+                labelId="filterQuery-label"
+                id="filterQuery"
+                value={newRowData.FilterQuery}
+                onChange={(e) => setNewRowData({ ...newRowData, FilterQuery: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {filterQueries.map((queryItem) => (
+                  <MenuItem key={queryItem.name} value={queryItem.query}>
+                    {queryItem.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <Tooltip title="Select the aggregation type" arrow>
+            <FormControl fullWidth>
+              <InputLabel id="aggType-label">Agg Type</InputLabel>
+              <Select
+                label='Agg Type'
+                labelId="aggType-label"
+                id="aggType"
+                value={newRowData.AggType}
+                onChange={(e) => setNewRowData({ ...newRowData, AggType: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {aggTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <Tooltip title="Select the comparator" arrow>
+            <FormControl fullWidth>
+              <InputLabel>Comparator</InputLabel>
+              <Select
+                label='Comparator'
+                value={newRowData.Comparator}
+                onChange={(e) => setNewRowData({ ...newRowData, Comparator: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {comparators.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Threshold"
+                tooltip="Threshold is the value that you define for when the alert will fire"
+              />
+            }
+            fullWidth
+            value={newRowData.Threshold}
+            onChange={(e) => handleThresholdChange(e.target.value)}
+            error={!isThresholdValid}
+            helperText={isThresholdValid ? '' : 'Invalid Threshold value'}
+            style={{ marginBottom: '16px' }}
+          />
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="During last"
+                tooltip="Enter a number that will represent the period of interest. For example, last 2 hours"
+              />
+            }
+            fullWidth
+            value={newRowData.TimeSize}
+            onChange={(e) => handleLastChange(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            error={!isLastValid}
+            helperText={isLastValid ? '' : 'Enter the time period and the time unit (h or m). For example, 2h for the last 2 hours'}
+          />
+
+          {minInterval !== null && (
+            <TextField
+              label={
+                <LabelWithTooltip
+                  label="Interval"
+                  tooltip="Enter the interval and the time unit (h or m). This indicates how often this rule will execute its check. For example 5m for every 5 minutes"
+                />
+              }
+              fullWidth
+              value={newRowData.Interval}
+              onChange={(e) => handleIntervalChange(e.target.value)}
+              style={{ marginBottom: '16px' }}
+              error={!isIntervalValid}
+              helperText={isIntervalValid ? '' : `Invalid Interval provided. The minimum allowable interval is configured to ${minInterval}.`}
+            />
+          )}
+
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Tag(s)"
+                tooltip="For more than one tag, separate by space"
+              />
+            }
+            fullWidth
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            onKeyDown={(e) => {
+              if (e.key === ' ' && tagInput) {
+                setTags([...tags, tagInput]);
+                setTagInput(''); // Clear the input field
+              }
+            }}
+            InputProps={{
+              endAdornment: tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  onDelete={() => handleRemoveTag(index)}
+                />
+              ))
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleAddRow}
+            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid}
+            sx={{ marginRight: 2 }}
+          >
+            Add Rule
+          </Button>
+          <Button variant="outlined" onClick={handleCloseModal}>
+            Cancel
+          </Button>
+        </div>
+      </Modal >
+      <Modal open={isEditModalOpen} onClose={handleCloseEditModal}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 700,
+            background: 'white',
+            padding: 20,
+          }}
+        >
+          <Typography sx={{ margin: 1 }} variant='h5'>Edit Rule</Typography>
+          <Tooltip title="Enter the name of the alert" arrow>
+            <TextField
+              label="Name"
+              fullWidth
+              value={selectedRowData ? selectedRowData.Name : ''}
+              onChange={(e) => handleNameChange(e.target.value)}
+              style={{ marginBottom: '16px' }}
+              error={!isNameValid}
+              helperText={isNameValid ? '' : 'Name is required'}
+            />
+          </Tooltip>
+
+          <Tooltip title="Select the filter query" arrow>
+            <FormControl fullWidth>
+              <InputLabel id="filterQuery-label">Filter Query</InputLabel>
+              <Select
+                label='Filter Query'
+                labelId="filterQuery-label"
+                id="filterQuery"
+                value={selectedRowData ? selectedRowData.FilterQuery : ''}
+                onChange={(e) => setSelectedRowData({ ...selectedRowData, FilterQuery: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {filterQueries.map((queryItem) => (
+                  <MenuItem key={queryItem.name} value={queryItem.query}>
+                    {queryItem.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <Tooltip title="Select the aggregation type" arrow>
+            <FormControl fullWidth>
+              <InputLabel id="aggType-label">Agg Type</InputLabel>
+              <Select
+                label='Agg Type'
+                labelId="aggType-label"
+                id="aggType"
+                value={selectedRowData ? selectedRowData.AggType : ''}
+                onChange={(e) => setSelectedRowData({ ...selectedRowData, AggType: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {aggTypeOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <Tooltip title="Select the comparator" arrow>
+            <FormControl fullWidth>
+              <InputLabel>Comparator</InputLabel>
+              <Select
+                label='Comparator'
+                value={selectedRowData ? selectedRowData.Comparator : ''}
+                onChange={(e) => setSelectedRowData({ ...selectedRowData, Comparator: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {comparators.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Threshold"
+                tooltip="Threshold is the value that you define for when the alert will fire"
+              />
+            }
+            fullWidth
+            value={selectedRowData ? selectedRowData.Threshold : ''}
+            onChange={(e) => handleThresholdChange(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            error={!isThresholdValid}
+            helperText={isThresholdValid ? '' : 'Invalid Threshold value'}
+          />
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="During last"
+                tooltip="Enter a number that will represent the period of interest. For example, last 2 hours"
+              />
+            }
+            fullWidth
+            value={selectedRowData ? selectedRowData.TimeSize : ''}
+            onChange={(e) => handleLastChange(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            error={!isLastValid}
+            helperText={isLastValid ? '' : 'Invalid time period. Ensure that a number is provided'}
+          />
+
+          {minInterval !== null && (
+            <TextField
+              label={
+                <LabelWithTooltip
+                  label="Interval"
+                  tooltip="Enter the interval and the time unit (h or m). This indicates how often this rule will execute its check. For example 5m for every 5 minutes"
+                />
+              }
+              fullWidth
+              value={selectedRowData ? selectedRowData.Interval : ''}
+              onChange={(e) => handleIntervalChange(e.target.value)}
+              style={{ marginBottom: '16px' }}
+              error={!isIntervalValid}
+              helperText={isIntervalValid ? '' : `Invalid Interval provided. The minimum allowable interval is configured to ${minInterval}.`}
+            />
+          )}
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Tag(s)"
+                tooltip="For more than one tag, separate by space"
+              />
+            }
+            fullWidth
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            onKeyDown={(e) => {
+              if (e.key === ' ' && tagInput) {
+                setTags([...tags, tagInput]);
+                setTagInput(''); // Clear the input field
+              }
+            }}
+            InputProps={{
+              endAdornment: tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  onDelete={() => handleRemoveTag(index)}
+                />
+              ))
+            }}
+          />
+          <Button
+            sx={{ marginRight: 2 }}
+            variant="outlined"
+            onClick={handleUpdateRow}
+            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid}>
+            Update Row
+          </Button>
+          <Button variant="outlined" onClick={handleCloseEditModal}>
+            Cancel
+          </Button>
+        </div>
+      </Modal>
+    </div >
+  );
+};
+
+export default ElasticSearchRuleComponent;
