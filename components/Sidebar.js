@@ -446,12 +446,49 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                     }
 
                     if (MenuItems.some((x) => x.name === 'Administration') && roles.includes('commandCenterViewer')) {
-                        tmp = {
+                        tmp = [{
                             name: 'Command Center Overview',
                             route: '/administration/commandCenterOverview',
                             enabled: roles.includes('commandCenterViewer'),
                             icon: <Image src={DumpsIcon} alt="DumpsIcon" />
-                        };
+                        },
+                        {
+                            id: 'kpiReporting',
+                            name: "PAS KPI Reporting",
+                            items: [
+                                {
+                                    id: 'externalKpiReports',
+                                    name: 'External KPI Reports',
+                                    route: 'https://toshibagcs.service-now.com/now/nav/ui/classic/params/target/%24pa_dashboard.do%3Fsysparm_dashboard%3De35962441bc57910641821b6b04bcbc3',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'internalKpiReports',
+                                    name: 'Internal KPI Reports',
+                                    route: 'https://toshibagcs.service-now.com/now/nav/ui/classic/params/target/%24pa_dashboard.do%3Fsysparm_dashboard%3D66503dd497d9b5d090b6b9a3f153af91',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'posHardware',
+                                    name: 'POS Hardware',
+                                    route: 'https://toshibagcs.service-now.com/now/nav/ui/classic/params/target/%24pa_dashboard.do%3Fsysparm_dashboard%3Dae1aefff47f979104cd2eb68536d4394',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'w2wHardware',
+                                    name: 'W2W Hardware',
+                                    route: 'https://toshibagcs.service-now.com/now/nav/ui/classic/params/target/%24pa_dashboard.do%3Fsysparm_dashboard%3D8cdc591047027d104cd2eb68536d4348',
+                                    enabled: true
+                                },
+                                {
+                                    id: 'eventsInternalTableau',
+                                    name: 'Events',
+                                    route: 'https://analytics.toshiba-solutions.com/#/site/TGCS/views/TotalMonthlyEventCountRolling-12Months_16989698808830/MonthlyeventcountReport?:iid=1',
+                                    enabled: true
+                                }
+                            ]
+                        }]
+                        MenuItems[MenuItems.findIndex(x => x.id === 'administration')].items.push(...tmp);
                         MenuItems.push(tmp)
                     }
                     if (_.some(context.sidebarConfigs, x => x.name === 'sidebarClientAdvocate' && x.value === true)) {
