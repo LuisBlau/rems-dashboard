@@ -6,7 +6,6 @@ import Typography from '@mui/material/Typography';
 import UserContext from '../../pages/UserContext'
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { Alert, AlertTitle, Snackbar } from '@mui/material';
 import Copyright from '../../components/Copyright';
 import RemsDataCaptureGrid from '../Tables/RemsDataCaptureGrid';
 import _ from 'lodash';
@@ -15,9 +14,6 @@ const PREFIX = 'dataCapture';
 const classes = {
     content: `${PREFIX}-content`,
 };
-
-const successHideDuration = 2500;
-const failHideDuration = 8000;
 
 const Root = styled('main')(({ theme }) => ({
     [`&.${classes.content}`]: {
@@ -32,26 +28,7 @@ export default function DataCapture() {
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
     const [selectedRetailerIsNotTenant, setSelectedRetailerIsNotTenant] = useState(false)
-    const [openSuccess, setOpenSuccess] = useState(false);
-    const [toastSuccess, setToastSuccess] = useState('');
-    const [openFailure, setOpenFailure] = useState(false);
-    const [toastFailure, setToastFailure] = useState('');
     const [remsDataCaptureEnabled, setRemsDataCaptureEnabled] = useState(false)
-
-    const processSuccessfulResponse = function (res, type) {
-        if (res.status !== 200) {
-            setToastFailure(`Logs capture failed with a status code ${res.status}`);
-            setOpenFailure(true);
-        } else {
-            setToastSuccess(`Successfully requested ${type} capture`);
-            setOpenSuccess(true);
-        }
-    };
-
-    const processFailedResponse = function (res, type) {
-        setToastFailure(`Failed ${type} capture with message: ${res.message}`);
-        setOpenFailure(true);
-    };
 
     useEffect(() => {
         if (context) {
@@ -84,34 +61,6 @@ export default function DataCapture() {
             <Container sx={{ display: 'flex', flexGrow: 2 }}>
                 <ExtractRequestGrid selectedRetailer={selectedRetailer} />
             </Container>
-
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={openSuccess}
-                autoHideDuration={successHideDuration}
-                onClose={(event) => {
-                    setOpenSuccess(false);
-                }}
-            >
-                <Alert variant="filled" severity="success">
-                    <AlertTitle>Success!</AlertTitle>
-                    {toastSuccess}
-                </Alert>
-            </Snackbar>
-
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={openFailure}
-                autoHideDuration={failHideDuration}
-                onClose={(event) => {
-                    setOpenFailure(false);
-                }}
-            >
-                <Alert variant="filled" severity="error">
-                    <AlertTitle>Error!!!</AlertTitle>
-                    {toastFailure}
-                </Alert>
-            </Snackbar>
             <Copyright />
         </Root>
     );

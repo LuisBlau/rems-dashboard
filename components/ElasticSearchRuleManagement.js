@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useContext } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
@@ -114,12 +115,21 @@ const ElasticSearchRuleComponent = () => {
           //This handles my conversion between key/value. I need these data to be in certain forms depending on what I'm doing
           //If I'm presenting the information, I want that in a form that is readable. Example: Less than or equal to instead of <=
           var matchingQuery = filterQueries.find((queryObj) => queryObj.query === data.FilterQuery.trim());
-          data.FilterQueryLabel = matchingQuery.name;
+          var foundMatch = true;
+          if (matchingQuery) {
+            data.FilterQueryLabel = matchingQuery.name;
+          } else {
+            foundMatch = false;
+          }
 
           var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
-          data.Comparator = comparatorObj.label;
+          if (comparatorObj) {
+            data.Comparator = comparatorObj.label;
+          } else {
+            foundMatch = false;
+          }
 
-          if (addUniqueItem(data, initRowsData, initRowsIdSet)) {
+          if (foundMatch && addUniqueItem(data, initRowsData, initRowsIdSet)) {
             hasDuplicates = true;
           }
         });
@@ -286,12 +296,13 @@ const ElasticSearchRuleComponent = () => {
   // Adds another layer of management though. How often are we actually adding/removing from this list?
   // I'll think about it
   const filterQueries = [
-    { name: 'Aborted Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/void" and url.path : *' },
-    { name: 'Failed Login', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *' },
-    { name: 'Container Down', query: 'data_stream.dataset : "apm.app.unknown" and container.image.name: *' },
-    { name: 'Successfully Completed Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *' },
-    { name: 'Suspended Transaction', query: 'labels.http_route: "/pos/order/{orderId}/{version}/suspend" and url.path : *' },
-    { name: 'Tender Error', query: 'labels.http_route: "/pos/order/{orderId}/{version}/payment/add" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *' },
+    { name: 'Aborted Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/void" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/void\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Failed Login', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/authorization/login\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Container Down', query: 'data_stream.dataset : "apm.app.unknown" and container.image.name: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"data_stream.dataset\":{\"value\":\"apm.app.unknown\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"container.image.name\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Successfully Completed Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/complete\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Suspended Transaction', query: 'labels.http_route: "/pos/order/{orderId}/{version}/suspend" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/suspend\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Tender Error', query: 'labels.http_route: "/pos/order/{orderId}/{version}/payment/add" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/payment/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Opened', query: 'labels.http_route :"/cash-management/till/open" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/open\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' }
   ];
 
   const comparators = [
@@ -409,6 +420,9 @@ const ElasticSearchRuleComponent = () => {
     }
     setTags(appendedTags);
 
+    //Convert to more readable forms 
+    var matchingQuery = filterQueries.find((queryObj) => queryObj.query === newRowData.FilterQuery.trim());
+
     //Prepare the object 
     const requestData = {
       id: '',
@@ -421,7 +435,8 @@ const ElasticSearchRuleComponent = () => {
       timeSize: newRowData.TimeSize,
       threshold: newRowData.Threshold,
       tags: appendedTags,
-      filterQuery: newRowData.FilterQuery,
+      filterQueryBodyText: matchingQuery.query,
+      filterQueryBodyJson: matchingQuery.jsonQuery,
       groupByFields: ['labels.storeName', 'labels.retailer'],
       esToken: token,
       esBaseURI: baseURI,
@@ -449,7 +464,7 @@ const ElasticSearchRuleComponent = () => {
         newRowData.Last = requestData.timeSize + requestData.timeUnit;
 
         //Convert to more readable forms
-        var matchingQuery = filterQueries.find((queryObj) => queryObj.query === requestData.filterQuery.trim());
+        var matchingQuery = filterQueries.find((queryObj) => queryObj.query === requestData.filterQueryBodyText.trim());
         newRowData.FilterQueryLabel = matchingQuery.name;
 
         var comparatorObj = comparators.find((queryObj) => queryObj.value === requestData.comparator);

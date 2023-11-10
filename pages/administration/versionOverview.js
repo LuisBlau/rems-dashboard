@@ -155,7 +155,10 @@ export default function versionOverview() {
         { field: 'hostName', headerName: 'Host Name', sortable: true, flex: 2 },
         { field: 'os', headerName: 'OS', sortable: true, flex: 1 },
         { field: 'host_server', headerName: 'Host Server', sortable: true, flex: 1 },
-        { field: 'count', headerName: 'Count', sortable: true, flex: 1 },
+        { field: 'storeCount', headerName: 'Store Count', sortable: true, flex: 1 },
+        { field: 'storeErrorCount', headerName: 'Store Errors', sortable: true, flex: 1 },
+        { field: 'agentCount', headerName: 'Agent Count', sortable: true, flex: 1 },
+        { field: 'agentErrorCount', headerName: 'Agent Errors', sortable: true, flex: 1 },
         { field: 'version', headerName: 'Version', sortable: true, flex: 1 },
         {
             field: 'LastUpdatedSec',
