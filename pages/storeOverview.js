@@ -135,7 +135,7 @@ export default function StoreOverview() {
                                                 } else {
                                                     agents.push(agent);
                                                 }
-                                                if (agent.isSCO === true) {
+                                                if (agent.isSco === true) {
                                                     scoCounter++;
                                                 }
                                                 if (agent.online === false) {
@@ -200,7 +200,7 @@ export default function StoreOverview() {
                                                 } else {
                                                     agents.push(agent);
                                                 }
-                                                if (agent.isSCO === true) {
+                                                if (agent.isSco === true) {
                                                     scoCounter++;
                                                 }
                                                 if (agent.online === false) {
