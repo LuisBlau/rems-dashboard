@@ -140,6 +140,12 @@ function DisplaySystemType(props) {
                 <Typography fontWeight='bold' variant='h7'>Server</Typography>
             </Grid>
         )
+    } else if (props.data.isSco === true) {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant="h7">SCO</Typography>
+            </Grid>
+        );
     } else {
         return (
             <Grid item xs={12}>
