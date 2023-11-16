@@ -113,7 +113,7 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                     let localTierSet = 'b2b'
                     let index = -1
                     context.userRetailers.forEach(retailer => {
-                        if (localTierSet === 'b2b') {
+                        if (localTierSet === 'b2b' || localTierSet === 'lite') {
                             index = _.findIndex(Object.keys(retailer.configuration), (e) => {
                                 return e === "pas_subscription_tier"
                             }, 0)
