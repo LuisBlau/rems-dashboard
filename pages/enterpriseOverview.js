@@ -20,7 +20,7 @@ import {
     Snackbar, SnackbarContent, Tooltip, Fade,
 } from '@mui/material';
 import axios from 'axios';
-import _, { isEmpty, now } from 'lodash';
+import { isEmpty, now } from 'lodash';
 import Copyright from '../components/Copyright';
 import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
@@ -379,7 +379,7 @@ export default function EnterpriseOverview() {
             await axios.get(`/api/retailers/getAllDetails`).then(function (res) {
                 setAllRetailers(res.data);
             })
-            await axios.get(`/api/REMS/versionsData?retailer_id=T0BGBBL`).then(function (res) {
+            await axios.get(`/api/REMS/versionsData?retailer_id=${context.selectedRetailer}`).then(function (res) {
                 let allRemsAreGood = true
                 res.data.rem.forEach(remsServer => {
                     let lastUpdateUnix = remsServer.last_heartbeat_sec
@@ -392,7 +392,7 @@ export default function EnterpriseOverview() {
             })
         }
         fetchData()
-    }, []);
+    }, [context.selectedRetailer]);
 
 
     function fetchStore(isRefresh = false) {
