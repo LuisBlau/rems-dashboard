@@ -7,22 +7,23 @@ export default function ReleaseNotes() {
 
     let notes = [
         { text: 'Version Overview', level: 0 },
-        { text: '- Docker Tab', level: 1 },
+        { text: '- Docker Tab (Toshiba Only)', level: 1 },
         { text: '- Added 4 new columns: Agent Count, Store Count, Agent Error Count, Store Error Count', level: 2 },
         { text: 'Store Overview', level: 0 },
         { text: '- Added more robust Alerts functionality', level: 1 },
         { text: 'Retailer Settings', level: 0 },
-        { text: '- Added ES Rules capabilities', level: 1 },
+        { text: '- Added Elastic Search Rules capabilities', level: 1 },
         { text: 'Administration > PAS KPI Reporting (new)', level: 0 },
-        { text: '- Added 5 new static URLs to internal KPI reports', level: 1 },
-        { text: '- Hidden, only visible to Command Center folks', level: 2 },
-        { text: 'Bugfixes', level: 0 },
+        { text: '- Added 5 internal KPI reports', level: 1 },
+        { text: '- Accessible with Command Center Viewer role', level: 2 },
+        { text: 'Bug Fixes', level: 0 },
         { text: '- Fixed docker container timestamp sorting (Version Overview)', level: 1 },
         { text: '- Fixed issue when creating tenants from non-tenant REMS server', level: 1 },
         { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 1 },
         { text: '- Fixed issue with SCO Counters on Store Overview', level: 1 },
         { text: '- Fixed issue with sidebar (for toshiba admins)', level: 1 },
-        { text: '- Fixed issue with REMS status identification', level: 1 }
+        { text: '- Fixed issue with REMS status identification', level: 1 },
+        { text: '- Fixed issue with retailer configuration on enterprise overview tiles', level: 1 }
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
