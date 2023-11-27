@@ -6,45 +6,27 @@ import Copyright from '../components/Copyright';
 export default function ReleaseNotes() {
 
     let notes = [
-        { text: 'Elera Health (updated)', level: 0 },
-        { text: '- Has select-menu functionality to match Elera Stats', level: 1 },
-        { text: 'REMS Management Page (new)', level: 0 },
-        { text: '- Can add tenant(s) to REMS server', level: 1 },
-        { text: '- Can create new tenant REMS server, if not previously a tenant setup', level: 2 },
-        { text: '- Remove Tenant(s) from REMS Server', level: 1 },
-        { text: '- Can revert to non-tenant REMS server if no tenants remain on the configuration', level: 2 },
-        { text: '- Can assign stores to a tenant', level: 1 },
-        { text: '- Can delete store from REMS server', level: 1 },
-        { text: '- Can bulk assign tenants for stores', level: 1 },
-        { text: 'Versions Overview', level: 0 },
-        { text: '- Docker Management Tab (new)', level: 1 },
-        { text: '- For toshiba only, allows you to see (and clean up dangling) containers we have running/suspended/dead', level: 2 },
-        { text: '- REMS (new)', level: 1 },
-        { text: '- Shows version information for all REMS servers reporting to the TORICO matching the retailer you have selected', level: 2 },
-        { text: '- Toshiba Admins can delete these rows - to clean up dangling REMS information that is outdated (will be re-populated on next update push from REMS)', level: 2 },
-        { text: 'Enterprise Overview', level: 0 },
-        { text: '- New notification icon (next to filter bar, above map) to identify when your REMS server(s) have connectivity issues.', level: 1 },
-        { text: '- The icon will show up, and be red, when you have a REMS server that has not sent updates in at least an hour - clicking it will take you to the new REMS tab of the versions overview so you can asses which REMS server has the issue', level: 2 },
-        { text: '- Fixed stores online list view (from widget) to correctly sort by last update time', level: 1 },
-        { text: 'Peripherals Widget', level: 0 },
-        { text: '- Split devices information to only include objects that have an IP Address (SNMP Devices)', level: 1 },
-        { text: '- Peripherals will be "attached" peripherals on registers, for example: scanner, keyboard, etc.', level: 1 },
-        { text: '- Any device that is not reporting an IP Address will be found in the new peripherals widget', level: 1 },
-        { text: '- Hidden behind a retailer configuration, like other widgets, with default of "false"', level: 2 },
-        { text: 'Remote Diagnostics', level: 0 },
-        { text: '- Data Capture (tab)', level: 1 },
-        { text: '- Added new table above the agents table where you can see all REMS servers reporting to your TORICO - and request data captures from them individually, identified by their REMS ID (unique identifier)', level: 2 },
-        { text: '- Dumps (tab)', level: 1 },
-        { text: '- Fixed sort-by time and default descending order', level: 2 },
-        { text: 'Release Notes', level: 0 },
-        { text: '- Added.... this page!', level: 1 },
-        { text: 'Bugfix', level: 0 },
-        { text: '- Fixed issue where deployment status appeared to do an infinite load if there were simply no deployments', level: 1 },
-        { text: '- Fixed a bug where occasionally Elera Stats page would not retrieve the stores list', level: 1 },
-        { text: '- Fixed a bug where file upload would fail silently if the format yielded no results', level: 1 }]
+        { text: 'Version Overview', level: 0 },
+        { text: '- Docker Tab', level: 1 },
+        { text: '- Added 4 new columns: Agent Count, Store Count, Agent Error Count, Store Error Count', level: 2 },
+        { text: 'Store Overview', level: 0 },
+        { text: '- Added more robust Alerts functionality', level: 1 },
+        { text: 'Retailer Settings', level: 0 },
+        { text: '- Added ES Rules capabilities', level: 1 },
+        { text: 'Administration > PAS KPI Reporting (new)', level: 0 },
+        { text: '- Added 5 new static URLs to internal KPI reports', level: 1 },
+        { text: '- Hidden, only visible to Command Center folks', level: 2 },
+        { text: 'Bugfixes', level: 0 },
+        { text: '- Fixed docker container timestamp sorting (Version Overview)', level: 1 },
+        { text: '- Fixed issue when creating tenants from non-tenant REMS server', level: 1 },
+        { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 1 },
+        { text: '- Fixed issue with SCO Counters on Store Overview', level: 1 },
+        { text: '- Fixed issue with sidebar (for toshiba admins)', level: 1 },
+        { text: '- Fixed issue with REMS status identification', level: 1 }
+    ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
-            <Typography variant='h2'>Release Notes - 4.2.31</Typography>
+            <Typography variant='h2'>Release Notes - 4.2.31-1</Typography>
             {notes.map((note, index) => {
                 if (note.level === 0) {
                     return (
