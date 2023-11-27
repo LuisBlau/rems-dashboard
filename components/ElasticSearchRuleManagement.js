@@ -44,12 +44,47 @@ const ElasticSearchRuleComponent = () => {
 
   //Set defaults
   const [newRowData, setNewRowData] = useState({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
+  const [selectedRowDeepCopy, setSelectedRowDataCopy] = useState(null);
 
   //Validations
   const [isIntervalValid, setIsIntervalValid] = useState(false);
   const [isNameValid, setIsNameValid] = useState(false);
   const [isThresholdValid, setIsThresholdValid] = useState(false);
   const [isLastValid, setIsLastValid] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(true);
+
+  //These are my select options
+  const filterQueries = [
+    { name: 'Aborted Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/void" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/void\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Successfully Completed Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/complete\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Suspended Transaction', query: 'labels.http_route: "/pos/order/{orderId}/{version}/suspend" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/suspend\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Tender Error', query: 'labels.http_route: "/pos/order/{orderId}/{version}/payment/add" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/payment/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Opened', query: 'labels.http_route :"/cash-management/till/open" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/open\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Picked Up', query: 'labels.http_route :"/cash-management/till/{tillId}/pickup" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/{tillId}/pickup\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Closed', query: 'labels.http_route :"/cash-management/till/{id}/close" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/{id}/close\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Suspended', query: 'labels.http_route :"/cash-management/till/{id}/suspend" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/{id}/suspend\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Till Loaned', query: 'labels.http_route :"/cash-management/till/{tillId}/loan" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/{tillId}/loan\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Authorization/Manager Override Successful', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/authorization/login\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Failed Authorization', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/authorization/login\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Operator Sign-In', query: 'labels.http_route :"/endpoint-status/{deviceId}/operator-sign-in" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/endpoint-status/{deviceId}/operator-sign-in\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Operator Sign-Out', query: 'labels.http_route :"/endpoint-status/{deviceId}/operator-sign-out" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/endpoint-status/{deviceId}/operator-sign-out\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Refund Transactions Processed', query: 'labels.http_route : "/pos/order/{orderId}/{version}/process-payment-refunds" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/process-payment-refunds\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Items Couponed/Price Reduced', query: 'labels.http_route: "/pos/order/{orderId}/{version}/item/{orderItemId}/{orderItemPriceId}/price-modification/manual/add" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/item/{orderItemId}/{orderItemPriceId}/price-modification/manual/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Order Couponed/Price Reduced', query: 'labels.http_route: "/pos/order/{orderId}/{version}/price-modification/manual/add" AND http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/price-modification/manual/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
+    { name: 'Items Added to Order', query: '(labels.http_route :"/pos/order/{orderId}/{version}/barcode/add" or labels.http_route: "/pos/order/barcode/add") and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/barcode/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/barcode/add\"}}}],\"minimum_should_match\":1}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' }
+  ];
+
+  const comparators = [
+    { value: '>', label: 'Greater than' },
+    { value: '<', label: 'Less than' },
+    { value: '>=', label: 'Greater than or equal to' },
+    { value: '<=', label: 'Less than or equal to' },
+  ];
+
+  //Created a ticket to expand these
+  const aggTypeOptions = [
+    { value: 'count', label: 'Count' },
+  ];
 
   useEffect(() => {
     if (context?.retailerConfigs.length > 0 && context?.selectedRetailer) {
@@ -87,13 +122,23 @@ const ElasticSearchRuleComponent = () => {
       .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
         const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
-        const esQueryAlerts = response.data.filter(o => o.rule_type_id === '.es-query');
 
         const initRowsData = new Set();
         const initRowsIdSet = new Set();
         let hasDuplicates = false;
 
         metricThresholdAlerts.forEach((alert) => {
+          var alertEmail;
+          for(var i = 0; i < alert.actions.length; i++){
+            var actionsObj = alert.actions[i];
+
+            //Grab the first email address associated with this alert
+            if(actionsObj.id === 'elastic-cloud-email'){
+              alertEmail = actionsObj.params.to[0];
+              break;
+            }
+          }
+
           const data = {
             id: alert.id,
             Name: alert.name,
@@ -109,7 +154,8 @@ const ElasticSearchRuleComponent = () => {
             Enabled: alert.enabled,
             Interval: alert.schedule.interval,
             LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
-            Last: alert.params.criteria[0].timeSize + alert.params.criteria[0].timeUnit
+            Last: alert.params.criteria[0].timeSize + alert.params.criteria[0].timeUnit,
+            Email: alertEmail ? alertEmail : ''
           }
 
           //This handles my conversion between key/value. I need these data to be in certain forms depending on what I'm doing
@@ -130,36 +176,6 @@ const ElasticSearchRuleComponent = () => {
           }
 
           if (foundMatch && addUniqueItem(data, initRowsData, initRowsIdSet)) {
-            hasDuplicates = true;
-          }
-        });
-
-        esQueryAlerts.forEach((alert) => {
-          const data = {
-            id: alert.id,
-            Name: alert.name,
-            AggType: 'count',
-            FilterQuery: alert.params.searchConfiguration.query.query,
-            Comparator: alert.params.thresholdComparator,
-            Threshold: alert.params.threshold[0],
-            TimeSize: alert.params.timeWindowSize,
-            TimeUnit: alert.params.timeWindowUnit,
-            Tags: alert.tags.join(', '),
-            ConnectorName: alert.actions.map(i => i.connector_type_id).join(', '),
-            Type: alert.rule_type_id,
-            Enabled: alert.enabled,
-            Interval: alert.schedule.interval,
-            LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
-            Last: alert.params.timeWindowSize + alert.params.timeWindowUnit
-          }
-
-          var matchingQuery = filterQueries.find((queryObj) => queryObj.query === data.FilterQuery.trim());
-          data.FilterQueryLabel = matchingQuery.name;
-
-          var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
-          data.Comparator = comparatorObj.label;
-
-          if (addUniqueItem(data, initRowsData, initRowsIdSet)) {
             hasDuplicates = true;
           }
         });
@@ -290,33 +306,6 @@ const ElasticSearchRuleComponent = () => {
     }
   ];
 
-  //These are my select options
-
-  //TODO: Probably store these into a mongoDB collection so we can add/remove without deployment. 
-  // Adds another layer of management though. How often are we actually adding/removing from this list?
-  // I'll think about it
-  const filterQueries = [
-    { name: 'Aborted Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/void" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/void\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Failed Login', query: 'labels.http_route: "/authorization/login" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/authorization/login\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Container Down', query: 'data_stream.dataset : "apm.app.unknown" and container.image.name: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"data_stream.dataset\":{\"value\":\"apm.app.unknown\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"container.image.name\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Successfully Completed Transactions', query: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/complete\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Suspended Transaction', query: 'labels.http_route: "/pos/order/{orderId}/{version}/suspend" and url.path : *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/suspend\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Tender Error', query: 'labels.http_route: "/pos/order/{orderId}/{version}/payment/add" and http.response.status_code: * and NOT http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/pos/order/{orderId}/{version}/payment/add\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"http.response.status_code\"}}],\"minimum_should_match\":1}},{\"bool\":{\"must_not\":{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}}}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' },
-    { name: 'Till Opened', query: 'labels.http_route :"/cash-management/till/open" and http.response.status_code: 200 and url.path: *', jsonQuery: '{\"bool\":{\"filter\":[{\"bool\":{\"should\":[{\"term\":{\"labels.http_route\":{\"value\":\"/cash-management/till/open\"}}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"match\":{\"http.response.status_code\":\"200\"}}],\"minimum_should_match\":1}},{\"bool\":{\"should\":[{\"exists\":{\"field\":\"url.path\"}}],\"minimum_should_match\":1}}]}}' }
-  ];
-
-  const comparators = [
-    { value: '>', label: 'Greater than' },
-    { value: '<', label: 'Less than' },
-    { value: '>=', label: 'Greater than or equal to' },
-    { value: '<=', label: 'Less than or equal to' },
-  ];
-
-  //Created a ticket to expand these
-  const aggTypeOptions = [
-    { value: 'count', label: 'Count' },
-  ];
-
   const handleIntervalChange = (value) => {
     if (selectedRowData) {
       setSelectedRowData({ ...selectedRowData, Interval: value })
@@ -357,6 +346,23 @@ const ElasticSearchRuleComponent = () => {
       setNewRowData({ ...newRowData, TimeSize: value });
     }
     setIsLastValid(isValidLast(value));
+  };
+
+  const isValidEmail = (email) => {
+    // Regular expression for basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Check if the email is not empty and matches the expected format
+    return email === '' || emailRegex.test(email);
+  };
+
+  const handleEmailChange = (value) => {
+    if (selectedRowData) {
+      setSelectedRowData({ ...selectedRowData, Email: value })
+    } else {
+      setNewRowData({ ...newRowData, Email: value });
+    }
+    setIsEmailValid(isValidEmail(value));
   };
 
 
@@ -402,12 +408,14 @@ const ElasticSearchRuleComponent = () => {
     setTags([]);
     setTagInput('');
     setSelectedRowData(null);
+    setSelectedRowDataCopy(null);
     setNewRowData({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
 
     setIsNameValid(false);
     setIsIntervalValid(false);
     setIsLastValid(false);
     setIsThresholdValid(false);
+    setIsEmailValid(true);
   }
 
   const handleAddRow = () => {
@@ -440,6 +448,7 @@ const ElasticSearchRuleComponent = () => {
       groupByFields: ['labels.storeName', 'labels.retailer'],
       esToken: token,
       esBaseURI: baseURI,
+      email: newRowData.Email,
       type: 'metrics.alert.threshold'
     };
 
@@ -470,8 +479,7 @@ const ElasticSearchRuleComponent = () => {
         var comparatorObj = comparators.find((queryObj) => queryObj.value === requestData.comparator);
         newRowData.Comparator = comparatorObj.label;
 
-        //TODO: hardcoded. Not sure if we want allow users to set 'email' as one of the connectors. We'll see
-        newRowData.ConnectorName = '.webhook';
+        newRowData.ConnectorName = '.webhook' + `${newRowData.Email ? ', .email' : ''}`
 
         setRows((prevRows) => [...prevRows, newRowData]);
         handleOpenSnackbar(`Rule has been successfully created.`, 'success');
@@ -495,6 +503,10 @@ const ElasticSearchRuleComponent = () => {
     setIsLastValid(true);
     setIsNameValid(true);
     setIsThresholdValid(true);
+    setIsEmailValid(true);
+
+    //Make a deep copy of the rowData so we can revert to it as needed
+    setSelectedRowDataCopy(JSON.parse(JSON.stringify(rowData)));
 
     //Convert the compator to use its value instead of label
     var comparatorObj = comparators.find((queryObj) => queryObj.label === rowData.Comparator);
@@ -519,9 +531,18 @@ const ElasticSearchRuleComponent = () => {
   };
 
   const handleCloseEditModal = () => {
-    //Re-convert the comparator back to a more readable version
-    var comparatorObj = comparators.find((queryObj) => queryObj.value === selectedRowData.Comparator);
-    selectedRowData.Comparator = comparatorObj.label;
+    const rowIndex = rows.findIndex(row => row.id === selectedRowData.id);
+    if (rowIndex !== -1) {
+
+      // Create a copy of the rows
+      const updatedRows = [...rows];
+
+      // Revert the row data back to the deep copy we made earlier since we're not committing any changes
+      updatedRows[rowIndex] = selectedRowDeepCopy;
+
+      // Update the state with the new rows
+      setRows(updatedRows);
+    }
 
     setIsEditModalOpen(false);
 
@@ -539,10 +560,13 @@ const ElasticSearchRuleComponent = () => {
 
     setTags(appendedTags);
 
+    var matchingQuery = filterQueries.find((queryObj) => queryObj.query === selectedRowData.FilterQuery.trim());
+
     const updatedData = {
       id: selectedRowData.id,
       name: selectedRowData.Name,
-      filterQuery: selectedRowData.FilterQuery,
+      filterQueryBodyText: matchingQuery.query,
+      filterQueryBodyJson: matchingQuery.jsonQuery,
       aggType: selectedRowData.AggType,
       comparator: selectedRowData.Comparator,
       threshold: selectedRowData.Threshold,
@@ -556,6 +580,7 @@ const ElasticSearchRuleComponent = () => {
       groupByFields: ['labels.storeName', 'labels.retailer'],
       esToken: token,
       esBaseURI: baseURI,
+      email: selectedRowData.Email
     };
 
     // Use a regular expression to split the string
@@ -577,27 +602,28 @@ const ElasticSearchRuleComponent = () => {
             // Create a copy of the rows
             const updatedRows = [...rows];
 
-            var matchingQuery = filterQueries.find((queryObj) => queryObj.query === updatedData.filterQuery.trim());
+            var matchingQuery = filterQueries.find((queryObj) => queryObj.query === updatedData.filterQueryBodyText.trim());
             var comparatorObj = comparators.find((queryObj) => queryObj.value === updatedData.comparator);
 
             // Update the row with the new data
             updatedRows[rowIndex] = {
               id: updatedData.id,
               Name: updatedData.name,
-              FilterQuery: updatedData.filterQuery,
+              FilterQuery: matchingQuery.query,
               AggType: updatedData.aggType,
               Comparator: comparatorObj.label,
               Threshold: updatedData.threshold,
               TimeSize: updatedData.timeSize,
               TimeUnit: updatedData.timeUnit,
               Tags: appendedTags.join(','),
-              ConnectorName: '.webhook',
+              ConnectorName: '.webhook' + `${updatedData.email ? ', .email' : ''}`,
               Type: updatedData.type,
               Enabled: updatedData.enabled,
               Interval: updatedData.interval,
               LastExec: formatTimeAgo(selectedRowData.LastExec),
               Last: updatedData.timeSize + updatedData.timeUnit,
-              FilterQueryLabel: matchingQuery.name
+              FilterQueryLabel: matchingQuery.name,
+              Email: updatedData.email
             };
 
             // Update the state with the new rows
@@ -919,7 +945,7 @@ const ElasticSearchRuleComponent = () => {
           <TextField
             label={
               <LabelWithTooltip
-                label="Tag(s)"
+                label="Optional Tag(s)"
                 tooltip="For more than one tag, separate by space"
               />
             }
@@ -943,10 +969,26 @@ const ElasticSearchRuleComponent = () => {
               ))
             }}
           />
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Email Notification (Optional)"
+                tooltip="If would also like to receive an email notification, please provide a valid email address"
+              />
+            }
+            fullWidth
+            value={newRowData.Email}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            error={!isEmailValid}
+            helperText={isEmailValid ? '' : 'Invalid email address format. Please provide a valid email address format, otherwise leave empty'}
+          />
+
           <Button
             variant="outlined"
             onClick={handleAddRow}
-            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid}
+            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid || !isEmailValid}
             sx={{ marginRight: 2 }}
           >
             Add Rule
@@ -1089,7 +1131,7 @@ const ElasticSearchRuleComponent = () => {
           <TextField
             label={
               <LabelWithTooltip
-                label="Tag(s)"
+                label="Optional Tag(s)"
                 tooltip="For more than one tag, separate by space"
               />
             }
@@ -1113,11 +1155,27 @@ const ElasticSearchRuleComponent = () => {
               ))
             }}
           />
+
+          <TextField
+            label={
+              <LabelWithTooltip
+                label="Email Notification (Optional)"
+                tooltip="If would also like to receive an email notification, please provide a valid email address"
+              />
+            }
+            fullWidth
+            value={selectedRowData ? selectedRowData.Email : ''}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            style={{ marginBottom: '16px' }}
+            error={!isEmailValid}
+            helperText={isEmailValid ? '' : 'Invalid email address format. Please provide a valid email address format, otherwise leave empty'}
+          />
+
           <Button
             sx={{ marginRight: 2 }}
             variant="outlined"
             onClick={handleUpdateRow}
-            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid}>
+            disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid || !isEmailValid}>
             Update Row
           </Button>
           <Button variant="outlined" onClick={handleCloseEditModal}>
