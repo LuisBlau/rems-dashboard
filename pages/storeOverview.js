@@ -133,6 +133,7 @@ export default function StoreOverview() {
                                                 if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
                                                     controllers.push(agent);
                                                 } else {
+                                                    agent.agentName.replace(agent.storeName + '-', '')
                                                     agents.push(agent);
                                                 }
                                                 if (agent.isSco === true) {
@@ -162,7 +163,12 @@ export default function StoreOverview() {
                                             });
 
                                             if (controllers.length > 0 || agents.length > 0) {
-                                                setStoreAgents(_.concat(controllers, agents));
+                                                setStoreAgents(_.concat(controllers, (agents.sort(function (a, b) {
+                                                    return a.agentName.localeCompare(b.agentName, undefined, {
+                                                        numeric: true,
+                                                        sensitivity: 'base'
+                                                    })
+                                                }))));
                                                 setStoreHasNoAgents(false)
                                             } else {
                                                 setStoreHasNoAgents(true)
@@ -225,7 +231,12 @@ export default function StoreOverview() {
                                                     }
                                                 }
                                             });
-                                            setStoreAgents(_.concat(controllers, agents));
+                                            setStoreAgents(_.concat(controllers, (agents.sort(function (a, b) {
+                                                return a.agentName.localeCompare(b.agentName, undefined, {
+                                                    numeric: true,
+                                                    sensitivity: 'base'
+                                                })
+                                            }))));
                                             setAgentCount(agents.length);
                                             setScoCount(scoCounter);
                                             setElera(newElera);

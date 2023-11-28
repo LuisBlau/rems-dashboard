@@ -9,21 +9,21 @@ export default function ReleaseNotes() {
         { text: 'Version Overview', level: 0 },
         { text: '- Docker Tab (Toshiba Only)', level: 1 },
         { text: '- Added 4 new columns: Agent Count, Store Count, Agent Error Count, Store Error Count', level: 2 },
-        { text: 'Store Overview', level: 0 },
-        { text: '- Added more robust Alerts functionality', level: 1 },
-        { text: 'Retailer Settings', level: 0 },
-        { text: '- Added Elastic Search Rules capabilities', level: 1 },
         { text: 'Administration > PAS KPI Reporting (new)', level: 0 },
         { text: '- Added 5 internal KPI reports', level: 1 },
         { text: '- Accessible with Command Center Viewer role', level: 2 },
         { text: 'Bug Fixes', level: 0 },
-        { text: '- Fixed docker container timestamp sorting (Version Overview)', level: 1 },
-        { text: '- Fixed issue when creating tenants from non-tenant REMS server', level: 1 },
-        { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 1 },
-        { text: '- Fixed issue with SCO Counters on Store Overview', level: 1 },
-        { text: '- Fixed issue with sidebar (for toshiba admins)', level: 1 },
-        { text: '- Fixed issue with REMS status identification', level: 1 },
-        { text: '- Fixed issue with retailer configuration on enterprise overview tiles', level: 1 }
+        { text: '- Internal', level: 1 },
+        { text: '- Fixed docker container timestamp sorting (Version Overview)', level: 2 },
+        { text: '- Fixed issue when creating tenants from non-tenant REMS server', level: 2 },
+        { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 2 },
+        { text: '- Fixed issue with sidebar', level: 2 },
+        { text: '- External', level: 1 },
+        { text: '- Fixed issue with SCO Counters on Store Overview', level: 2 },
+        { text: '- Fixed issue with REMS status identification', level: 2 },
+        { text: '- Fixed issue with retailer configuration on enterprise overview tiles', level: 2 },
+        { text: '- Fixed store default sorting on Enterprise Overview to be by store name', level: 2 },
+        { text: '- Fixed agent order in store overview to be sequential', level: 2 }
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>

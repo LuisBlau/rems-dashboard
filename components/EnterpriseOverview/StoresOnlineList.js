@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Card, LinearProgress, Link, Typography } from '@mui/material';
 import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import moment from 'moment';
+import _ from 'lodash';
 
 export default function StoresOnlineList({ context, disconnectTimeLimit, places, poorStoreStatusPercentage, goodStoreStatusPercentage, selectedRetailer }) {
     const [columns, setColumns] = useState([])
@@ -106,12 +107,9 @@ export default function StoresOnlineList({ context, disconnectTimeLimit, places,
                     slots={{ toolbar: CustomToolbar }}
                     rowHeight={60}
                     initialState={{
-                        sorting: {
-                            sortModel: [{ field: 'last_updated', sort: 'desc' }]
-                        },
                         pagination: { paginationModel: { pageSize: 10 } },
                     }}
-                    rows={places.length > 0 ? places?.map((item, key) => {
+                    rows={places.length > 0 ? _.sortBy(places, ['storeName'])?.map((item, key) => {
                         const signal = item?.onlineAgents / item?.totalAgents * 100;
                         let status = {
                             id: 2,
