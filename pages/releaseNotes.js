@@ -24,7 +24,7 @@ export default function ReleaseNotes() {
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
-            <Typography variant='h2'>Release Notes - 4.2.31-1</Typography>
+            <Typography variant='h2'>Release Notes - 4.2.32</Typography>
             {notes.map((note, index) => {
                 if (note.level === 0) {
                     return (

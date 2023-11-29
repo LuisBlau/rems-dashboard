@@ -130,7 +130,7 @@ export default function StoreOverview() {
                                         if (resp.data) {
                                             const response = resp.data;
                                             response.forEach((agent) => {
-                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
                                                     controllers.push(agent);
                                                 } else {
                                                     agent.agentName.replace(agent.storeName + '-', '')
@@ -163,7 +163,7 @@ export default function StoreOverview() {
                                             });
 
                                             if (controllers.length > 0 || agents.length > 0) {
-                                                setStoreAgents(_.concat(controllers, (agents.sort(function (a, b) {
+                                                setStoreAgents(_.concat(_.sortBy(controllers, ['agentName']), (agents.sort(function (a, b) {
                                                     return a.agentName.localeCompare(b.agentName, undefined, {
                                                         numeric: true,
                                                         sensitivity: 'base'
@@ -201,7 +201,7 @@ export default function StoreOverview() {
                                         if (resp.data.length > 0) {
                                             const response = resp.data;
                                             response.forEach((agent) => {
-                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC')) {
+                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
                                                     controllers.push(agent);
                                                 } else {
                                                     agents.push(agent);
@@ -231,7 +231,7 @@ export default function StoreOverview() {
                                                     }
                                                 }
                                             });
-                                            setStoreAgents(_.concat(controllers, (agents.sort(function (a, b) {
+                                            setStoreAgents(_.concat(_.sortBy(controllers, ['agentName']), (agents.sort(function (a, b) {
                                                 return a.agentName.localeCompare(b.agentName, undefined, {
                                                     numeric: true,
                                                     sensitivity: 'base'
