@@ -61,6 +61,8 @@ export default function StoreOverview() {
     const [headerPaperColor, setHeaderPaperColor] = useState('#FFFFFF')
     const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
     const context = useContext(UserContext)
+    const [masterAgent, setMasterAgent] = useState(null);
+    const [retailerConfig, setRetailerConfig] = useState([]);
 
     const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
 
@@ -93,6 +95,7 @@ export default function StoreOverview() {
                 });
 
                 time = configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue;
+                setRetailerConfig(configurationArray);
             }).then(() => {
                 axios.get('/api/stores/info?retailerId=' + params.get('retailer_id') + '&storeName=' + params.get('storeName')).then((result) => {
                     if (moment(result.data[0].last_updated_sec * 1000).diff(Date.now(), 'hours') < - time) {
@@ -129,6 +132,7 @@ export default function StoreOverview() {
                                         let newElera = {}
                                         if (resp.data) {
                                             const response = resp.data;
+                                            getMasterAgent(response);
                                             response.forEach((agent) => {
                                                 if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
                                                     controllers.push(agent);
@@ -200,6 +204,7 @@ export default function StoreOverview() {
                                         let newElera = {}
                                         if (resp.data.length > 0) {
                                             const response = resp.data;
+                                            getMasterAgent(response);
                                             response.forEach((agent) => {
                                                 if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
                                                     controllers.push(agent);
@@ -305,6 +310,11 @@ export default function StoreOverview() {
         }
 
     }, [storeAgents])
+
+    const getMasterAgent = (agentList) => {
+        const masterAgent = agentList.find(agent => agent.is_master_agent === true);
+        setMasterAgent(masterAgent);
+    }
 
     const updateAlerts = (updatedAlerts) => {
         setStoreAlerts(updatedAlerts);
@@ -477,7 +487,7 @@ export default function StoreOverview() {
                     <DialogTitle fontSize={36} fontWeight={'bold'} id="alert-dialog-title" style={{ textAlign: 'center' }} >
                         Alerts
                     </DialogTitle>
-                    <Alerts alerts={storeAlerts} updateAlerts={updateAlerts}></Alerts>
+                    <Alerts alerts={storeAlerts} updateAlerts={updateAlerts} ma={masterAgent} retailerConfig={retailerConfig}></Alerts>
                     <DialogActions>
                         <Button style={{ marginRight: 12 }} variant="contained" onClick={handleAlertsConfirmationClose}>
                             Close
