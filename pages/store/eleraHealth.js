@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import { Cloud } from '@mui/icons-material';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import UserContext from '../UserContext';
+import { Button } from '@mui/base';
 
 const EleraHealth = () => {
     const context = useContext(UserContext);
@@ -11,6 +12,7 @@ const EleraHealth = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [filter, setFilter] = useState('');
     const [storeList, setStoreList] = useState([]);
+    const [toastSuccess, setToastSuccess] = useState('');
     const [selectedRetailer, setSelectedRetailer] = useState('');
     const [containerData, setContainerData] = useState([]); // State for container data
 
@@ -73,30 +75,23 @@ const EleraHealth = () => {
 
     const handleMenuItemClick = (menuItem) => {
         setSelectedMenuItem(menuItem);
-
+    
         // Fetch container data when a new store is selected
         axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${menuItem}&retailerId=${selectedRetailer}&agentName=${params.get('agentName')}`)
             .then((resp) => {
                 if (resp.data && resp.data.docker) {
                     const arr = Object.values(resp.data.docker);
-                    const rows = [];
-                    for (let i = 0; i < arr.length; i++) {
-                        arr[i] = JSON.parse(arr[i]);
-                        arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
-                        if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
-                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
-                                rows.push(
-                                    objectifyRow(
-                                        i + 1,
-                                        arr[i].Names,
-                                        arr[i].Read,
-                                        arr[i].State,
-                                        arr[i].Status
-                                    )
-                                );
-                            }
-                        }
-                    }
+                    const rows = arr.map((item, index) => {
+                        const containerInfo = JSON.parse(item);
+                        containerInfo.Names = containerInfo.Names.replace(/\/|\[|\]/g, '');
+                        return objectifyRow(
+                            index + 1,
+                            containerInfo.Names,
+                            containerInfo.Read,
+                            containerInfo.State,
+                            containerInfo.Status
+                        );
+                    });
                     setContainerData(rows);
                 } else {
                     // Handle the case where resp.data is empty or doesn't contain the expected data
@@ -107,6 +102,7 @@ const EleraHealth = () => {
                 console.log('Error fetching container data:', error);
             });
     };
+    
 
     const handleFilterChange = (event) => {
         setFilter(event.target.value);
@@ -151,7 +147,63 @@ const EleraHealth = () => {
             headerName: 'Up Time',
             flex: 1
         },
+        {
+            field: 'action',
+            headerName: 'Action',
+            flex: 1,
+            renderCell: (data) => {
+                return data?.row?.state == 'running' ? <div>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleStop(data?.row)}
+                    >Stop</Button>
+                </div> :
+                    <div>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleStart(data?.row)}
+                        >Start</Button>
+                    </div>
+            }
+        },
     ];
+
+    const handleStop = (data) => {
+        setToastSuccess(`File requested from Azure`);
+        const formData = {
+            retailer_id: params.get('retailer_id'),
+            store: params.get('storeName'),
+            agent: params.get('agentName'),
+            container: data.name,
+            command: 'stop'
+
+        }
+        axios.post(`/api/registers/controlProcess`, formData)
+            .then(function (resp) {
+                <Alert variant="filled" severity="success">
+                    <AlertTitle>Success!</AlertTitle>
+                    {toastSuccess}
+                </Alert>
+            });
+
+    }
+
+    const handleStart = (data) => {
+        const formData = {
+            retailer_id: params.get('retailer_id'),
+            store: params.get('storeName'),
+            agent: params.get('agentName'),
+            container: data.name,
+            command: 'start'
+        }
+        axios.post(`/api/registers/controlProcess`, formData)
+            .then(function (resp) {
+                alert("Success")
+            });
+
+    }
 
     const objectifyRow = (id, name, lastupd, state, uptime) => {
         return { id, name, lastupd, state, uptime };
