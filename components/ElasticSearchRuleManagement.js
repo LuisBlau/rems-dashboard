@@ -121,6 +121,7 @@ const ElasticSearchRuleComponent = () => {
     axios
       .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
+        debugger
         const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
 
         const initRowsData = new Set();

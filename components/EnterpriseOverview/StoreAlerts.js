@@ -6,6 +6,7 @@ import axios from 'axios';
 
 export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }) {
     const [storeAlerts, setAlerts] = useState(alerts);
+    const [b2benabled, setB2BEnabled] = useState(false);
 
     useEffect(() => {
         // Map alerts to apply the formatTimeAgo function
@@ -18,6 +19,15 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         // Set the state with the formatted alerts
         setAlerts(formattedAlerts);
     }, [alerts]);
+
+    useEffect(() => {
+        const b2benabled = retailerConfig.find(item => item.configName === 'b2b_subscription_active').configValue.toLowerCase() === "true";
+        setB2BEnabled(b2benabled);
+
+        //TODO: DO NOT FORGET TO REMOVE THIS LINE AFTER TESTING!!!
+        setB2BEnabled(true);
+        
+    }, [retailerConfig])
 
     const handleNotificationStatusChange = (id) => {
         // Determine the newStatus based on the updated alertAcknowledged
@@ -89,8 +99,15 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         const epochTime = new Date().getTime();
         const dataToHash = ma.agentName + row.retailer_id + row.store + epochTime;
 
-        var reqId;
+        const eleraPlatformVersion = ma.versions.find(i => i.Name.includes("ELERA Platform Version")).Version;
+        const eleraUIVersion = ma.versions.find(i => i.Name.includes("ELERA UI Version")).Version;
+        const eleraTerminalVersion = ma.versions.find(i => i.Name.includes("ELERA Terminal Services")).Version;
+        const eleraClientDbrokerVersion = ma.versions.find(i => i.Name.includes("ELERA Client DBroker AddOns")).Version;
+        const eleraPayVersion = ma.versions.find(i => i.Name.includes("ELERA Pay Version")).Version;
+        const eleraAdminVersion = ma.versions.find(i => i.Name.includes("ELERA Administration UI")).Version;
+        const eleraControllerVersion = ma.versions.find(i => i.Name.includes("ELERA Controller Services")).Version;
 
+        var reqId;
         //This is async, so we need to act on it when it returns the promise
         await getHash(dataToHash).then((hashedResult) => {
             reqId = hashedResult;
@@ -107,7 +124,7 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                         request_id: reqId,
                         data: {
                             Event: {
-                                Message: row.reason,
+                                Message: row.alertName + ": " + row.reason,
                                 Severity: 1,
                                 TimeStamp: epochTime,
                                 Array: {
@@ -125,7 +142,14 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                                         agentVersion: "",
                                         storeID: ma.storeName,
                                         IPAddress: ma.ipaddress,
-                                        deviceID: maSysId
+                                        deviceID: maSysId,
+                                        eleraPlatformVersion: eleraPlatformVersion,
+                                        eleraPayVersion: eleraPayVersion,
+                                        eleraUIVersion: eleraUIVersion,
+                                        eleraTerminalVersion: eleraTerminalVersion,
+                                        eleraClientDbrokerVersion: eleraClientDbrokerVersion,
+                                        eleraAdminVersion: eleraAdminVersion,
+                                        eleraControllerVersion: eleraControllerVersion
                                     }
                                 }
                             }
@@ -252,8 +276,11 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                     label={params.row.alertAcknowledged}
                 />
             )
-        },
-        {
+        }
+    ];
+
+    if (b2benabled) {
+        columns.push({
             field: 'createSNOW',
             headerName: 'SNOW Incident',
             width: 150,
@@ -266,8 +293,8 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                     Open SNOW Ticket
                 </Button>
             ),
-        },
-    ];
+        });
+    }
 
     return (
         <div style={{ height: 600, width: '100%' }}>

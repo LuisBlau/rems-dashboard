@@ -95,7 +95,7 @@ export default function StoreOverview() {
                 });
 
                 time = configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue;
-                setRetailerConfig(configurationArray);
+                setRetailerConfig(configurationInfo);
             }).then(() => {
                 axios.get('/api/stores/info?retailerId=' + params.get('retailer_id') + '&storeName=' + params.get('storeName')).then((result) => {
                     if (moment(result.data[0].last_updated_sec * 1000).diff(Date.now(), 'hours') < - time) {
