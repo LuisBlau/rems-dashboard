@@ -79,6 +79,7 @@ export default function EnterpriseOverview() {
     const [peripherals, setPeripherals] = useState([])
     const [rsmpPeripherals, setRsmpPeripherals] = useState([])
     const [attendedLanes, setAttendedLanes] = useState(null)
+    const [allLanes, setAllLanes] = useState([])
     const [allPlaces, setAllPlaces] = useState([]);
     const [selectedContinent, setSelectedContinent] = useState(null);
     const [selectedCountry, setSelectedCountry] = useState(null);
@@ -532,17 +533,13 @@ export default function EnterpriseOverview() {
             if (showAttendedLanesWidget === true || showAttendedLanesWidget === 'true') {
 
                 axios.get(`/api/REMS/getAttendedLanes`, query).then(function (res) {
-                    let totalAttendedLanes = 0
-                    let onlineAttendedLanes = 0
+
                     let localAttendedLanes = []
                     if (res.data.length > 0) {
                         res.data.forEach(agent => {
                             localAttendedLanes.push(agent)
-                            if (agent.online === true) {
-                                onlineAttendedLanes++
-                            }
-                            totalAttendedLanes++
                         })
+                        setAllLanes(localAttendedLanes)
                         setAttendedLanes(localAttendedLanes)
                     }
                 });
@@ -674,7 +671,6 @@ export default function EnterpriseOverview() {
                 }
                 totalAttendedLanes++
             })
-            setAttendedLanes(response)
             const percentUp = (onlineAttendedLanes / totalAttendedLanes) * 100;
             setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': isNaN(percentUp) ? 0 : percentUp })
         }
@@ -808,6 +804,7 @@ export default function EnterpriseOverview() {
         let filteredStores = [...allStores];
         let filteredDevices = [...devices];
         let filteredPeripherals = [...peripherals]
+        let filteredLanes = [...allLanes]
         let tempFiltersFiltered = [];
         if (selectedContinent) {
             filteredPlaces = filteredPlaces.filter((x) => x.continent === selectedContinent.id);
@@ -821,6 +818,7 @@ export default function EnterpriseOverview() {
                 return findStore ? true : false;
             })
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'continent' && x.continent === selectedContinent.id);
+            filteredLanes = filteredLanes.filter((x) => x.continent = selectedContinent.id);
         }
         if (selectedCountry) {
             filteredPlaces = filteredPlaces.filter((x) => x.country === selectedCountry.id);
@@ -834,16 +832,19 @@ export default function EnterpriseOverview() {
                 return findStore ? true : false;
             })
             tempFiltersFiltered = allFilters.filter((x) => x.type !== 'continent' && x.type !== 'country' && x.country === selectedCountry.id);
+            filteredLanes = filteredLanes.filter((x) => x.country === selectedCountry.id);
         }
         if (selectedStore) {
             filteredPlaces = filteredPlaces.filter((x) => x._id === selectedStore.id);
             filteredStores = filteredStores.filter((x) => x._id === selectedStore.id);
             filteredDevices = filteredDevices.filter((x) => x.storeName === selectedStore.name);
             filteredPeripherals = filteredPeripherals.filter((x) => x.storeName === selectedStore.name);
+            filteredLanes = filteredLanes.filter((x) => x.storeName === selectedStore.name)
         }
         if (filtersApplied.length === 0) {
             tempFiltersFiltered = [...allFilters];
         }
+        setAttendedLanes(filteredLanes)
         setFilteredStores(filteredStores)
         setFilteredFilters(tempFiltersFiltered);
         setFilteredPeripherals(filteredPeripherals)

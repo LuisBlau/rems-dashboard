@@ -131,7 +131,7 @@ export default function StoreOverview() {
                                         if (resp.data) {
                                             const response = resp.data;
                                             response.forEach((agent) => {
-                                                if (_.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
+                                                if (_.includes(agent.agentName, 'ars') || _.includes(agent.agentName, 'CP') || _.includes(agent.agentName, 'PC') || agent.status?.Controller?.configured === 'true' || agent.status?.Controller?.configured === true) {
                                                     controllers.push(agent);
                                                 } else {
                                                     agent.agentName.replace(agent.storeName + '-', '')
@@ -139,7 +139,7 @@ export default function StoreOverview() {
                                                 }
                                                 if (agent.isSco === true) {
                                                     scoCounter++;
-                                                } else if (!_.includes(agent.agentName, 'CP') && !_.includes(agent.agentName, 'PC') && agent.status?.Controller?.configured !== 'true' && agent.status?.Controller?.configured !== true) {
+                                                } else if (agent.os !== 'Android' && !_.includes(agent.agentName, 'ars') && !_.includes(agent.agentName, 'CP') && !_.includes(agent.agentName, 'PC') && agent.status?.Controller?.configured !== 'true' && agent.status?.Controller?.configured !== true) {
                                                     lanesCounter++;
                                                 }
                                                 if (agent.online === false) {
