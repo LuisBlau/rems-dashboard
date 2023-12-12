@@ -124,6 +124,7 @@ export default function StoreOverview() {
                                     axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
                                         let scoCounter = 0;
                                         let downCounter = 0;
+                                        let lanesCounter = 0;
                                         const controllers = [];
                                         const agents = [];
                                         let newElera = {}
@@ -138,6 +139,8 @@ export default function StoreOverview() {
                                                 }
                                                 if (agent.isSco === true) {
                                                     scoCounter++;
+                                                } else if (!_.includes(agent.agentName, 'CP') && !_.includes(agent.agentName, 'PC') && agent.status?.Controller?.configured !== 'true' && agent.status?.Controller?.configured !== true) {
+                                                    lanesCounter++;
                                                 }
                                                 if (agent.online === false) {
                                                     downCounter++;
@@ -173,7 +176,7 @@ export default function StoreOverview() {
                                             } else {
                                                 setStoreHasNoAgents(true)
                                             }
-                                            setAgentCount(agents.length);
+                                            setAgentCount(lanesCounter);
                                             setScoCount(scoCounter);
                                             setDownAgentCount(downCounter);
                                             setElera(newElera);

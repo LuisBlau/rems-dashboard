@@ -674,6 +674,7 @@ export default function EnterpriseOverview() {
                 }
                 totalAttendedLanes++
             })
+            setAttendedLanes(response)
             const percentUp = (onlineAttendedLanes / totalAttendedLanes) * 100;
             setLanesUp({ 'online': onlineAttendedLanes, 'total': totalAttendedLanes, 'percentUp': isNaN(percentUp) ? 0 : percentUp })
         }
