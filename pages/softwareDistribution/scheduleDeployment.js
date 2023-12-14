@@ -438,8 +438,9 @@ export default function ScheduleDeployment() {
         setFormValues(formValues);
 
         if (context.selectedRetailerIsTenant === false) {
+            const apiCall = deployImmediately ? `/api/deploy-immediate?retailerId=${selectedRetailer}` : `/api/deploy-schedule?retailerId=${selectedRetailer}`
             axios
-                .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
+                .post(apiCall, _formValues)
                 .then(function (response) {
                     if (response.data.message !== 'Success') {
                         setToastFailure(response.data);
@@ -454,8 +455,10 @@ export default function ScheduleDeployment() {
                     setOpenFailure(true);
                 });
         } else {
+            const apiCall = deployImmediately ? `/api/deploy-immediate?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}` :
+                `/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`
             axios
-                .post(`/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`, _formValues)
+                .post(apiCall, _formValues)
                 .then(function (response) {
                     if (response.data.message !== 'Success') {
                         setToastFailure(response.data);
