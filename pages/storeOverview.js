@@ -440,7 +440,16 @@ export default function StoreOverview() {
                             <div onClick={handleAlertsConfirmationOpen} style={{ display: 'flex', flexDirection: 'row' }}>
                                 <NotificationsIcon fontSize="large" />
                                 <Typography fontSize={'150%'} fontWeight={'bold'}>
-                                    {storeAlerts.filter((alert) => alert.alertAcknowledged === false).length}
+                                    {storeAlerts.filter((alert) => {
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+
+                                        const alertDate = new Date(alert.dateTimeReceived);
+                                        alertDate.setHours(0, 0, 0, 0);
+
+                                        return alertDate.getTime() === today.getTime();
+                                    }).length} {' '}
+                                    Today 
                                 </Typography>
                             </div>
                         </Paper>

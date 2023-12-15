@@ -8,6 +8,13 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
     const [storeAlerts, setAlerts] = useState(alerts);
     const [b2benabled, setB2BEnabled] = useState(false);
 
+    const [sortModel, setSortModel] = useState([
+        {
+            field: 'originalDateTimeReceived',
+            sort: 'desc'
+        },
+    ]);
+
     const [snackbarState, setSnackbarState] = useState({
         open: false,
         message: '',
@@ -29,9 +36,13 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         // Map alerts to apply the formatTimeAgo function
         const formattedAlerts = alerts.map((alert) => ({
             ...alert,
+            originalDateTimeReceived: new Date(alert.dateTimeReceived),
             dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
             dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
         }));
+
+        // Sort the formatted alerts
+        formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
 
         // Set the state with the formatted alerts
         setAlerts(formattedAlerts);
@@ -302,13 +313,6 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         }
     ];
 
-    const sortModel = [
-        {
-            field: 'dateTimeReceived',
-            sort: 'asc'
-        },
-    ];
-
     if (b2benabled) {
         columns.push({
             field: 'createSNOW',
@@ -328,7 +332,7 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
 
     return (
         <div style={{ height: 600, width: '100%' }}>
-            <DataGrid rows={storeAlerts} getRowId={(row) => row._id} columns={columns} sortModel={sortModel} />
+            <DataGrid rows={storeAlerts} getRowId={(row) => row._id} columns={columns} sortModel={sortModel} onSortModelChange={(model) => setSortModel(model)} />
             <Snackbar
                 open={snackbarState.open}
                 autoHideDuration={3000}
