@@ -9,14 +9,14 @@ import {
 import { useRouter } from 'next/router';
 import React, { } from 'react';
 
-export default function EleraInfoPaper({ elera, agent }) {
+export default function EleraInfoPaper({ agent }) {
     const router = useRouter();
     let par = '';
     if (typeof window !== 'undefined') {
         par = window.location.search;
     }
     const params = new URLSearchParams(par);
-
+    
     return (
         <Paper sx={{ display: 'flex', flexDirection: 'column' }}>
             <Grid container sx={{ padding: 2 }}>

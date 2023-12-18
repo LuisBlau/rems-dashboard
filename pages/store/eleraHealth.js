@@ -80,7 +80,8 @@ const EleraHealth = () => {
 
     const handleMenuItemClick = (menuItem) => {
         setSelectedMenuItem(menuItem);
-        const findMenu = storeList.find(x => x.storeName?.toLowerCase() === menuItem?.toLowerCase());
+        const findMenu = storeList.find(x => x.storeName?.toLowerCase() === menuItem?.replace("/%20/g","")?.toLowerCase());
+
         replace(`/store/eleraHealth?storeName=${menuItem}&retailer_id=${selectedRetailer}&agentName=${findMenu?.agentName ?? ''}`);
         if (!findMenu?.agentName) {
             setSnackbarOpen(true);
@@ -99,9 +100,8 @@ const EleraHealth = () => {
                     for (let i = 0; i < arr.length; i++) {
                         arr[i] = JSON.parse(arr[i]);
                         arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
-                        console.log(arr)
-                        if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('mystifying_mccarthy') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
-                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp') || arr[i].Names.includes('mystifying_mccarthy')) {
+                        if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
+                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')){
                                 rows.push(
                                     objectifyRow(
                                         i + 1,
@@ -140,10 +140,10 @@ const EleraHealth = () => {
         }));
 
     useEffect(() => {
-        if (selectedRetailer && initialStoreName) {
+        if (selectedRetailer && initialStoreName && storeList?.length > 0) {
             handleMenuItemClick(initialStoreName);
         }
-    }, [selectedRetailer, initialStoreName]);
+    }, [selectedRetailer, initialStoreName,storeList]);
 
     const columns = [
         {

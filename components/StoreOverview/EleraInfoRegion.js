@@ -6,10 +6,10 @@ import EleraInfoPaper from "../Connection/EleraInfoPaper";
 export default function EleraInfoRegion({ elera }) {
     return (
         <Box sx={{ display: 'flex', width: '30%', flexDirection: 'row', flexWrap: 'wrap', overflowY: 'auto' }}>
-            {Object.keys(elera).map((agent, index) => (
+            {Object.keys(elera).map((agent,index) => (
                 <Box key={index} sx={{ width: '100%', padding: 2 }}>
                     <Paper elevation={10}>
-                        <EleraInfoPaper elera={elera} agent={agent} />
+                        <EleraInfoPaper  agent={agent} />
                     </Paper>
                 </Box>
             ))}
