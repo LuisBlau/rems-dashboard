@@ -5,9 +5,8 @@ import { FormControlLabel, Switch, Button, Snackbar, Alert } from '@mui/material
 import axios from 'axios';
 
 export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }) {
-    const [storeAlerts, setAlerts] = useState(alerts);
+    const [storeAlerts, setAlerts] = useState([]);
     const [b2benabled, setB2BEnabled] = useState(false);
-
     const [sortModel, setSortModel] = useState([
         {
             field: 'originalDateTimeReceived',
@@ -83,9 +82,6 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                         );
                     }
 
-                    // Update the state with the modified list
-                    setAlerts(updatedAlerts);
-
                     //Let the storeOverview know
                     updateAlerts(updatedAlerts)
                 } else if (response.status === 204) {
@@ -144,13 +140,13 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
             lz_payload: {
                 lz_element: [
                     {
-                        retailer_id: row.retailer_id,
+                        retailer_id: rsmpSNOWAutoMap(row.retailer_id),
                         store_id: row.store,
                         system_id: maSysId,
                         request_id: reqId,
                         data: {
                             Event: {
-                                Message: row.alertName + ": " + row.reason,
+                                Message: "PAS225: " + row.alertName + ": " + row.reason,
                                 Severity: 1,
                                 TimeStamp: epochTime,
                                 Array: {
@@ -188,6 +184,28 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
 
         axios.post(`/api/snow/createevent?environment=${environment}`, incidentData)
             .then(response => {
+                axios.put(`/api/alerts/${row._id}`, {
+                    eventCreated: true
+                })
+                    .then((resp) => {
+                        if (resp.status === 200) {
+                            //Deep copy of alerts
+                            var alertsDeepCopy = JSON.parse(JSON.stringify(alerts));
+                            alertsDeepCopy = alertsDeepCopy.map((alert) =>
+                                alert._id === row._id ? { ...alert, eventCreated: true } : alert
+                            );
+
+                            updateAlerts(alertsDeepCopy);
+                        } else if (resp.status === 204) {
+                            console.log('No matching document found', resp.data);
+                        } else {
+                            console.error('Error updating alertKeep', resp.data);
+                        }
+                    })
+                    .catch((error) => {
+                        // Clear the current row for which SNOW event creation is in progress
+                    });
+
                 // Open success toast notification
                 setSnackbarState({
                     open: true,
@@ -222,6 +240,15 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         } catch (e) {
             console.error('Unable to create hash:', e.message);
             return null;
+        }
+    }
+
+    //Yikes. Don't like this but no time to mess with it now
+    const rsmpSNOWAutoMap = (retailer) => {
+        if(retailer === 'TPASDEMO'){
+            return "PAS Demo Lab"
+        }else{
+            return retailer;
         }
     }
 
@@ -310,25 +337,26 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                     label={params.row.alertKeep}
                 />
             )
-        }
-    ];
-
-    if (b2benabled) {
-        columns.push({
+        },
+        {
             field: 'createSNOW',
             headerName: 'SNOW Incident',
             width: 150,
             renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleCreateSNOWButtonClick(params.row)}
-                >
-                    Open SNOW Ticket
-                </Button>
-            ),
-        });
-    }
+                params.row.eventCreated ? (
+                    <span>Opened</span>
+                ) : (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleCreateSNOWButtonClick(params.row)}
+                    >
+                        Open SNOW Incident
+                    </Button>
+                )
+            )
+        }
+    ];
 
     return (
         <div style={{ height: 600, width: '100%' }}>

@@ -1177,7 +1177,7 @@ const ElasticSearchRuleComponent = () => {
             variant="outlined"
             onClick={handleUpdateRow}
             disabled={!isIntervalValid || !isNameValid || !isThresholdValid || !isLastValid || !isEmailValid}>
-            Update Row
+            Update Rule
           </Button>
           <Button variant="outlined" onClick={handleCloseEditModal}>
             Cancel
