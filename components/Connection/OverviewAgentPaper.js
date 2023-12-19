@@ -612,7 +612,10 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                         <Grid item xs={4}>
                             <DisplayOnOffStatus data={data} />
                         </Grid>
-                        <Grid item xs={9}>
+                        <Grid sx={{ display: 'flex', flexDirection: 'row' }} item xs={9}>
+                            {data.vendor &&
+                                <Typography sx={{ paddingRight: 2 }}>Mfg: {data.vendor}</Typography>
+                            }
                             <Typography>OS: {data.os}</Typography>
                         </Grid>
                     </Grid>
