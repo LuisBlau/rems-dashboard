@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import { FormControlLabel, Switch, Button, Snackbar, Alert } from '@mui/material';
+import { DataGrid, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { FormControlLabel, Switch, Button, Snackbar, Alert, Typography, Box } from '@mui/material';
 import axios from 'axios';
 
 export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }) {
@@ -125,6 +125,16 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         } else {
             return "prod";
         }
+    }
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                    <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+                </Box>
+            </GridToolbarContainer>
+        );
     }
 
     const handleCreateSNOWButtonClick = async (row) => {
@@ -356,18 +366,18 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         },
         {
             field: 'createSNOW',
-            headerName: 'SNOW Incident',
-            width: 150,
+            headerName: 'SNOW Event',
+            width: 200,
             renderCell: (params) => (
                 params.row.eventCreated ? (
-                    <span>Opened</span>
+                    <Typography>Event Opened</Typography>
                 ) : (
                     <Button
                         variant="contained"
                         color="primary"
                         onClick={() => handleCreateSNOWButtonClick(params.row)}
                     >
-                        Open SNOW Incident
+                        Open SNOW Event
                     </Button>
                 )
             )
@@ -376,7 +386,15 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
 
     return (
         <div style={{ height: 600, width: '100%' }}>
-            <DataGrid rows={storeAlerts} getRowId={(row) => row._id} columns={columns} sortModel={sortModel} onSortModelChange={(model) => setSortModel(model)} />
+            <DataGrid
+                slots={{ toolbar: CustomToolbar }}
+                rows={storeAlerts}
+                getRowId={(row) => row._id}
+                columns={columns}
+                sortModel={sortModel}
+                onSortModelChange={(model) => setSortModel(model)}
+                rowSelection={false}
+            />
             <Snackbar
                 open={snackbarState.open}
                 autoHideDuration={3000}
