@@ -26,6 +26,7 @@ import {
     DialogActions,
     DialogTitle,
     FormControl,
+    FormControlLabel,
     Table,
     TableBody,
     TableCell,
@@ -117,6 +118,7 @@ export default function ScheduleDeployment() {
     };
     const context = useContext(UserContext)
     const [selectedRetailer, setSelectedRetailer] = useState('')
+    const [deployImmediately, setDeployImmediately] = useState(false);
 
     useEffect(() => {
         if (context.selectedRetailer) {
@@ -427,16 +429,18 @@ export default function ScheduleDeployment() {
         // formValues.listNames = _listNames,
         // Don't adjust for users time zone i.e we are always in store time.
         // en-ZA puts the date in the design doc format except for an extra comma.
-        formValues.dateTime = new Date(_dateTime)
+        formValues.dateTime = deployImmediately ? null : new Date(_dateTime)
             .toLocaleString('en-ZA', { hourCycle: 'h24' })
             .replace(',', '')
             .replace(' 24:', ' 00:');
+        formValues.deploy = deployImmediately ? 'immediate' : '';
 
         setFormValues(formValues);
 
         if (context.selectedRetailerIsTenant === false) {
+            const apiCall = `/api/deploy-schedule?retailerId=${selectedRetailer}`
             axios
-                .post(`/api/deploy-schedule?retailerId=${selectedRetailer}`, _formValues)
+                .post(apiCall, _formValues)
                 .then(function (response) {
                     if (response.data.message !== 'Success') {
                         setToastFailure(response.data);
@@ -451,8 +455,10 @@ export default function ScheduleDeployment() {
                     setOpenFailure(true);
                 });
         } else {
+            const apiCall =
+                `/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`
             axios
-                .post(`/api/deploy-schedule?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${selectedRetailer}`, _formValues)
+                .post(apiCall, _formValues)
                 .then(function (response) {
                     if (response.data.message !== 'Success') {
                         setToastFailure(response.data);
@@ -599,16 +605,27 @@ export default function ScheduleDeployment() {
                             return <TextField key={index} onChange={varentry(name)} label={name} />
                         })
                         }
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DateTimePicker
-                                id="date-time-local"
-                                label="Apply Time (local store time)"
-                                value={dayjs(_dateTime)}
-                                onChange={(newValue) => {
-                                    setDateTime(newValue);
-                                }}
-                            />
-                        </LocalizationProvider>
+                        <FormControlLabel
+                            control={<Checkbox
+                                checked={deployImmediately}
+                                onChange={(e) => setDeployImmediately(e.target.checked)}
+                                inputProps={{ 'aria-label': 'controlled' }}
+                            />}
+                            label='Deploy Immediately'
+                        />
+                        {!deployImmediately &&
+
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                    id="date-time-local"
+                                    label="Apply Time (local store time)"
+                                    value={dayjs(_dateTime)}
+                                    onChange={(newValue) => {
+                                        setDateTime(newValue);
+                                    }}
+                                />
+                            </LocalizationProvider>
+                        }
                         <Button variant="contained" color="primary" type="submit" disabled={!canDeploy}>
                             Submit
                         </Button>
