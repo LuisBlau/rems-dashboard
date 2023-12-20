@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
-import { Cloud } from '@mui/icons-material';
+import { Alert, AlertTitle, Box, IconButton, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { CloseOutlined, Cloud } from '@mui/icons-material';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import UserContext from '../UserContext';
+import { Button } from '@mui/base';
+import { Snackbar, SnackbarContent } from '@mui/material';
+import { useRouter } from 'next/router';
 
 const EleraHealth = () => {
     const context = useContext(UserContext);
@@ -13,6 +16,10 @@ const EleraHealth = () => {
     const [storeList, setStoreList] = useState([]);
     const [selectedRetailer, setSelectedRetailer] = useState('');
     const [containerData, setContainerData] = useState([]); // State for container data
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' or 'error'
+    const { replace } = useRouter();
 
     var par = '';
     if (typeof window !== 'undefined') {
@@ -73,9 +80,19 @@ const EleraHealth = () => {
 
     const handleMenuItemClick = (menuItem) => {
         setSelectedMenuItem(menuItem);
+        const findMenu = storeList.find(x => x.storeName?.toLowerCase() === menuItem?.replace("/%20/g","")?.toLowerCase());
+
+        replace(`/store/eleraHealth?storeName=${menuItem}&retailer_id=${selectedRetailer}&agentName=${findMenu?.agentName ?? ''}`);
+        if (!findMenu?.agentName) {
+            setSnackbarOpen(true);
+            setSnackbarSeverity('danger')
+            setSnackbarMessage('No agentname found');
+            setContainerData([])
+            return false;
+        }
 
         // Fetch container data when a new store is selected
-        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${menuItem}&retailerId=${selectedRetailer}&agentName=${params.get('agentName')}`)
+        axios.get(`/api/REMS/getContainerInformationForStoreAgent?storeName=${menuItem}&retailerId=${selectedRetailer}&agentName=${findMenu?.agentName}`)
             .then((resp) => {
                 if (resp.data && resp.data.docker) {
                     const arr = Object.values(resp.data.docker);
@@ -84,7 +101,7 @@ const EleraHealth = () => {
                         arr[i] = JSON.parse(arr[i]);
                         arr[i].Names = arr[i].Names.replace(/\/|\[|\]/g, '');
                         if (arr[i].Names.includes('elera') || arr[i].Names.includes('mongo') || arr[i].Names.includes('nginx') || arr[i].Names.includes('rabbitmq') || arr[i].Names.includes('tgcp')) {
-                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')) {
+                            if (arr[i].Names.includes('elera') || arr[i].Names.includes('tgcp')){
                                 rows.push(
                                     objectifyRow(
                                         i + 1,
@@ -108,6 +125,8 @@ const EleraHealth = () => {
             });
     };
 
+
+
     const handleFilterChange = (event) => {
         setFilter(event.target.value);
     };
@@ -121,10 +140,10 @@ const EleraHealth = () => {
         }));
 
     useEffect(() => {
-        if (selectedRetailer && initialStoreName) {
+        if (selectedRetailer && initialStoreName && storeList?.length > 0) {
             handleMenuItemClick(initialStoreName);
         }
-    }, [selectedRetailer, initialStoreName]);
+    }, [selectedRetailer, initialStoreName,storeList]);
 
     const columns = [
         {
@@ -151,11 +170,120 @@ const EleraHealth = () => {
             headerName: 'Up Time',
             flex: 1
         },
+        {
+            field: 'action',
+            headerName: 'Action',
+            flex: 1,
+            renderCell: (data) => {
+                return data?.row?.state == 'running' ? <div>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleStop(data?.row)}
+                        style={{ marginRight: '20px' }}
+                    >Stop</Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => handleRestart(data?.row)}
+                    >
+                        Restart
+                    </Button>
+                </div> :
+                    <div>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleStart(data?.row)}
+                        >Start</Button>
+                    </div>
+            }
+        },
     ];
+
+    const handleStop = (data) => {
+        const message = `Request to STOP the container ${data.name} sent successfully`;
+        const formData = {
+            retailer_id: params.get('retailer_id'),
+            store: params.get('storeName'),
+            agent: params.get('agentName'),
+            container: data.name,
+            command: 'stop'
+
+        }
+        axios.post(`/api/registers/controlProcess`, formData)
+            .then(function (resp) {
+                setSnackbarMessage(message);
+                setSnackbarSeverity("success");
+                setSnackbarOpen(true);
+            })
+            .catch(function (error) {
+                setSnackbarMessage("Request failed");
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+            });
+    }
+    const handleRestart = (data) => {
+        const message = `Request to RESTART the container ${data.name} sent successfully`;
+        const formData = {
+            retailer_id: params.get('retailer_id'),
+            store: params.get('storeName'),
+            agent: params.get('agentName'),
+            container: data.name,
+            command: 'restart'
+
+        }
+        axios.post(`/api/registers/controlProcess`, formData)
+            .then(function (resp) {
+                setSnackbarMessage(message);
+                setSnackbarSeverity("success");
+                setSnackbarOpen(true);
+            })
+            .catch(function (error) {
+                setSnackbarMessage("Request failed");
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+            });
+    }
+
+    const handleStart = (data) => {
+        const message = `Request to START the container ${data.name} sent successfully`;
+        const formData = {
+            retailer_id: params.get('retailer_id'),
+            store: params.get('storeName'),
+            agent: params.get('agentName'),
+            container: data.name,
+            command: 'start'
+        }
+        axios.post(`/api/registers/controlProcess`, formData)
+            .then(function (resp) {
+                setSnackbarMessage(message);
+                setSnackbarSeverity("success");
+                setSnackbarOpen(true);
+            })
+            .catch(function (error) {
+                setSnackbarMessage("Request failed");
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+            });
+
+    }
 
     const objectifyRow = (id, name, lastupd, state, uptime) => {
         return { id, name, lastupd, state, uptime };
     };
+    const action = (
+        <React.Fragment>
+            <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={() => setSnackbarOpen(false)}
+            >
+                <CloseOutlined fontSize="small" />
+            </IconButton>
+        </React.Fragment>
+    );
 
     return (
         <Box display="flex" height="100vh" width="80vw">
@@ -172,6 +300,21 @@ const EleraHealth = () => {
                         style={{ width: '100%' }}
                     />
                 </Box>
+
+                <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={5000}
+                    onClose={() => setSnackbarOpen(false)}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    action={action}
+                    message={snackbarMessage}
+                    ContentProps={{
+                        sx:{
+                            background: snackbarSeverity === 'success' ? 'green' : 'red',
+                        }
+                    }}
+                />
+
                 <Box sx={{ minHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
                     <List component="nav">
                         {filteredMenuItems.map((menuItem) => (
@@ -192,7 +335,7 @@ const EleraHealth = () => {
             </Box>
             <Box flex={1} padding="20px" display="flex" flexDirection="column">
                 <Typography variant="h5" textAlign="center" marginBottom="10px" fontSize="1.5rem">
-                    Elera Container Data
+                    Elera Microservices Status
                 </Typography>
                 <div>
                     <DataGrid
