@@ -16,6 +16,7 @@ export default function ReleaseNotes() {
         { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 2 },
         { text: '- Fixed issue with sidebar', level: 2 },
         { text: '- External', level: 1 },
+        { text: '- Fixed where "Dump" action was visible on registers that were not able to perform that action', level: 2 },
         { text: '- Fixed issue with SCO Counters on Store Overview', level: 2 },
         { text: '- Fixed issue with REMS status identification', level: 2 },
         { text: '- Fixed issue with retailer configuration on enterprise overview tiles', level: 2 },

@@ -659,7 +659,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
           </Grid> */}
                     <Typography>Agent Actions:</Typography>
                     <Grid container spacing={1}>
-                        {data.os === 'Sky' &&
+                        {(data.os === 'Sky' && data.deviceType !== 3) &&
                             <Grid item xs={1} sx={{ margin: 1 }}>
                                 <DumpWithConfirmationModal
                                     data={data}
