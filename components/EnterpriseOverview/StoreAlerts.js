@@ -14,6 +14,8 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         },
     ]);
 
+    const [doneCreatingSNOWEvents, setSNOWEventsCreationStatus] = useState(false);
+
     const [snackbarState, setSnackbarState] = useState({
         open: false,
         message: '',
@@ -31,21 +33,35 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         });
     };
 
+    //This will automatically create any SNOW  tickets
+    //TO-DO: THIS SHOULD BE IN SBUS, BUT I NEED THIS NOW FOR NRF SOOOO HERE WE ARE
     useEffect(() => {
-        // Map alerts to apply the formatTimeAgo function
-        const formattedAlerts = alerts.map((alert) => ({
-            ...alert,
-            originalDateTimeReceived: new Date(alert.dateTimeReceived),
-            dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
-            dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
-        }));
+        for (var i = 0; i < alerts.length; i++) {
+            var alertObj = alerts[i];
+            if (alertObj.automaticSNOWEvent) {
+                handleCreateSNOWButtonClick(alertObj);
+            }
+        }
+        setSNOWEventsCreationStatus(true);
+    }, []);
 
-        // Sort the formatted alerts
-        formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
+    useEffect(() => {
+        if (doneCreatingSNOWEvents) {
+            // Map alerts to apply the formatTimeAgo function
+            const formattedAlerts = alerts.map((alert) => ({
+                ...alert,
+                originalDateTimeReceived: new Date(alert.dateTimeReceived),
+                dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
+                dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
+            }));
 
-        // Set the state with the formatted alerts
-        setAlerts(formattedAlerts);
-    }, [alerts]);
+            // Sort the formatted alerts
+            formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
+
+            // Set the state with the formatted alerts
+            setAlerts(formattedAlerts);
+        }
+    }, [doneCreatingSNOWEvents, alerts]);
 
     useEffect(() => {
         const b2benabled = retailerConfig.find(item => item.configName === 'b2b_subscription_active').configValue;
@@ -245,9 +261,9 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
 
     //Yikes. Don't like this but no time to mess with it now
     const rsmpSNOWAutoMap = (retailer) => {
-        if(retailer === 'TPASDEMO'){
+        if (retailer === 'TPASDEMO') {
             return "PAS Demo Lab"
-        }else{
+        } else {
             return retailer;
         }
     }
