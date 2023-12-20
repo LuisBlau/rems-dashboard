@@ -267,6 +267,14 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'retailerComparison' && x.value === true)) {
+                            tmp.items.push({
+                                id: 'retailerComparison',
+                                name: 'Retailer Comparison',
+                                route: '/systemReporting/tableauReportViewer?reportName=retailerComparison&env=prod',
+                                enabled: true
+                            })
+                        }
                         MenuItems.push(tmp)
                     }
 

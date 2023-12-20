@@ -24,7 +24,7 @@ import Box from '@mui/material/Box';
 import React, { useContext, useState, useEffect } from 'react';
 import Link from '@mui/material/Link';
 import UserContext from '../../pages/UserContext';
-import { PhotoCamera, PowerSettingsNew, SyncProblem } from '@mui/icons-material';
+import { PhotoCamera, Policy, PowerSettingsNew, ShoppingBasketOutlined, ShoppingBasketRounded, SyncProblem } from '@mui/icons-material';
 import EleraInfoModal from './InformationModals/EleraInfoModal';
 import RmqInfoModal from './InformationModals/RmqInfoModal';
 import DockerInfoModal from './InformationModals/DockerInfoModal';
@@ -705,6 +705,29 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                     </Grid>
                     {/* <ModalDisplayButtonsComponentTitle data={data}></ModalDisplayButtonsComponentTitle>
           <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} /> */}
+                    { // This should be checking if the agent has any devices associated to it
+                        // Which should be sent up from the agents endpoint (needs to be updated to include that)
+                        (true === true) &&
+                        <Box>
+                            <Typography>Devices:</Typography>
+                            <Grid container spacing={3}>
+                                <Grid item xs={1} sx={{ margin: 1 }}>
+                                    <Tooltip arrow title="MFG : Model">
+                                        <IconButton>
+                                            <ShoppingBasketRounded style={{ color: '#484848' }} cursor={'pointer'} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Grid>
+                                <Grid item xs={1} sx={{ margin: 1 }}>
+                                    <Tooltip arrow title="MFG : Model">
+                                        <IconButton>
+                                            <Policy style={{ color: '#484848' }} cursor={'pointer'} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    }
                 </Grid>
             </Paper>
         );
