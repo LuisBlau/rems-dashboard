@@ -232,12 +232,15 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                         // Clear the current row for which SNOW event creation is in progress
                     });
 
-                // Open success toast notification
-                setSnackbarState({
-                    open: true,
-                    message: 'SNOW event created successfully',
-                    severity: 'success',
-                });
+                //Don't show this unless it's a user-invoked event creation
+                if (doneCreatingSNOWEvents) {
+                    // Open success toast notification
+                    setSnackbarState({
+                        open: true,
+                        message: 'SNOW event created successfully',
+                        severity: 'success',
+                    });
+                }
             })
             .catch(error => {
                 // Open error toast notification
