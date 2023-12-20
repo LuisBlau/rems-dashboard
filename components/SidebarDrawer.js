@@ -324,14 +324,14 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                                 alignItems: 'center'
                             }}
                         >
-                            {context.selectedRetailer === "TPASDEMO" && (
+                            {context?.selectedRetailer === "TPASDEMO" && (
                                 <Box sx={{
-                                    width: 100, 
-                                    height: 100, 
+                                    width: 100,
+                                    height: 100,
                                     display: 'flex',
                                     justifyContent: 'center',
                                     alignItems: 'center',
-                                    marginBottom: 3 
+                                    marginBottom: 3
                                 }}
                                 >
                                     <div style={{

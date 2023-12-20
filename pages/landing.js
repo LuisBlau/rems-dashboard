@@ -1,12 +1,11 @@
 /* eslint-disable react/prop-types */
-import React, { useContext, useEffect, useState } from 'react';
+import React, { } from 'react';
 import { Box, Typography, Grid, Card } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Image from 'next/image';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
-import UserContext from '../pages/UserContext';
 const PREFIX = 'landing';
 
 const classes = {
@@ -109,16 +108,7 @@ ImageRenderer.propTypes = {
 };
 
 export default function Landing() {
-    const context = useContext(UserContext);
-    const [userIsPasAdvanced, setUserIsPasAdvanced] = useState(false)
 
-    useEffect(() => {
-        const isPasAdvanced = context.userRetailers.some(retailer => {
-            return retailer.configuration && retailer.configuration.pas_subscription_tier === 'advanced';
-        });
-        setUserIsPasAdvanced(isPasAdvanced);
-    }, [context]);
-    
     return (
         <Root className={classes.content}>
             <PageHeader>
@@ -142,7 +132,7 @@ export default function Landing() {
                         <Box sx={{ width: 300, height: 250 }}>
                             <ImageRenderer
                                 src={'/Asset Inventory.png'}
-                                path={'/needsRehoming/assetInventory'}
+                                path={'/systemReporting/tableauReportViewer?reportName=assetInventory&env=prod'}
                                 title={'Asset Inventory'}
                             />
                         </Box>
@@ -158,7 +148,6 @@ export default function Landing() {
                                 src={'/APM.png'}
                                 path={'/needsRehoming/eleraStats'}
                                 title={'Application Monitoring'}
-                                enabled={userIsPasAdvanced}
                             />
                         </Box>
                     </Box>
@@ -174,16 +163,15 @@ export default function Landing() {
                         <Box sx={{ width: 300, height: 250 }}>
                             <ImageRenderer
                                 src={'/Health Automation.png'}
-                                path={'/needsRehoming/systemEvents'}
+                                path={'/systemReporting/tableauReportViewer?reportName=systemEvents&env=prod'}
                                 title={'Events'}
                             />
                         </Box>
                         <Box sx={{ width: 300, height: 250 }}>
                             <ImageRenderer
                                 src={'/Remote Diagnostics.png'}
-                                path={'/storeOverview'}
+                                path={'/storeOverview?storeName=PAS%20NRF&retailer_id=TPASDEMO'}
                                 title={'Remote Diagnostics'}
-                                enabled={userIsPasAdvanced}
                             />
                         </Box>
                         <Box sx={{ width: 300, height: 250 }}>
@@ -193,7 +181,6 @@ export default function Landing() {
                                     'https://toshibatagstest.service-now.com/now/nav/ui/classic/params/target/%24pa_dashboard.do%3Fsysparm_dashboard%3D00f59a9e1b465d5038587599cc4bcbc2'
                                 }
                                 title={'Service Enablement'}
-                                enabled={userIsPasAdvanced}
                             />
                         </Box>
                     </Box>
