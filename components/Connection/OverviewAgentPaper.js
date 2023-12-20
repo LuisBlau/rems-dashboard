@@ -371,14 +371,24 @@ function ReloadWithConfirmationModal({
     );
 }
 
-export default function OverviewAgentPaper({ data, useScreenshotView }) {
+export default function OverviewAgentPaper({ devices, data, useScreenshotView }) {
     const context = useContext(UserContext);
     const [screenShotEnable, setScreenShotEnable] = useState(false)
+    const [agentDevices, setAgentDevices] = useState([])
     let disableReload = true;
     if (context.userRoles.includes('admin') || context.userRoles.includes('toshibaAdmin')) {
         disableReload = false;
     }
 
+    useEffect(() => {
+        var localDevices = []
+        devices.forEach(device => {
+            if (device.agentName === data.agentName) {
+                localDevices.push(device)
+            }
+        });
+        setAgentDevices(localDevices)
+    }, [devices, data])
 
     useEffect(() => {
         if (data.status?.AgentActions) {
@@ -518,24 +528,19 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                     </Grid>
                     { // This should be checking if the agent has any devices associated to it
                         // Which should be sent up from the agents endpoint (needs to be updated to include that)
-                        (true === true) &&
+                        (agentDevices.length > 0) &&
                         <Box>
                             <Typography>Devices:</Typography>
                             <Grid container spacing={3}>
-                                <Grid item xs={1} sx={{ margin: 1 }}>
-                                    <Tooltip arrow title="MFG : Model">
-                                        <IconButton>
-                                            <ShoppingBasketRounded style={{ color: '#484848' }} cursor={'pointer'} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Grid>
-                                <Grid item xs={1} sx={{ margin: 1 }}>
-                                    <Tooltip arrow title="MFG : Model">
-                                        <IconButton>
-                                            <Policy style={{ color: '#484848' }} cursor={'pointer'} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Grid>
+                                {agentDevices.map((device, index) => (
+                                    <Grid key={index} item xs={1} sx={{ margin: 1 }}>
+                                        <Tooltip arrow title={device.vendor + " : " + device.model}>
+                                            <IconButton>
+                                                {(device.deviceType === "ProduceCamera") ? <ShoppingBasketRounded style={{ color: '#484848' }} cursor={'pointer'} /> : <Policy style={{ color: '#484848' }} cursor={'pointer'} />}
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Grid>
+                                ))}
                             </Grid>
                         </Box>
                     }

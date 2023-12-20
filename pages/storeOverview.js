@@ -47,6 +47,7 @@ const Root = styled('main')(() => ({
 export default function StoreOverview() {
     const [screenshotView, setScreenshotView] = useState(false);
     const [storeAlerts, setStoreAlerts] = useState([]);
+    const [cameraDevices, setCameraDevices] = useState([])
     const [storeAlertDescriptions, setStoreAlertDescriptions] = useState([]);
     const [storeAgents, setStoreAgents] = useState([]);
     const [storeHasNoAgents, setStoreHasNoAgents] = useState(null)
@@ -251,6 +252,13 @@ export default function StoreOverview() {
                                             setDownAgentCount(0)
                                         }
                                     });
+                                    axios.get(`/api/REMS/cameraDevicesForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}`).then((resp) => {
+                                        if (resp.data.length > 0) {
+                                            setCameraDevices(resp.data)
+                                        } else {
+                                            console.log('no cameras')
+                                        }
+                                    })
                                 }
                             }
                         }
@@ -440,12 +448,12 @@ export default function StoreOverview() {
                     </Box>
                     {Object.keys(elera).length > 0 ?
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={70} paperWidth={30} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
+                            <AgentDetailsRegion boxWidth={70} paperWidth={30} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                             <EleraInfoRegion elera={elera} />
                         </Box>
                         :
                         <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={100} paperWidth={20} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
+                            <AgentDetailsRegion boxWidth={100} paperWidth={20} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                         </Box>
                     }
                     <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
