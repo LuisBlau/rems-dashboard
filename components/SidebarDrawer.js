@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
 import ToshibaLogo from '../public/toshibaicon.png';
 import ToshibaNameplate from '../public/Toshiba.png';
+import ToshibaQRCode from '../public/QRCode.png'
 import PasLogo from '../public/images/pas-logo.png';
 import LogoutIcon from '../public/icons/logout.png';
 import LoginIcon from '../public/icons/login.png';
@@ -316,13 +317,38 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
                         <div
                             style={{
                                 paddingLeft: 15,
-                                height: '100%',
                                 display: 'flex',
+                                flexDirection: 'column',
                                 justifyItems: 'center',
                                 textAlign: 'center',
-                                alignItems: 'end'
+                                alignItems: 'center'
                             }}
                         >
+                            {context.selectedRetailer === "TPASDEMO" && (
+                                <Box sx={{
+                                    width: 100, 
+                                    height: 100, 
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginBottom: 3 
+                                }}
+                                >
+                                    <div style={{
+                                        width: '100px',
+                                        height: '100px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}>
+                                        <Image
+                                            src={ToshibaQRCode}
+                                            alt="Toshiba QR Code"
+                                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                        />
+                                    </div>
+                                </Box>
+                            )}
                             <Grid container spacing={1}>
                                 <Grid item xs={12}>
                                     <Image src={PasLogo} alt="PASLogo" priority={true} />

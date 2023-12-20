@@ -597,7 +597,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
     };
     if (menu.length > 0) {
         return (
-            <div>
+            <div style={{height:"100%"}}>
                 <List disablePadding dense sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                     {menu.map((sidebarItem, index) => (
                         <SidebarItem sidebarOpen={sidebarOpen} key={`${sidebarItem.id}${index}`} handleOpened={handleOpenItem} opened={context.openedMenuItems.indexOf(sidebarItem.id) > -1} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} {...sidebarItem} context={context} />
