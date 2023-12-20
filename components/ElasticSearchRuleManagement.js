@@ -43,7 +43,7 @@ const ElasticSearchRuleComponent = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   //Set defaults
-  const [newRowData, setNewRowData] = useState({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
+  const [newRowData, setNewRowData] = useState({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '', CreateSNOW: 'false' });
   const [selectedRowDeepCopy, setSelectedRowDataCopy] = useState(null);
 
   //Validations
@@ -86,6 +86,11 @@ const ElasticSearchRuleComponent = () => {
     { value: 'count', label: 'Count' },
   ];
 
+  const snowEventOptions = [
+    { value: 'false', label: 'False' },
+    { value: 'true', label: 'True' }
+  ]
+
   useEffect(() => {
     if (context?.retailerConfigs.length > 0 && context?.selectedRetailer) {
       const configurationArray = context.retailerConfigs;
@@ -121,7 +126,6 @@ const ElasticSearchRuleComponent = () => {
     axios
       .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
-        debugger
         const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
 
         const initRowsData = new Set();
@@ -130,11 +134,11 @@ const ElasticSearchRuleComponent = () => {
 
         metricThresholdAlerts.forEach((alert) => {
           var alertEmail;
-          for(var i = 0; i < alert.actions.length; i++){
+          for (var i = 0; i < alert.actions.length; i++) {
             var actionsObj = alert.actions[i];
 
             //Grab the first email address associated with this alert
-            if(actionsObj.id === 'elastic-cloud-email'){
+            if (actionsObj.id === 'elastic-cloud-email') {
               alertEmail = actionsObj.params.to[0];
               break;
             }
@@ -189,13 +193,13 @@ const ElasticSearchRuleComponent = () => {
         } else {
           // Set the state with the data for multiple rows
           setRows(Array.from(initRowsData));
+          setIsLoading(false); // Set loading state to false when the operation is completed to remove loading animation
         }
       })
       .catch(function (error) {
         console.error('Error:', error)
-      }).finally(() => {
         setIsLoading(false); // Set loading state to false when the operation is completed to remove loading animation
-      });
+      })
   };
 
   useEffect(() => {
@@ -410,7 +414,7 @@ const ElasticSearchRuleComponent = () => {
     setTagInput('');
     setSelectedRowData(null);
     setSelectedRowDataCopy(null);
-    setNewRowData({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '' });
+    setNewRowData({ Comparator: '>=', AggType: 'count', FilterQuery: 'labels.http_route: "/pos/order/{orderId}/{version}/complete" and http.response.status_code: 200 and url.path: *', Interval: '', Name: '', Threshold: '', Last: '', CreateSNOW: 'false' });
 
     setIsNameValid(false);
     setIsIntervalValid(false);
@@ -450,7 +454,8 @@ const ElasticSearchRuleComponent = () => {
       esToken: token,
       esBaseURI: baseURI,
       email: newRowData.Email,
-      type: 'metrics.alert.threshold'
+      type: 'metrics.alert.threshold',
+      snow: newRowData.CreateSNOW
     };
 
     // Use a regular expression to split the string
@@ -581,7 +586,8 @@ const ElasticSearchRuleComponent = () => {
       groupByFields: ['labels.storeName', 'labels.retailer'],
       esToken: token,
       esBaseURI: baseURI,
-      email: selectedRowData.Email
+      email: selectedRowData.Email,
+      snow: selectedRowData.CreateSNOW
     };
 
     // Use a regular expression to split the string
@@ -942,6 +948,25 @@ const ElasticSearchRuleComponent = () => {
             />
           )}
 
+          <Tooltip title="Choose whether to automatically create a SNOW event to prompt incident creation" arrow>
+            <FormControl fullWidth>
+              <InputLabel id="snowType-label">Automatic SNOW Event Creation</InputLabel>
+              <Select
+                label='SNOW'
+                labelId="SNOW-label"
+                id="SNOW"
+                value={newRowData.CreateSNOW}
+                onChange={(e) => setNewRowData({ ...newRowData, CreateSNOW: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {snowEventOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
 
           <TextField
             label={
@@ -1128,6 +1153,24 @@ const ElasticSearchRuleComponent = () => {
               helperText={isIntervalValid ? '' : `Invalid Interval provided. The minimum allowable interval is configured to ${minInterval}.`}
             />
           )}
+
+          <Tooltip title="Choose whether to automatically create a SNOW event to prompt incident creation" arrow>
+            <FormControl fullWidth>
+              <InputLabel>Automatic SNOW Event Creation</InputLabel>
+              <Select
+                label='SNOW'
+                value={selectedRowData ? selectedRowData.CreateSNOW : ''}
+                onChange={(e) => setSelectedRowData({ ...selectedRowData, CreateSNOW: e.target.value })}
+                style={{ marginBottom: '16px' }}
+              >
+                {snowEventOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Tooltip>
 
           <TextField
             label={
