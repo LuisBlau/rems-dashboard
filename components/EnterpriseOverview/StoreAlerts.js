@@ -1,59 +1,109 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { FormControlLabel, Switch, Button } from '@mui/material';
+import { FormControlLabel, Switch, Button, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 
-export default function StoreAlerts({ alerts, updateAlerts }) {
-    const [storeAlerts, setAlerts] = useState(alerts);
+export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }) {
+    const [storeAlerts, setAlerts] = useState([]);
+    const [b2benabled, setB2BEnabled] = useState(false);
+    const [sortModel, setSortModel] = useState([
+        {
+            field: 'originalDateTimeReceived',
+            sort: 'desc'
+        },
+    ]);
+
+    const [doneCreatingSNOWEvents, setSNOWEventsCreationStatus] = useState(false);
+
+    const [snackbarState, setSnackbarState] = useState({
+        open: false,
+        message: '',
+        severity: 'success', // 'success' or 'error'
+    });
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setSnackbarState({
+            ...snackbarState,
+            open: false,
+        });
+    };
+
+    //This will automatically create any SNOW  tickets
+    //TO-DO: THIS SHOULD BE IN SBUS, BUT I NEED THIS NOW FOR NRF SOOOO HERE WE ARE
+    useEffect(() => {
+        for (var i = 0; i < alerts.length; i++) {
+            var alertObj = alerts[i];
+            if (alertObj.automaticSNOWEvent) {
+                handleCreateSNOWButtonClick(alertObj);
+            }
+        }
+        setSNOWEventsCreationStatus(true);
+    }, []);
 
     useEffect(() => {
-        // Map alerts to apply the formatTimeAgo function
-        const formattedAlerts = alerts.map((alert) => ({
-            ...alert,
-            dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
-            dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
-        }));
+        if (doneCreatingSNOWEvents) {
+            // Map alerts to apply the formatTimeAgo function
+            const formattedAlerts = alerts.map((alert) => ({
+                ...alert,
+                originalDateTimeReceived: new Date(alert.dateTimeReceived),
+                dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
+                dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
+            }));
 
-        // Set the state with the formatted alerts
-        setAlerts(formattedAlerts);
-    }, [alerts]);
+            // Sort the formatted alerts
+            formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
+
+            // Set the state with the formatted alerts
+            setAlerts(formattedAlerts);
+        }
+    }, [doneCreatingSNOWEvents, alerts]);
+
+    useEffect(() => {
+        const b2benabled = retailerConfig.find(item => item.configName === 'b2b_subscription_active').configValue;
+        setB2BEnabled(b2benabled);
+
+        //TODO: DO NOT FORGET TO REMOVE THIS LINE AFTER TESTING!!!
+        setB2BEnabled(true);
+
+    }, [retailerConfig])
 
     const handleNotificationStatusChange = (id) => {
-        // Determine the newStatus based on the updated alertAcknowledged
+        // Determine the newStatus based on the updated alertKeep
         const alertToUpdate = alerts.find((alert) => alert._id === id);
-        alertToUpdate.alertAcknowledged = alertToUpdate.alertAcknowledged === true ? false : true;
-        alertToUpdate.dateTimeFlagged = alertToUpdate.alertAcknowledged === true ? new Date() : null;
+        alertToUpdate.alertKeep = alertToUpdate.alertKeep === true ? false : true;
+        alertToUpdate.dateTimeFlagged = alertToUpdate.alertKeep === false ? new Date() : null;
 
-        // Make the Axios request to update the alertAcknowledged
+        // Make the Axios request to update the alertKeep
         axios.put(`/api/alerts/${id}`, {
-            alertAcknowledged: alertToUpdate.alertAcknowledged,
+            alertKeep: alertToUpdate.alertKeep,
             dateTimeFlagged: alertToUpdate.dateTimeFlagged,
         })
             .then((response) => {
                 if (response.status === 200) {
                     var updatedAlerts;
-                    if (alertToUpdate.alertAcknowledged === "Flagged") {
+                    if (alertToUpdate.alertKeep === false) {
                         // Update the storeAlert record with the values of alertToUpdate
                         updatedAlerts = alerts.map((alert) =>
-                            alert._id === id ? { ...alert, alertAcknowledged: alertToUpdate.alertAcknowledged, dateTimeFlagged: alertToUpdate.dateTimeFlagged.toISOString() } : alert
+                            alert._id === id ? { ...alert, alertKeep: alertToUpdate.alertKeep, dateTimeFlagged: alertToUpdate.dateTimeFlagged.toISOString() } : alert
                         );
                     } else {
                         // Update the storeAlert record with the values of alertToUpdate
                         updatedAlerts = alerts.map((alert) =>
-                            alert._id === id ? { ...alert, alertAcknowledged: alertToUpdate.alertAcknowledged, dateTimeFlagged: alertToUpdate.dateTimeFlagged } : alert
+                            alert._id === id ? { ...alert, alertKeep: alertToUpdate.alertKeep, dateTimeFlagged: alertToUpdate.dateTimeFlagged } : alert
                         );
                     }
-
-                    // Update the state with the modified list
-                    setAlerts(updatedAlerts);
 
                     //Let the storeOverview know
                     updateAlerts(updatedAlerts)
                 } else if (response.status === 204) {
                     console.log('No matching document found', response.data);
                 } else {
-                    console.error('Error updating alertAcknowledged', response.data);
+                    console.error('Error updating alertKeep', response.data);
                 }
             })
             .catch((error) => {
@@ -61,9 +111,162 @@ export default function StoreAlerts({ alerts, updateAlerts }) {
             });
     };
 
-    const handleCreateSNOWButtonClick = (row) => {
-        alert("This feature is under development");
+    const getEnvironment = () => {
+        var url = '';
+        if (typeof window !== 'undefined') {
+            url = window.location.origin;
+        }
+
+        if (url.includes("localhost")) {
+            return "test";
+        }
+        else if (url.includes("test")) {
+            return "test";
+        } else {
+            return "prod";
+        }
+    }
+
+    const handleCreateSNOWButtonClick = async (row) => {
+        //Get the environment. I might need to parse the url here
+        const environment = getEnvironment();
+
+        const delimitedAgentName = ma.agentName.split('-');
+        const maSysId = delimitedAgentName[1];
+
+        const epochTime = new Date().getTime();
+        const dataToHash = ma.agentName + row.retailer_id + row.store + epochTime;
+
+        const eleraPlatformVersion = ma.versions.find(i => i.Name.includes("ELERA Platform Version")).Version;
+        const eleraUIVersion = ma.versions.find(i => i.Name.includes("ELERA UI Version")).Version;
+        const eleraTerminalVersion = ma.versions.find(i => i.Name.includes("ELERA Terminal Services")).Version;
+        const eleraClientDbrokerVersion = ma.versions.find(i => i.Name.includes("ELERA Client DBroker AddOns")).Version;
+        const eleraPayVersion = ma.versions.find(i => i.Name.includes("ELERA Pay Version")).Version;
+        const eleraAdminVersion = ma.versions.find(i => i.Name.includes("ELERA Administration UI")).Version;
+        const eleraControllerVersion = ma.versions.find(i => i.Name.includes("ELERA Controller Services")).Version;
+
+        var reqId;
+        //This is async, so we need to act on it when it returns the promise
+        await getHash(dataToHash).then((hashedResult) => {
+            reqId = hashedResult;
+        });
+
+        //Create the basic XML
+        const incidentData = {
+            lz_payload: {
+                lz_element: [
+                    {
+                        retailer_id: rsmpSNOWAutoMap(row.retailer_id),
+                        store_id: row.store,
+                        system_id: maSysId,
+                        request_id: reqId,
+                        data: {
+                            Event: {
+                                Message: "PAS225: " + row.alertName + ": " + row.reason,
+                                Severity: 1,
+                                TimeStamp: epochTime,
+                                Array: {
+                                    numRecs: "2",
+                                    type: "Qualifier",
+                                    Qualifier: ["Retail", "OS04690"]
+                                },
+                                OriginatingMO: {
+                                    _attributes: {
+                                        deviceType: ma.deviceType,
+                                        agentID: ma.agentName,
+                                        systemID: maSysId,
+                                        agentType: "Master Agent",
+                                        mgmtPort: "",
+                                        agentVersion: "",
+                                        storeID: ma.storeName,
+                                        IPAddress: ma.ipaddress,
+                                        deviceID: maSysId,
+                                        eleraPlatformVersion: eleraPlatformVersion,
+                                        eleraPayVersion: eleraPayVersion,
+                                        eleraUIVersion: eleraUIVersion,
+                                        eleraTerminalVersion: eleraTerminalVersion,
+                                        eleraClientDbrokerVersion: eleraClientDbrokerVersion,
+                                        eleraAdminVersion: eleraAdminVersion,
+                                        eleraControllerVersion: eleraControllerVersion
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        };
+
+
+        axios.post(`/api/snow/createevent?environment=${environment}`, incidentData)
+            .then(response => {
+                axios.put(`/api/alerts/${row._id}`, {
+                    eventCreated: true
+                })
+                    .then((resp) => {
+                        if (resp.status === 200) {
+                            //Deep copy of alerts
+                            var alertsDeepCopy = JSON.parse(JSON.stringify(alerts));
+                            alertsDeepCopy = alertsDeepCopy.map((alert) =>
+                                alert._id === row._id ? { ...alert, eventCreated: true } : alert
+                            );
+
+                            updateAlerts(alertsDeepCopy);
+                        } else if (resp.status === 204) {
+                            console.log('No matching document found', resp.data);
+                        } else {
+                            console.error('Error updating alertKeep', resp.data);
+                        }
+                    })
+                    .catch((error) => {
+                        // Clear the current row for which SNOW event creation is in progress
+                    });
+
+                // Open success toast notification
+                setSnackbarState({
+                    open: true,
+                    message: 'SNOW event created successfully',
+                    severity: 'success',
+                });
+            })
+            .catch(error => {
+                // Open error toast notification
+                setSnackbarState({
+                    open: true,
+                    message: 'Error creating SNOW event',
+                    severity: 'error',
+                });
+
+            }).finally(() => {
+                //Nothing for now
+            });
     };
+
+    async function getHash(data) {
+        try {
+            const encoder = new TextEncoder();
+            const dataBuffer = encoder.encode(data);
+
+            const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashString = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+            return hashString;
+        } catch (e) {
+            console.error('Unable to create hash:', e.message);
+            return null;
+        }
+    }
+
+    //Yikes. Don't like this but no time to mess with it now
+    const rsmpSNOWAutoMap = (retailer) => {
+        if (retailer === 'TPASDEMO') {
+            return "PAS Demo Lab"
+        } else {
+            return retailer;
+        }
+    }
 
     const formatTimeRemaining = (timestamp) => {
         if (timestamp === null || timestamp === undefined) {
@@ -72,10 +275,10 @@ export default function StoreAlerts({ alerts, updateAlerts }) {
 
         const currentDate = new Date();
         const date = new Date(timestamp);
-        const threeDaysLater = new Date(date);
-        threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+        const sevenDaysLater = new Date(date);
+        sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
-        const timeDifference = threeDaysLater - currentDate;
+        const timeDifference = sevenDaysLater - currentDate;
 
         const seconds = Math.floor(timeDifference / 1000);
         const minutes = Math.floor(seconds / 60);
@@ -136,18 +339,18 @@ export default function StoreAlerts({ alerts, updateAlerts }) {
         { field: 'alertName', headerName: 'Alert Name', width: 150 },
         { field: 'reason', headerName: 'Reason', width: 500 },
         {
-            field: 'alertAcknowledged',
-            headerName: 'Acknowledged',
+            field: 'alertKeep',
+            headerName: 'Keep',
             width: 100,
             renderCell: (params) => (
                 <FormControlLabel
                     control={
                         <Switch
-                            checked={params.row.alertAcknowledged === true}
+                            checked={params.row.alertKeep === true}
                             onChange={() => handleNotificationStatusChange(params.row._id)}
                         />
                     }
-                    label={params.row.alertAcknowledged}
+                    label={params.row.alertKeep}
                 />
             )
         },
@@ -156,20 +359,36 @@ export default function StoreAlerts({ alerts, updateAlerts }) {
             headerName: 'SNOW Incident',
             width: 150,
             renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleCreateSNOWButtonClick(params.row)}
-                >
-                    Open SNOW Ticket
-                </Button>
-            ),
-        },
+                params.row.eventCreated ? (
+                    <span>Opened</span>
+                ) : (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleCreateSNOWButtonClick(params.row)}
+                    >
+                        Open SNOW Incident
+                    </Button>
+                )
+            )
+        }
     ];
 
     return (
         <div style={{ height: 600, width: '100%' }}>
-            <DataGrid rows={storeAlerts} getRowId={(row) => row._id} columns={columns} />
+            <DataGrid rows={storeAlerts} getRowId={(row) => row._id} columns={columns} sortModel={sortModel} onSortModelChange={(model) => setSortModel(model)} />
+            <Snackbar
+                open={snackbarState.open}
+                autoHideDuration={3000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                sx={{ marginTop: 50, marginLeft: 10 }}
+            >
+                <Alert elevation={6} variant="filled" severity={snackbarState.severity}>
+                    {snackbarState.message}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }
