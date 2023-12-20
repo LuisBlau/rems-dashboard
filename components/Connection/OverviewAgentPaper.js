@@ -24,59 +24,24 @@ import Box from '@mui/material/Box';
 import React, { useContext, useState, useEffect } from 'react';
 import Link from '@mui/material/Link';
 import UserContext from '../../pages/UserContext';
-import { PhotoCamera, Policy, PowerSettingsNew, ShoppingBasketOutlined, ShoppingBasketRounded, SyncProblem } from '@mui/icons-material';
-import EleraInfoModal from './InformationModals/EleraInfoModal';
-import RmqInfoModal from './InformationModals/RmqInfoModal';
-import DockerInfoModal from './InformationModals/DockerInfoModal';
+import { PhotoCamera, Policy, PowerSettingsNew, ShoppingBasketRounded, SyncProblem } from '@mui/icons-material';
 import Image from 'next/image';
 import OfflineImage from '../../public/images/offline.png';
 import _ from 'lodash';
 import moment from 'moment';
 
-// TODO: Move reusable modals out of this file into their own components
 const PREFIX = 'OverviewAgentPaper';
-const bytesPerMegabyte = 1048576;
 
 const classes = {
     barHeight: `${PREFIX}-barHeight`,
 };
 
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
-const Root = styled('main')(({ theme }) => ({
+const Root = styled('main')(() => ({
     [`& .${classes.barHeight}`]: {
         height: 50,
     },
 }));
-
-function timeSince(dateTimestamp) {
-    const seconds = (new Date() - new Date(dateTimestamp * 1000)) / 1000;
-    return prettifyTime(seconds) + ' ago';
-}
-
-function prettifyTime(seconds) {
-    let interval = seconds / 31536000;
-
-    if (interval > 1) {
-        return Math.floor(interval) + ' years';
-    }
-    interval = seconds / 2592000;
-    if (interval > 1) {
-        return Math.floor(interval) + ' months';
-    }
-    interval = seconds / 86400;
-    if (interval > 1) {
-        return Math.floor(interval) + ' days';
-    }
-    interval = seconds / 3600;
-    if (interval > 1) {
-        return Math.floor(interval) + ' hours';
-    }
-    interval = seconds / 60;
-    if (interval > 1) {
-        return Math.floor(interval) + ' minutes';
-    }
-    return Math.floor(seconds) + ' seconds';
-}
 
 function DisplaySystemType(props) {
     if (props.data.status) {
@@ -146,6 +111,12 @@ function DisplaySystemType(props) {
                 <Typography fontWeight='bold' variant="h7">SCO</Typography>
             </Grid>
         );
+    } else if (props.data.os === 'Android') {
+        return (
+            <Grid item xs={12}>
+                <Typography fontWeight='bold' variant="h7">Mobile</Typography>
+            </Grid >
+        )
     } else {
         return (
             <Grid item xs={12}>
@@ -182,98 +153,6 @@ function DisplayOnOffStatus(props) {
             <Typography color="red">Offline</Typography>
         </Grid>
     );
-}
-
-
-function ModalDisplayButtonsComponentTitle({ data }) {
-    if (data.status) {
-        if (data.status.docker || data.status.EleraServices || data.status.RMQ) {
-            return <Typography>Service Information:</Typography>;
-        } else {
-            return null;
-        }
-    } else {
-        return null;
-    }
-}
-
-function ModalDisplayButtonsComponent({
-    data,
-    dockerModalOpen,
-    handleDockerModalClose,
-    handleDockerModalOpen,
-    eleraModalOpen,
-    handleEleraModalClose,
-    handleEleraModalOpen,
-    rmqModalOpen,
-    handleRmqModalClose,
-    handleRmqModalOpen,
-}) {
-    if (data.status) {
-        return (
-            <>
-                <Grid container spacing={1}>
-                    <Grid item xs={1} sx={{ margin: 1 }}>
-                        <DockerInfoModal
-                            modalData={data.status}
-                            dockerModalOpen={dockerModalOpen}
-                            handleDockerModalClose={handleDockerModalClose}
-                            handleDockerModalOpen={handleDockerModalOpen}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ margin: 1 }}>
-                        <EleraInfoModal
-                            modalData={data.status}
-                            eleraModalOpen={eleraModalOpen}
-                            handleEleraModalClose={handleEleraModalClose}
-                            handleEleraModalOpen={handleEleraModalOpen}
-                        />
-                    </Grid>
-                    <Grid item xs={1} sx={{ margin: 1 }}>
-                        <RmqInfoModal
-                            modalData={data.status}
-                            rmqModalOpen={rmqModalOpen}
-                            handleRmqModalClose={handleRmqModalClose}
-                            handleRmqModalOpen={handleRmqModalOpen}
-                            prettifyTime={prettifyTime}
-                        />
-                    </Grid>
-                </Grid>
-            </>
-        );
-    }
-    return null;
-}
-
-function DisplaySalesApplication(props) {
-    const { data, error } = useSWR(
-        '/REMS/agents?store=' + props.data.storeName + '&agentName=' + props.data.agentName,
-        fetcher
-    );
-
-    if (error) return <div>failed to load </div>;
-    if (!data) return <div>loading...</div>;
-
-    const displayData = data[0]?.status;
-    let date = displayData?.snapshot;
-    const isElmo = displayData?.ELMO;
-    const isDB = displayData?.DeviceBroker;
-
-    if (isElmo) {
-        return (
-            <Grid item xs={12}>
-                <Typography>Costl online: {String(timeSince((date = date)))}</Typography>
-            </Grid>
-        );
-    } else if (isDB) {
-        return (
-            <Grid item xs={12}>
-                <Typography>WebPos</Typography>
-                <Typography>{props.data.isUIstate}</Typography>
-            </Grid>
-        );
-    }
-    return null;
 }
 
 function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScreenshotClose, screenShotEnable, selectedRetailer }) {
@@ -316,11 +195,6 @@ function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScr
 
 function ScreenCaptureDisplay({ agentData, refreshInterval, width, height }) {
     const context = useContext(UserContext)
-    const style = {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    };
     const screenCaptureCommand = {
         Retailer: agentData.retailer_id,
         Tenant: agentData.tenant_id,
@@ -517,21 +391,12 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
     const [screenshotOpen, setScreenshotOpen] = useState(false);
     const [dumpConfirmationOpen, setDumpConfirmationOpen] = useState(false);
     const [reloadConfirmationOpen, setReloadConfirmationOpen] = useState(false);
-    const [dockerModalOpen, setDockerModalOpen] = useState(false);
-    const [eleraModalOpen, setEleraModalOpen] = useState(false);
-    const [rmqModalOpen, setRmqModalOpen] = useState(false);
     const handleReloadConfirmationClose = () => setReloadConfirmationOpen(false);
     const handleReloadConfirmationOpen = () => setReloadConfirmationOpen(true);
     const handleDumpConfirmationClose = () => setDumpConfirmationOpen(false);
     const handleDumpConfirmationOpen = () => setDumpConfirmationOpen(true);
     const handleScreenshotOpen = () => setScreenshotOpen(true);
     const handleScreenshotClose = () => setScreenshotOpen(false);
-    const handleDockerModalOpen = () => setDockerModalOpen(true);
-    const handleDockerModalClose = () => setDockerModalOpen(false);
-    const handleEleraModalOpen = () => setEleraModalOpen(true);
-    const handleEleraModalClose = () => setEleraModalOpen(false);
-    const handleRmqModalOpen = () => setRmqModalOpen(true);
-    const handleRmqModalClose = () => setRmqModalOpen(false);
 
     const jsonCommand = { Retailer: data.retailer_id, Tenant: data.tenant_id, Store: data.storeName, Agent: data.agentName, Command: 'Reload' };
     const reload_link =
@@ -544,15 +409,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
         btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/sg', '')))) +
         '")';
     jsonCommand.Command = 'Wake';
-    const wake_link =
-        'javascript:fetch("/api/registers/commands/' +
-        btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/sg', '')))) +
-        '")';
     jsonCommand.Command = 'Sleep';
-    const sleep_link =
-        'javascript:fetch("/api/registers/commands/' +
-        btoa(unescape(encodeURIComponent(JSON.stringify(jsonCommand).replace('/sg', '')))) +
-        '")';
 
     let hasStatus = false;
     let statusType = '';
@@ -619,47 +476,11 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                             <Typography>OS: {data.os}</Typography>
                         </Grid>
                     </Grid>
-                    {/* <Grid container spacing={1}>
-            <Grid item xs={12}>
-            <DisplaySalesApplication data={data} />
-            </Grid>
-          </Grid> */}
                     <Grid container spacing={1}>
                         <Grid className={classes.barHeight} item xs={12}>
                             <Typography>Last Update: {moment(data.last_updated_sec * 1000).fromNow()}</Typography>
                         </Grid>
                     </Grid>
-                    {/*
-            <Grid container spacing={1}>
-              <Grid className={classes.barHeight} item xs={12}>
-                <Typography>Status:</Typography>
-              </Grid>
-            </Grid>
-            <Grid container spacing={1} marginBottom={1.5}>
-            <Grid className={classes.barHeight} item xs={12}>
-              {
-                (hasStatus && statusType === 'ELMO') && <Typography>ui_state:"{data.status.ELMO.ui_state}"</Typography>
-              }
-              {
-                (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_state:"{data.status.DeviceBroker.ui_state}"</Typography>
-              }
-              {
-                (hasStatus && statusType === 'ELMO') && <Typography>ui_substate:"{data.status.ELMO.ui_substate}"</Typography>
-              }
-              {
-                (hasStatus && statusType === 'DeviceBroker') && <Typography>ui_substate:"{data.status.DeviceBroker.ui_substate}"</Typography>
-              }
-              {
-                (hasStatus && statusType === 'ELMO') && <Typography>pinpad_stage:"{data.status.ELMO.pinpad_stage}"</Typography>
-              }
-              {
-                (hasStatus && statusType === 'DeviceBroker') && <Typography>pinpad_stage:"{data.status.DeviceBroker.pinpad_stage}"</Typography>
-              }
-              {
-                (!hasStatus) && <Typography>No Status Found</Typography>
-              }
-            </Grid>
-          </Grid> */}
                     <Typography>Agent Actions:</Typography>
                     <Grid container spacing={1}>
                         {(data.os === 'Sky' && data.deviceType !== 3) &&
@@ -694,17 +515,7 @@ export default function OverviewAgentPaper({ data, useScreenshotView }) {
                                 selectedRetailer={context.selectedRetailer}
                             />
                         </Grid>
-                        {/* <Grid item xs={1} sx={{ margin: 1 }}>
-                            <DockerInfoModal
-                                modalData={data.status}
-                                dockerModalOpen={dockerModalOpen}
-                                handleDockerModalClose={handleDockerModalClose}
-                                handleDockerModalOpen={handleDockerModalOpen}
-                            />
-                        </Grid> */}
                     </Grid>
-                    {/* <ModalDisplayButtonsComponentTitle data={data}></ModalDisplayButtonsComponentTitle>
-          <ModalDisplayButtonsComponent data={data} dockerModalOpen={dockerModalOpen} handleDockerModalClose={handleDockerModalClose} handleDockerModalOpen={handleDockerModalOpen} eleraModalOpen={eleraModalOpen} handleEleraModalOpen={handleEleraModalOpen} handleEleraModalClose={handleEleraModalClose} rmqModalOpen={rmqModalOpen} handleRmqModalClose={handleRmqModalClose} handleRmqModalOpen={handleRmqModalOpen} /> */}
                     { // This should be checking if the agent has any devices associated to it
                         // Which should be sent up from the agents endpoint (needs to be updated to include that)
                         (true === true) &&
