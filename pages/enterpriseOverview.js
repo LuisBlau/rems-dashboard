@@ -574,6 +574,9 @@ export default function EnterpriseOverview() {
             }
 
             if (showHandheldsWidget === true || showHandheldsWidget === 'true') {
+                if (context.selectedRetailer === 'TPASDEMO') {
+                    query = { params: { retailerId: selectedRetailer, isLab: true } }
+                }
                 axios.get(`/api/rsmpData/getMobileAssets`, query).then(function (res) {
                     let totalHandhelds = 0
                     let onlineHandhelds = 0
