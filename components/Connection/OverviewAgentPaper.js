@@ -175,7 +175,7 @@ function ScreenshotModal({ data, screenshotOpen, handleScreenshotOpen, handleScr
     if (screenShotEnable) {
         return (
             <Grid item xs={12}>
-                <Tooltip arrow title="Agent Screenshot">
+                <Tooltip arrow title={<Typography sx={{ fontSize: 12 }}>Agent Screenshot</Typography>}>
                     <IconButton onClick={handleScreenshotOpen}>
                         <PhotoCamera style={{ color: '#484848' }} cursor={'pointer'} />
                     </IconButton>
@@ -301,7 +301,7 @@ function DumpWithConfirmationModal({
 
     return (
         <Grid item xs={12}>
-            <Tooltip arrow title="Dump">
+            <Tooltip arrow title={<Typography sx={{ fontSize: 12 }}>Dump</Typography>}>
                 <IconButton onClick={handleDumpConfirmationOpen}>
                     <SyncProblem style={{ color: '#484848' }} cursor={'pointer'} />
                 </IconButton>
@@ -342,12 +342,13 @@ function ReloadWithConfirmationModal({
     return (
         <Grid item xs={12}>
             {disableReload ? null : (
-                <Tooltip arrow title="Reload">
+                <Tooltip arrow title={<Typography sx={{ fontSize: 12 }}>Reload</Typography>}>
                     <IconButton onClick={handleReloadConfirmationOpen}>
                         <PowerSettingsNew style={{ color: '#484848' }} cursor={'pointer'} />
                     </IconButton>
                 </Tooltip>
-            )}
+            )
+            }
 
             <Dialog
                 open={reloadConfirmationOpen}
@@ -367,7 +368,7 @@ function ReloadWithConfirmationModal({
                     </Link>
                 </DialogActions>
             </Dialog>
-        </Grid>
+        </Grid >
     );
 }
 
@@ -376,7 +377,7 @@ export default function OverviewAgentPaper({ devices, data, useScreenshotView })
     const [screenShotEnable, setScreenShotEnable] = useState(false)
     const [agentDevices, setAgentDevices] = useState([])
     let disableReload = true;
-    if (context.userRoles.includes('admin') || context.userRoles.includes('toshibaAdmin')) {
+    if (context.userRoles.includes('Administrator') || context.userRoles.includes('toshibaAdmin')) {
         disableReload = false;
     }
 
@@ -534,7 +535,12 @@ export default function OverviewAgentPaper({ devices, data, useScreenshotView })
                             <Grid container spacing={3}>
                                 {agentDevices.map((device, index) => (
                                     <Grid key={index} item xs={1} sx={{ margin: 1 }}>
-                                        <Tooltip arrow title={device.vendor + " : " + device.model}>
+                                        <Tooltip arrow title={
+                                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                {(device.deviceType === "ProduceCamera") ? <Typography variant='h6'>Produce Camera</Typography> : <Typography variant='h6'>Loss Prevention Camera</Typography>}
+                                                <Typography sx={{ fontSize: 12 }}>Manufacturer: {device.vendor}</Typography>
+                                                <Typography sx={{ fontSize: 12 }}>Model: {device.model}</Typography>
+                                            </Box>} >
                                             <IconButton>
                                                 {(device.deviceType === "ProduceCamera") ? <ShoppingBasketRounded style={{ color: '#484848' }} cursor={'pointer'} /> : <Policy style={{ color: '#484848' }} cursor={'pointer'} />}
                                             </IconButton>

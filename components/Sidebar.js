@@ -203,6 +203,16 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                         };
                         MenuItems.push(tmp);
                     }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarLogParser' && x.value === true)) {
+                        tmp = {
+                            id: 'logParser',
+                            name: 'Log Parser',
+                            route: '/logParser',
+                            icon: <Image src={DiagnosticsIcon} alt="DiagnosticsIcon" />,
+                            enabled: false
+                        };
+                        MenuItems.push(tmp);
+                    }
                     if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSystemReporting' && x.value === true)) {
                         tmp = {
                             id: 'systemReporting',
@@ -605,7 +615,7 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
     };
     if (menu.length > 0) {
         return (
-            <div style={{height:"100%"}}>
+            <div style={{ height: "100%" }}>
                 <List disablePadding dense sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                     {menu.map((sidebarItem, index) => (
                         <SidebarItem sidebarOpen={sidebarOpen} key={`${sidebarItem.id}${index}`} handleOpened={handleOpenItem} opened={context.openedMenuItems.indexOf(sidebarItem.id) > -1} handleDisabledFeatureClicked={handleDisabledFeatureClicked} handleNonDevelopedFeatureClicked={handleNonDevelopedFeatureClicked} {...sidebarItem} context={context} />
