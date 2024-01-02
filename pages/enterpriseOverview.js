@@ -1017,7 +1017,7 @@ export default function EnterpriseOverview() {
                     </Box>
                     <Box sx={{ display: 'flex', width: '86%', flexDirection: 'column', height: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                            {!remsAreGood &&
+                            {/* {!remsAreGood &&
                                 <Tooltip title="REMS Connection is Disrupted" arrow TransitionComponent={Fade} TransitionProps={{ timeout: 400 }}>
                                     <Link href={'/administration/versionOverview'}>
                                         <Paper elevation={5} sx={{
@@ -1033,7 +1033,7 @@ export default function EnterpriseOverview() {
                                         </Paper>
                                     </Link>
                                 </Tooltip>
-                            }
+                            } */}
                             <Autocomplete
                                 key={autocompleteKey}
                                 disableClearable
