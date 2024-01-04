@@ -14,8 +14,6 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         },
     ]);
 
-    const [doneCreatingSNOWEvents, setSNOWEventsCreationStatus] = useState(false);
-
     const [snackbarState, setSnackbarState] = useState({
         open: false,
         message: '',
@@ -33,35 +31,21 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
         });
     };
 
-    //This will automatically create any SNOW  tickets
-    //TO-DO: THIS SHOULD BE IN SBUS, BUT I NEED THIS NOW FOR NRF SOOOO HERE WE ARE
     useEffect(() => {
-        for (var i = 0; i < alerts.length; i++) {
-            var alertObj = alerts[i];
-            if (alertObj.automaticSNOWEvent) {
-                handleCreateSNOWButtonClick(alertObj);
-            }
-        }
-        setSNOWEventsCreationStatus(true);
-    }, []);
+        // Map alerts to apply the formatTimeAgo function
+        const formattedAlerts = alerts.map((alert) => ({
+            ...alert,
+            originalDateTimeReceived: new Date(alert.dateTimeReceived),
+            dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
+            dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
+        }));
 
-    useEffect(() => {
-        if (doneCreatingSNOWEvents) {
-            // Map alerts to apply the formatTimeAgo function
-            const formattedAlerts = alerts.map((alert) => ({
-                ...alert,
-                originalDateTimeReceived: new Date(alert.dateTimeReceived),
-                dateTimeReceived: formatTimeAgo(alert.dateTimeReceived),
-                dateTimeFlagged: formatTimeRemaining(alert.dateTimeFlagged)
-            }));
+        // Sort the formatted alerts
+        formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
 
-            // Sort the formatted alerts
-            formattedAlerts.sort((a, b) => b.originalDateTimeReceived - a.originalDateTimeReceived);
-
-            // Set the state with the formatted alerts
-            setAlerts(formattedAlerts);
-        }
-    }, [doneCreatingSNOWEvents, alerts]);
+        // Set the state with the formatted alerts
+        setAlerts(formattedAlerts);
+    }, [alerts]);
 
     useEffect(() => {
         const b2benabled = retailerConfig.find(item => item.configName === 'b2b_subscription_active').configValue;
@@ -231,16 +215,13 @@ export default function StoreAlerts({ alerts, updateAlerts, ma, retailerConfig }
                     .catch((error) => {
                         // Clear the current row for which SNOW event creation is in progress
                     });
-
-                //Don't show this unless it's a user-invoked event creation
-                if (doneCreatingSNOWEvents) {
-                    // Open success toast notification
-                    setSnackbarState({
-                        open: true,
-                        message: 'SNOW event created successfully',
-                        severity: 'success',
-                    });
-                }
+                    
+                // Open success toast notification
+                setSnackbarState({
+                    open: true,
+                    message: 'SNOW event created successfully',
+                    severity: 'success',
+                });
             })
             .catch(error => {
                 // Open error toast notification

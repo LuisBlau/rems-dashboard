@@ -154,73 +154,95 @@ const ElasticSearchRuleComponent = () => {
       .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
         const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
-        const initRowsData = new Set();
-        const initRowsIdSet = new Set();
-        let hasDuplicates = false;
+        const listOfRuleIds = metricThresholdAlerts.map(alert => alert.id);
 
-        metricThresholdAlerts.forEach((alert) => {
-          var alertEmail;
-          for (var i = 0; i < alert.actions.length; i++) {
-            var actionsObj = alert.actions[i];
+        //Grab the associated alerts for each of our metricThresholdAlerts
+        axios.post('/api/esalert/rules/rulesmetadata/batch', { ruleObjects: listOfRuleIds })
+          .then(batchres => {
+            const initRowsData = new Set();
+            const initRowsIdSet = new Set();
+            let hasDuplicates = false;
 
-            //Grab the first email address associated with this alert
-            if (actionsObj.id === 'elastic-cloud-email') {
-              alertEmail = actionsObj.params.to[0];
-              break;
+            metricThresholdAlerts.forEach((alert) => {
+              var alertEmail;
+              for (var i = 0; i < alert.actions.length; i++) {
+                var actionsObj = alert.actions[i];
+
+                //Grab the first email address associated with this alert
+                if (actionsObj.id === 'elastic-cloud-email') {
+                  alertEmail = actionsObj.params.to[0];
+                  break;
+                }
+              }
+
+              // Find the corresponding object in batchres based on matching ruleId
+              const correspondingObject = batchres.data.find(obj => obj.ruleId === alert.id);
+
+              // Now, we can access the property value for createSNOW
+              const createSNOW = correspondingObject ? correspondingObject.createSNOW : "false";
+
+              const data = {
+                id: alert.id,
+                Name: alert.name,
+                FilterQuery: alert.params.filterQueryText,
+                AggType: alert.params.criteria[0].aggType,
+                Comparator: alert.params.criteria[0].comparator,
+                Threshold: alert.params.criteria[0].threshold[0],
+                TimeSize: alert.params.criteria[0].timeSize,
+                TimeUnit: alert.params.criteria[0].timeUnit,
+                Tags: alert.tags.join(', '),
+                ConnectorName: alert.actions.map(i => i.connector_type_id).join(', '),
+                Type: alert.rule_type_id,
+                Enabled: alert.enabled,
+                Interval: alert.schedule.interval,
+                LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
+                Last: alert.params.criteria[0].timeSize + alert.params.criteria[0].timeUnit,
+                Email: alertEmail ? alertEmail : '',
+                CreateSNOW: createSNOW
+              }
+
+              //This handles my conversion between key/value. I need these data to be in certain forms depending on what I'm doing
+              //If I'm presenting the information, I want that in a form that is readable. Example: Less than or equal to instead of <=
+              var matchingQuery = filterQueries.find((queryObj) => {
+                if (data.FilterQuery !== undefined && data.FilterQuery !== null) {
+                  return queryObj.query === data.FilterQuery.trim();
+                }
+                return false;
+              });
+
+              var foundMatch = true;
+              if (matchingQuery) {
+                data.FilterQueryLabel = matchingQuery.name;
+              } else {
+                foundMatch = false;
+              }
+
+              var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
+              if (comparatorObj) {
+                data.Comparator = comparatorObj.label;
+              } else {
+                foundMatch = false;
+              }
+
+              if (foundMatch && addUniqueItem(data, initRowsData, initRowsIdSet)) {
+                hasDuplicates = true;
+              }
+            });
+
+            if (hasDuplicates) {
+              // If duplicates were found, call the function again to fetch the data.
+              // Looks like ES has a bug where it will sometimes send a duplicated rule
+              // Rather than handling that duplicated id, i'd rather re-pull to ensure that our data is good
+              fetchDataFromElasticsearch();
+            } else {
+              // Set the state with the data for multiple rows
+              setRows(Array.from(initRowsData));
+              setIsLoading(false); // Set loading state to false when the operation is completed to remove loading animation
             }
-          }
+          })
+          .catch(error => {
 
-          const data = {
-            id: alert.id,
-            Name: alert.name,
-            FilterQuery: alert.params.filterQueryText,
-            AggType: alert.params.criteria[0].aggType,
-            Comparator: alert.params.criteria[0].comparator,
-            Threshold: alert.params.criteria[0].threshold[0],
-            TimeSize: alert.params.criteria[0].timeSize,
-            TimeUnit: alert.params.criteria[0].timeUnit,
-            Tags: alert.tags.join(', '),
-            ConnectorName: alert.actions.map(i => i.connector_type_id).join(', '),
-            Type: alert.rule_type_id,
-            Enabled: alert.enabled,
-            Interval: alert.schedule.interval,
-            LastExec: formatTimeAgo(alert.execution_status.last_execution_date),
-            Last: alert.params.criteria[0].timeSize + alert.params.criteria[0].timeUnit,
-            Email: alertEmail ? alertEmail : ''
-          }
-
-          //This handles my conversion between key/value. I need these data to be in certain forms depending on what I'm doing
-          //If I'm presenting the information, I want that in a form that is readable. Example: Less than or equal to instead of <=
-          var matchingQuery = filterQueries.find((queryObj) => queryObj.query === data.FilterQuery.trim());
-          var foundMatch = true;
-          if (matchingQuery) {
-            data.FilterQueryLabel = matchingQuery.name;
-          } else {
-            foundMatch = false;
-          }
-
-          var comparatorObj = comparators.find((queryObj) => queryObj.value === data.Comparator);
-          if (comparatorObj) {
-            data.Comparator = comparatorObj.label;
-          } else {
-            foundMatch = false;
-          }
-
-          if (foundMatch && addUniqueItem(data, initRowsData, initRowsIdSet)) {
-            hasDuplicates = true;
-          }
-        });
-
-        if (hasDuplicates) {
-          // If duplicates were found, call the function again to fetch the data.
-          // Looks like ES has a bug where it will sometimes send a duplicated rule
-          // Rather than handling that duplicated id, i'd rather re-pull to ensure that our data is good
-          fetchDataFromElasticsearch();
-        } else {
-          // Set the state with the data for multiple rows
-          setRows(Array.from(initRowsData));
-          setIsLoading(false); // Set loading state to false when the operation is completed to remove loading animation
-        }
+          })
       })
       .catch(function (error) {
         console.error('Error:', error)
@@ -418,6 +440,9 @@ const ElasticSearchRuleComponent = () => {
       .delete(`/api/esalert/rules?ruleId=${id}&baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
         if (response.status === 204) {
+          //Delete the associated metadata record from the alerts collection
+          deleteRuleMetadata(id);
+
           // Remove the deleted row from the state
           setRows((prevRows) => prevRows.filter((row) => row.id !== id));
           handleOpenSnackbar(`Rule has been successfully deleted.`, 'success');
@@ -513,6 +538,7 @@ const ElasticSearchRuleComponent = () => {
 
         newRowData.ConnectorName = '.webhook' + `${newRowData.Email ? ', .email' : ''}`
 
+        updateRuleMetadata(newRowData.id, requestData.snow);
         setRows((prevRows) => [...prevRows, newRowData]);
         handleOpenSnackbar(`Rule has been successfully created.`, 'success');
       })
@@ -656,8 +682,12 @@ const ElasticSearchRuleComponent = () => {
               LastExec: formatTimeAgo(selectedRowData.LastExec),
               Last: updatedData.timeSize + updatedData.timeUnit,
               FilterQueryLabel: matchingQuery.name,
-              Email: updatedData.email
+              Email: updatedData.email,
+              CreateSNOW: updatedData.snow
             };
+
+            //update the associated metadata record
+            updateRuleMetadata(updatedData.id, updatedData.snow);
 
             // Update the state with the new rows
             setRows(updatedRows);
@@ -711,7 +741,6 @@ const ElasticSearchRuleComponent = () => {
       });
   };
 
-
   const handleRemoveTag = (index) => {
     const updatedTags = [...tags];
     updatedTags.splice(index, 1);
@@ -746,7 +775,7 @@ const ElasticSearchRuleComponent = () => {
     }
   };
 
-  function formatTimeAgo(timestamp) {
+  const formatTimeAgo = (timestamp) => {
     if (timestamp === null || timestamp === undefined) {
       return;
     }
@@ -779,6 +808,26 @@ const ElasticSearchRuleComponent = () => {
     } else {
       return `${seconds} seconds ago`;
     }
+  }
+
+  const updateRuleMetadata = (ruleId, createSNOW) => {
+    axios.put(`/api/esalert/rules/rulesmetadata`, {
+      ruleId: ruleId,
+      createSNOW: createSNOW,
+    }).then((response) => {
+      console.log(`Successfully inserted or updated ruleMetadata`)
+    }).catch((error) => {
+      console.log(`Failed to insert or delete ruleMetadata`)
+    });
+  }
+
+  const deleteRuleMetadata = (ruleId) => {
+    axios.delete(`/api/esalert/rules/rulesmetadata/${ruleId}`)
+      .then((response) => {
+        console.log(`Successfully deleted ruleMetaData for ${ruleId}`)
+      }).catch((error) => {
+        console.log(`Failed to delete ruleMetaData for ${ruleId}`)
+      });
   }
 
   return (
