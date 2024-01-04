@@ -55,7 +55,10 @@ export default function DeviceList({ devices }) {
                 type: 'datetime',
                 sortingOrder: ['asc', 'desc'],
                 valueGetter: (params) => params.value,
-                renderCell: (params) => params.row.last_updated ? moment(params.row.last_updated).fromNow() : 'N/A'
+                renderCell: (params) => {
+                    const date = new Date(params.row.last_updated_sec * 1000);
+                    return moment(date).fromNow();
+                }
             }
         ])
     }, [])
