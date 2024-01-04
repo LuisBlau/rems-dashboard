@@ -203,16 +203,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                         };
                         MenuItems.push(tmp);
                     }
-                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarLogParser' && x.value === true)) {
-                        tmp = {
-                            id: 'logParser',
-                            name: 'Log Parser',
-                            route: '/logParser',
-                            icon: <Image src={DiagnosticsIcon} alt="DiagnosticsIcon" />,
-                            enabled: false
-                        };
-                        MenuItems.push(tmp);
-                    }
                     if (_.some(context.sidebarConfigs, x => x.name === 'sidebarSystemReporting' && x.value === true)) {
                         tmp = {
                             id: 'systemReporting',
@@ -324,6 +314,16 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 enabled: pasSubscriptionTier === 'advanced'
                             })
                         }
+                        MenuItems.push(tmp);
+                    }
+                    if (_.some(context.sidebarConfigs, x => x.name === 'sidebarLogParser' && x.value === true)) {
+                        tmp = {
+                            id: 'logParser',
+                            name: 'Log Parser',
+                            route: '/logParser',
+                            icon: <Image src={DiagnosticsIcon} alt="DiagnosticsIcon" />,
+                            enabled: false
+                        };
                         MenuItems.push(tmp);
                     }
                     if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteSoftwareMaintenance' && x.value === true)) {
