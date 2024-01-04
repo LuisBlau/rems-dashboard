@@ -1116,78 +1116,80 @@ export default function EnterpriseOverview() {
                     </Box>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                        <Paper elevation={6} sx={{ backgroundColor: '#ddd', padding: 1, margin: 1, display: 'flex', flexDirection: 'column', height: 30, justifyContent: 'center', alignItems: 'center' }}>
-                            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                                <Typography sx={{ fontSize: 16, paddingRight: 1 }}>Store Health:</Typography>
+                    {(!isListView || isStoresOnlineListView) &&
+                        < Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                            <Paper elevation={6} sx={{ backgroundColor: '#ddd', padding: 1, margin: 1, display: 'flex', flexDirection: 'column', height: 30, justifyContent: 'center', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                                    <Typography sx={{ fontSize: 16, paddingRight: 1 }}>Store Health:</Typography>
 
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            border: '1px solid white',
-                                            borderRadius: '50%',
-                                            height: 12,
-                                            width: 12,
-                                            backgroundColor: '#00FF00',
-                                            cursor: 'pointer',
-                                            zIndex: 10,
-                                            position: 'relative',
-                                            marginRight: 3
-                                        }}
-                                    />
-                                    <Typography sx={{ marginRight: 1 }}>{'>= ' + configInfo?.find(item => item.configName === 'GoodStoreStatusPercentage')?.configValue + '%'}</Typography>
+                                    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                        <div
+                                            style={{
+                                                border: '1px solid white',
+                                                borderRadius: '50%',
+                                                height: 12,
+                                                width: 12,
+                                                backgroundColor: '#00FF00',
+                                                cursor: 'pointer',
+                                                zIndex: 10,
+                                                position: 'relative',
+                                                marginRight: 3
+                                            }}
+                                        />
+                                        <Typography sx={{ marginRight: 1 }}>{'>= ' + configInfo?.find(item => item.configName === 'GoodStoreStatusPercentage')?.configValue + '%'}</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                        <div
+                                            style={{
+                                                border: '1px solid white',
+                                                borderRadius: '50%',
+                                                height: 12,
+                                                width: 12,
+                                                backgroundColor: '#FFFF00',
+                                                cursor: 'pointer',
+                                                zIndex: 10,
+                                                position: 'relative',
+                                                marginRight: 3
+                                            }}
+                                        />
+                                        <Typography sx={{ marginRight: 1 }}>{configInfo?.find(item => item.configName === 'GoodStoreStatusPercentage')?.configValue + '% - ' + configInfo?.find(item => item.configName === 'PoorStoreStatusPercentage')?.configValue + '%'}</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                        <div
+                                            style={{
+                                                border: '1px solid white',
+                                                borderRadius: '50%',
+                                                height: 12,
+                                                width: 12,
+                                                backgroundColor: '#FA8128',
+                                                cursor: 'pointer',
+                                                zIndex: 10,
+                                                position: 'relative',
+                                                marginRight: 3
+                                            }}
+                                        />
+                                        <Typography sx={{ marginRight: 1 }}>{'<= ' + configInfo?.find(item => item.configName === 'PoorStoreStatusPercentage')?.configValue + '%'}</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                        <div
+                                            style={{
+                                                border: '1px solid white',
+                                                borderRadius: '50%',
+                                                height: 12,
+                                                width: 12,
+                                                backgroundColor: '#FF0000',
+                                                cursor: 'pointer',
+                                                zIndex: 10,
+                                                position: 'relative',
+                                                marginRight: 3
+                                            }}
+                                        />
+                                        <Typography sx={{ marginRight: 1 }}>{'Disconnected'}</Typography>
+                                    </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            border: '1px solid white',
-                                            borderRadius: '50%',
-                                            height: 12,
-                                            width: 12,
-                                            backgroundColor: '#FFFF00',
-                                            cursor: 'pointer',
-                                            zIndex: 10,
-                                            position: 'relative',
-                                            marginRight: 3
-                                        }}
-                                    />
-                                    <Typography sx={{ marginRight: 1 }}>{configInfo?.find(item => item.configName === 'GoodStoreStatusPercentage')?.configValue + '% - ' + configInfo?.find(item => item.configName === 'PoorStoreStatusPercentage')?.configValue + '%'}</Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            border: '1px solid white',
-                                            borderRadius: '50%',
-                                            height: 12,
-                                            width: 12,
-                                            backgroundColor: '#FA8128',
-                                            cursor: 'pointer',
-                                            zIndex: 10,
-                                            position: 'relative',
-                                            marginRight: 3
-                                        }}
-                                    />
-                                    <Typography sx={{ marginRight: 1 }}>{'<= ' + configInfo?.find(item => item.configName === 'PoorStoreStatusPercentage')?.configValue + '%'}</Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            border: '1px solid white',
-                                            borderRadius: '50%',
-                                            height: 12,
-                                            width: 12,
-                                            backgroundColor: '#FF0000',
-                                            cursor: 'pointer',
-                                            zIndex: 10,
-                                            position: 'relative',
-                                            marginRight: 3
-                                        }}
-                                    />
-                                    <Typography sx={{ marginRight: 1 }}>{'Disconnected'}</Typography>
-                                </Box>
-                            </Box>
-                        </Paper>
-                    </Box>
+                            </Paper>
+                        </Box>
+                    }
                     <Snackbar
                         open={open}
                         autoHideDuration={SuccessToastDuration}
