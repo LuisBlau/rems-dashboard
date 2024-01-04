@@ -334,14 +334,14 @@ export default function StoreOverview() {
     if (userHasAccess) {
         return (
             <Root className={classes.content}>
-                <Box sx={{ display: 'flex', overflow: 'auto', height: '100%', flexDirection: 'column', background: '#f6f6f6' }}>
+                <Box sx={{ display: 'flex', height: '100%', flexDirection: 'column', background: '#f6f6f6' }}>
                     <Box
                         sx={{
                             display: 'flex',
                             height: '15%',
                             flexDirection: 'row',
                             justifyContent: 'space-around',
-                            mb: 3,
+                            pb: 3,
                             background: '#f6f6f6',
                         }}
                     >
@@ -460,37 +460,38 @@ export default function StoreOverview() {
 
                                         return alertDate.getTime() === today.getTime();
                                     }).length} {' '}
-                                    Today 
+                                    Today
                                 </Typography>
                             </div>
                         </Paper>
                     </Box>
-                    {Object.keys(elera).length > 0 ?
-                        <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={70} paperWidth={30} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
-                            <EleraInfoRegion elera={elera} />
-                        </Box>
-                        :
-                        <Box sx={{ display: 'flex', flexDirection: 'row', height: '50%' }}>
-                            <AgentDetailsRegion boxWidth={100} paperWidth={20} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
-                        </Box>
-                    }
-                    <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
-                        <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
-                            <TabList onChange={handleTabChange}>
-                                <Tab label="dumps" value="dumps" />
-                                <Tab label="extracts" value="extracts" />
-                            </TabList>
-                        </Box>
-                        <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
-                            <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                        </TabPanel>
-                        <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
-                            <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                        </TabPanel>
-                    </TabContext>
-                    <Box sx={{ padding: 1 }}>
-                        <Copyright />
+                    <Box sx={{ height: '49%', display: 'flex' }}>
+                        {Object.keys(elera).length > 0 ?
+                            <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                                <AgentDetailsRegion boxWidth={90} paperWidth={25} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
+                                <EleraInfoRegion elera={elera} />
+                            </Box>
+                            :
+                            <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
+                                <AgentDetailsRegion boxWidth={100} paperWidth={20} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
+                            </Box>
+                        }
+                    </Box>
+                    <Box sx={{ height: '30%', display: 'flex', flexDirection: 'column' }}>
+                        <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
+                                <TabList onChange={handleTabChange}>
+                                    <Tab label="dumps" value="dumps" />
+                                    <Tab label="extracts" value="extracts" />
+                                </TabList>
+                            </Box>
+                            <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
+                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
+                            </TabPanel>
+                            <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
+                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
+                            </TabPanel>
+                        </TabContext>
                     </Box>
                 </Box>
                 <Dialog

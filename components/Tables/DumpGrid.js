@@ -114,7 +114,7 @@ export default function DumpGrid({ store, height }) {
         ];
 
         return (
-            <Box sx={{ height: '70vh', width: '100%' }}>
+            <Box sx={{ height: height, width: '100%' }}>
 
                 <DataGrid
                     loading={loading}
