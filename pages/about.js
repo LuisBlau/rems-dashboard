@@ -100,13 +100,13 @@ export default function About() {
                 createData('Store Close Procedure Report', '', 'X', 'X', false, 'storeCloseProcedureReport', _.find(descriptions, x => x.includes('storeCloseProcedureReport'))[1]),
                 createData('Dumps / Extracts Collection', '', 'X', 'X', false, 'dumpExtractCollection', _.find(descriptions, x => x.includes('dumpExtractCollection'))[1]),
                 createData('Apply Software Maintenance (ASM)', '', 'X', 'X', false, 'applySoftwareMaintenance', _.find(descriptions, x => x.includes('applySoftwareMaintenance'))[1]),
-                createData('Machine Learning Models', '', 'X', 'X', false, 'machineLearningModels', _.find(descriptions, x => x.includes('machineLearningModels'))[1]),
-                createData('Embedded Client Success', '', '', 'X', false, 'embeddedClientSuccess', _.find(descriptions, x => x.includes('embeddedClientSuccess'))[1]),
-                createData('Cloud Monitoring', '', '', 'X', true),
-                createData('Retailer Comparison', '', '', 'X', true),
-                createData('Mobile', '', '', 'X', true))
+                createData('Machine Learning Models', '', 'X', 'X', false, 'machineLearningModels', _.find(descriptions, x => x.includes('machineLearningModels'))[1])),
+                // createData('Embedded Client Success', '', '', 'X', false, 'embeddedClientSuccess', _.find(descriptions, x => x.includes('embeddedClientSuccess'))[1]),
+                // createData('Cloud Monitoring', '', '', 'X', true),
+                // createData('Retailer Comparison', '', '', 'X', true),
+                // createData('Mobile', '', '', 'X', true))
 
-            setFeatures(tempFeatures)
+                setFeatures(tempFeatures)
         }
     }, [descriptions])
 
@@ -133,11 +133,11 @@ export default function About() {
                                         PAS Advanced
                                     </Typography>
                                 </StyledTableCell>
-                                <StyledTableCell sx={{ fontSize: 20 }} align="center">
+                                {/* <StyledTableCell sx={{ fontSize: 20 }} align="center">
                                     <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
                                         PAS Premium
                                     </Typography>
-                                </StyledTableCell>
+                                </StyledTableCell> */}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -184,7 +184,7 @@ export default function About() {
                                     </StyledTableCell>
                                     <StyledTableCell align="center">{feature.pasLite === 'X' ? <Image src={AvailableIcon} alt="AvailableIcon" /> : null}</StyledTableCell>
                                     <StyledTableCell align="center">{feature.pasAdvanced === 'X' ? <Image src={AvailableIcon} alt="AvailableIcon" /> : null}</StyledTableCell>
-                                    <StyledTableCell align="center">{feature.pasPremium === 'X' ? <Image src={AvailableIcon} alt="AvailableIcon" /> : null}</StyledTableCell>
+                                    {/* <StyledTableCell align="center">{feature.pasPremium === 'X' ? <Image src={AvailableIcon} alt="AvailableIcon" /> : null}</StyledTableCell> */}
                                 </StyledTableRow>
                             ))}
                         </TableBody>
