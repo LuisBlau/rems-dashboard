@@ -54,7 +54,7 @@ export default function DumpGrid({ store, height }) {
                             return { ...v, id: index }
 
                         });
-                    setTotalItems(res.data.pagination.totalItem);
+                        setTotalItems(res.data.pagination.totalItem);
                         setLoading(false)
                         setStoreDumps(dumps);
                     });
@@ -63,7 +63,7 @@ export default function DumpGrid({ store, height }) {
                         const dumps = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
-                    setTotalItems(res.data.pagination.totalItem);
+                        setTotalItems(res.data.pagination.totalItem);
                         setLoading(false)
                         setStoreDumps(dumps);
                     });
@@ -138,9 +138,9 @@ export default function DumpGrid({ store, height }) {
                     }}
                     rowCount={totalItems}
                     onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
-                    pageSizeOptions={[100, 500, 1000]}
+                    pageSizeOptions={[25, 50, 100]}
                     paginationMode="server"
-                   // sx={{ height: height }}
+                // sx={{ height: height }}
                 />
             </Box>
 

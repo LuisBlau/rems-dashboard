@@ -142,7 +142,7 @@ export default function ExtractGrid({ store, height }) {
                 }}
                 rowCount={totalItems}
                 onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
-                pageSizeOptions={[100, 500, 1000]}
+                pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 disableSelectionOnClick
             />

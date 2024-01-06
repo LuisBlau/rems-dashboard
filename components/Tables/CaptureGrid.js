@@ -41,41 +41,41 @@ export default function CaptureGrid() {
     useEffect(() => {
 
         if (context.selectedRetailerIsTenant !== null) {
-           functionApiCall(page,pageSize);
+            functionApiCall(page, pageSize);
         }
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
 
-    const functionApiCall = (page,pageSize) => {
+    const functionApiCall = (page, pageSize) => {
         if (context.selectedRetailerIsTenant === false) {
-                    axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (response) {
-                        setTotalItems(response.data.pagination.totalItem);
-                        const captures = []
-                        response.data.items.forEach(element => {
-                            captures.push({
-                                ...element,
-                                id: element._id
-                            })
-                        });
-                        setLoading(false)
-                        setCaptures(captures)
+            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (response) {
+                setTotalItems(response.data.pagination.totalItem);
+                const captures = []
+                response.data.items.forEach(element => {
+                    captures.push({
+                        ...element,
+                        id: element._id
                     })
-                } else {
-                    if (context.selectedRetailerParentRemsServerId)
-                        axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
-                            const captures = []
-                            setTotalItems(response.data.pagination.totalItem);
+                });
+                setLoading(false)
+                setCaptures(captures)
+            })
+        } else {
+            if (context.selectedRetailerParentRemsServerId)
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
+                    const captures = []
+                    setTotalItems(response.data.pagination.totalItem);
 
 
-                            response.data.items.forEach(element => {
-                                captures.push({
-                                    ...element,
-                                    id: element._id
-                                })
-                            });
-                            setLoading(false)
-                            setCaptures(captures)
+                    response.data.items.forEach(element => {
+                        captures.push({
+                            ...element,
+                            id: element._id
                         })
-                }
+                    });
+                    setLoading(false)
+                    setCaptures(captures)
+                })
+        }
     }
     const columns = [
         {
@@ -152,8 +152,8 @@ export default function CaptureGrid() {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({page, pageSize}) => { setPage(page); setPageSize(pageSize);functionApiCall(page,pageSize) }}
-                pageSizeOptions={[100, 500, 1000]}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
+                pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 checkboxSelection={false}
                 disableSelectionOnClick
