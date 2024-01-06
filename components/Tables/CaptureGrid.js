@@ -34,38 +34,49 @@ export default function CaptureGrid() {
     const context = useContext(UserContext)
     const [captures, setCaptures] = useState([])
     const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(100);
 
     useEffect(() => {
 
         if (context.selectedRetailerIsTenant !== null) {
-            if (context.selectedRetailerIsTenant === false) {
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}`).then(function (response) {
-                    const captures = []
-                    response.data.forEach(element => {
-                        captures.push({
-                            ...element,
-                            id: element._id
-                        })
-                    });
-                    setLoading(false)
-                    setCaptures(captures)
-                })
-            } else {
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
-                    const captures = []
-                    response.data.forEach(element => {
-                        captures.push({
-                            ...element,
-                            id: element._id
-                        })
-                    });
-                    setLoading(false)
-                    setCaptures(captures)
-                })
-            }
+           functionApiCall(page,pageSize);
         }
-    }, [context])
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
 
+    const functionApiCall = (page,pageSize) => {
+        if (context.selectedRetailerIsTenant === false) {
+                    axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (response) {
+                        setTotalItems(response.data.pagination.totalItem);
+                        const captures = []
+                        response.data.items.forEach(element => {
+                            captures.push({
+                                ...element,
+                                id: element._id
+                            })
+                        });
+                        setLoading(false)
+                        setCaptures(captures)
+                    })
+                } else {
+                    if (context.selectedRetailerParentRemsServerId)
+                        axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
+                            const captures = []
+                            setTotalItems(response.data.pagination.totalItem);
+
+
+                            response.data.items.forEach(element => {
+                                captures.push({
+                                    ...element,
+                                    id: element._id
+                                })
+                            });
+                            setLoading(false)
+                            setCaptures(captures)
+                        })
+                }
+    }
     const columns = [
         {
             field: 'Store',
@@ -138,9 +149,12 @@ export default function CaptureGrid() {
                     sorting: {
                         sortModel: [{ field: 'Timestamp', sort: 'desc' }]
                     },
-                    pagination: { paginationModel: { pageSize: 10 } },
+                    pagination: { paginationModel: { pageSize: pageSize } },
                 }}
-                pageSizeOptions={[5, 10, 15]}
+                rowCount={totalItems}
+                onPaginationModelChange={({page, pageSize}) => { setPage(page); setPageSize(pageSize);functionApiCall(page,pageSize) }}
+                pageSizeOptions={[100, 500, 1000]}
+                paginationMode="server"
                 checkboxSelection={false}
                 disableSelectionOnClick
             />

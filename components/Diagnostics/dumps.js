@@ -32,7 +32,7 @@ export default function Dumps() {
                 TCx Sky Dumps
             </Typography>
             <Container maxWidth="xl" className={classes.container}>
-                <DumpGrid />
+                <DumpGrid  height={"70vh"}/>
             </Container>
             <Copyright />
         </Root>

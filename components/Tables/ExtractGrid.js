@@ -32,49 +32,61 @@ export default function ExtractGrid({ store, height }) {
     const [storeExtracts, setStoreExtracts] = useState([]);
     const context = useContext(UserContext)
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(100);
+
     useEffect(() => {
         if (context) {
-            if (store) {
-                if (store.tenantId !== null) {
-                    axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}`).then(function (res) {
-                        const extracts = res.data.map((v, index) => {
-                            return { ...v, id: index }
-                        });
-                        setLoading(false)
-                        setStoreExtracts(extracts);
+            functionApiCall(page, pageSize)
+        }
+    }, [store, context]);
+
+    const functionApiCall = (page, pageSize) => {
+        if (store) {
+            if (store.tenantId !== null) {
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    const extracts = res?.data?.items?.map((v, index) => {
+                        return { ...v, id: index }
                     });
-                } else {
-                    axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}`).then(function (res) {
-                        const extracts = res.data.map((v, index) => {
-                            return { ...v, id: index }
-                        });
-                        setLoading(false)
-                        setStoreExtracts(extracts);
-                    });
-                }
+                    setTotalItems(res.data.pagination.totalItem);
+                    setLoading(false)
+                    setStoreExtracts(extracts);
+                });
             } else {
-                if (context.selectedRetailer) {
-                    if (context.selectedRetailerIsTenant === false) {
-                        axios.get('/api/registers/extracts?retailerId=' + context.selectedRetailer).then(function (res) {
-                            const extracts = res.data.map((v, index) => {
-                                return { ...v, id: index }
-                            });
-                            setLoading(false)
-                            setStoreExtracts(extracts);
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    const extracts = res?.data?.items?.map((v, index) => {
+                        return { ...v, id: index }
+                    });
+                    setTotalItems(res.data.pagination.totalItem);
+                    setLoading(false)
+                    setStoreExtracts(extracts);
+                });
+            }
+        } else {
+            if (context.selectedRetailer) {
+                if (context.selectedRetailerIsTenant === false) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                        const extracts = res?.data?.items?.map((v, index) => {
+                            return { ...v, id: index }
                         });
-                    } else if (context.selectedRetailerParentRemsServerId) {
-                        axios.get('/api/registers/extracts?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
-                            const extracts = res.data.map((v, index) => {
-                                return { ...v, id: index }
-                            });
-                            setLoading(false)
-                            setStoreExtracts(extracts);
+                        setTotalItems(res.data.pagination.totalItem);
+                        setLoading(false)
+                        setStoreExtracts(extracts);
+                    });
+                } else if (context.selectedRetailerParentRemsServerId) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                        const extracts = res?.data?.items?.map((v, index) => {
+                            return { ...v, id: index }
                         });
-                    }
+                        setTotalItems(res.data.pagination.totalItem);
+                        setLoading(false)
+                        setStoreExtracts(extracts);
+                    });
                 }
             }
         }
-    }, [store, context]);
+    }
 
     const columns = [
         {
@@ -119,16 +131,19 @@ export default function ExtractGrid({ store, height }) {
     return (
         <Box sx={{ height: height, width: '100%' }}>
             <DataGrid
-            loading = {loading}
+                loading={loading}
                 columns={columns}
                 rows={storeExtracts}
                 initialState={{
                     sorting: {
                         sortModel: [{ field: 'Timestamp', sort: 'desc' }]
                     },
-                    pagination: { paginationModel: { pageSize: 10 } },
+                    pagination: { paginationModel: { pageSize: pageSize } },
                 }}
-                pageSizeOptions={[5, 10, 15]}
+                rowCount={totalItems}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
+                pageSizeOptions={[100, 500, 1000]}
+                paginationMode="server"
                 disableSelectionOnClick
             />
         </Box>

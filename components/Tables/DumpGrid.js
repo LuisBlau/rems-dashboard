@@ -11,56 +11,66 @@ export default function DumpGrid({ store, height }) {
     const [storeDumps, setStoreDumps] = useState([]);
     const [loading, setLoading] = useState(true)
     const context = useContext(UserContext)
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(100);
 
     useEffect(() => {
         if (context) {
-            if (store) {
-                if (store.tenantId !== null) {
-
-                    axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}`).then(function (res) {
-                        const dumps = res.data.map((v, index) => {
-                            return { ...v, id: index }
-
-                        });
-                        setLoading(false)
-                        setStoreDumps(dumps);
-                    });
-                } else {
-                    axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}`).then(function (res) {
-                        const dumps = res.data.map((v, index) => {
-                            return { ...v, id: index }
-                        });
-                        setLoading(false)
-                        setStoreDumps(dumps);
-                    });
-                }
-            } else {
-                if (context.selectedRetailer) {
-                    // need to check for tenant
-                    if (context.selectedRetailerIsTenant === false) {
-
-                        axios.get('/api/dumps/getDumps?retailerId=' + context.selectedRetailer).then(function (res) {
-                            const dumps = res.data.map((v, index) => {
-                                return { ...v, id: index }
-
-                            });
-                            setLoading(false)
-                            setStoreDumps(dumps);
-                        });
-                    } else if (context.selectedRetailerParentRemsServerId) {
-                        axios.get('/api/dumps/getDumps?retailerId=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + context.selectedRetailer).then(function (res) {
-                            const dumps = res.data.map((v, index) => {
-                                return { ...v, id: index }
-                            });
-                            setLoading(false)
-                            setStoreDumps(dumps);
-                        });
-                    }
-                }
-            }
+            functionApiCall(page, pageSize)
         }
     }, [store, context]);
 
+    const functionApiCall = (page, pageSize) => {
+        if (store) {
+            if (store.tenantId !== null) {
+
+                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    const dumps = res?.data?.items?.map((v, index) => {
+                        return { ...v, id: index }
+
+                    });
+                    setTotalItems(res.data.pagination.totalItem);
+                    setLoading(false)
+                    setStoreDumps(dumps);
+                });
+            } else {
+                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    const dumps = res?.data?.items?.map((v, index) => {
+                        return { ...v, id: index }
+                    });
+                    setTotalItems(res.data.pagination.totalItem);
+                    setLoading(false)
+                    setStoreDumps(dumps);
+                });
+            }
+        } else {
+            if (context.selectedRetailer) {
+                // need to check for tenant
+                if (context.selectedRetailerIsTenant === false) {
+
+                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                        const dumps = res?.data?.items?.map((v, index) => {
+                            return { ...v, id: index }
+
+                        });
+                    setTotalItems(res.data.pagination.totalItem);
+                        setLoading(false)
+                        setStoreDumps(dumps);
+                    });
+                } else if (context.selectedRetailerParentRemsServerId) {
+                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                        const dumps = res?.data?.items?.map((v, index) => {
+                            return { ...v, id: index }
+                        });
+                    setTotalItems(res.data.pagination.totalItem);
+                        setLoading(false)
+                        setStoreDumps(dumps);
+                    });
+                }
+            }
+        }
+    }
     if (loading) {
         return <div>loading...</div>;
     } else {
@@ -124,12 +134,13 @@ export default function DumpGrid({ store, height }) {
                         sorting: {
                             sortModel: [{ field: 'Timestamp', sort: 'desc' }]
                         },
-                        pagination: { paginationModel: { pageSize: 10 } },
+                        pagination: { paginationModel: { pageSize: pageSize } },
                     }}
-                    pageSizeOptions={[5, 10, 15]}
-                    checkboxSelection={false}
-                    disableSelectionOnClick
-                    sx={{ height: height }}
+                    rowCount={totalItems}
+                    onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
+                    pageSizeOptions={[100, 500, 1000]}
+                    paginationMode="server"
+                   // sx={{ height: height }}
                 />
             </Box>
 
