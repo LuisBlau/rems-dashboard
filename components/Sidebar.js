@@ -227,6 +227,14 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 enabled: alertsEnabled
                             })
                         }
+                        if (_.some(context.sidebarConfigs, x => x.name === 'retailerComparison' && x.value === true)) {
+                            tmp.items.push({
+                                id: 'retailerComparison',
+                                name: 'Retailer Comparison',
+                                route: '/systemReporting/tableauReportViewer?reportName=retailerComparison&env=prod',
+                                enabled: true
+                            })
+                        }
                         if (_.some(context.sidebarConfigs, x => x.name === 'sidebarEvents' && x.value === true)) {
                             tmp.items.push({
                                 id: 'systemEvents',
@@ -265,14 +273,6 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                 name: 'Software Versions',
                                 route: '/systemReporting/tableauReportViewer?reportName=softwareVersions&env=prod',
                                 enabled: pasSubscriptionTier === 'advanced'
-                            })
-                        }
-                        if (_.some(context.sidebarConfigs, x => x.name === 'retailerComparison' && x.value === true)) {
-                            tmp.items.push({
-                                id: 'retailerComparison',
-                                name: 'Retailer Comparison',
-                                route: '/systemReporting/tableauReportViewer?reportName=retailerComparison&env=prod',
-                                enabled: true
                             })
                         }
                         MenuItems.push(tmp)

@@ -20,7 +20,7 @@ import {
     Snackbar, SnackbarContent, Tooltip, Fade,
 } from '@mui/material';
 import axios from 'axios';
-import { isEmpty, now } from 'lodash';
+import _, { isEmpty, now } from 'lodash';
 import Copyright from '../components/Copyright';
 import { CustomLinearProgress } from '../components/LinearProgress';
 import { useContext } from 'react';
@@ -260,13 +260,22 @@ export default function EnterpriseOverview() {
                 configurationInfo.push(innerArray);
             });
             setConfigInfo(configurationInfo)
-            setShowRsmpPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewRsmpPeripheralsWidget').configValue)
-            setShowPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewPeripheralsWidget').configValue)
-            setShowHandheldsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewHandheldsWidget').configValue)
-            setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
-            setShowDevicesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewDevicesWidget').configValue)
+            if (_.includes(context.userRoles, 'toshibaAdmin')) {
+                // setShowRsmpPeripheralsWidget(true)
+                setShowPeripheralsWidget(true)
+                setShowHandheldsWidget(true)
+                setShowStoreOnlineWidget(true)
+                setShowDevicesWidget(true)
+                setShowAttendedLanesWidget(true)
+            } else {
+                // setShowRsmpPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewRsmpPeripheralsWidget').configValue)
+                setShowPeripheralsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewPeripheralsWidget').configValue)
+                setShowHandheldsWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewHandheldsWidget').configValue)
+                setShowStoreOnlineWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewStoreOnlineWidget').configValue)
+                setShowDevicesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewDevicesWidget').configValue)
+                setShowAttendedLanesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewAttendedLanesUpWidget').configValue)
+            }
             setDevicesWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'deviceWidgetRedWhenAbovePercent').configValue)
-            setShowAttendedLanesWidget(configurationInfo.find(item => item.configName === 'enterpriseOverviewAttendedLanesUpWidget').configValue)
             setStoresOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'storesOnlineWidgetErrorPercentage').configValue)
             setAttendedLanesOnlineWidgetErrorPercentage(configurationInfo.find(item => item.configName === 'laneWidgetRedWhenAbovePercent').configValue)
             setPullStorePeriodically(configurationInfo.find(item => item.configName === 'pullStorePeriodically').configValue)
@@ -1110,7 +1119,7 @@ export default function EnterpriseOverview() {
                         {isDevicesListView === true && <DeviceList devices={devicesResult} />}
                         {isPeripheralsListView === true && <PeripheralsList peripherals={peripheralsResult} />}
                         {isHandheldsListView === true && <MobileHandheldsList handhelds={handhelds} />}
-                        {isRsmpPeripheralsListView === true && <RsmpPeripheralsList peripherals={rsmpPeripherals} />}
+                        {/* {isRsmpPeripheralsListView === true && <RsmpPeripheralsList peripherals={rsmpPeripherals} />} */}
                         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                         </Box>
                     </Box>

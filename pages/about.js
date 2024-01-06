@@ -99,7 +99,7 @@ export default function About() {
                 createData('CHEC Extract Analysis', '', 'X', 'X', false, 'checExtractAnalysis', _.find(descriptions, x => x.includes('checExtractAnalysis'))[1]),
                 createData('Store Close Procedure Report', '', 'X', 'X', false, 'storeCloseProcedureReport', _.find(descriptions, x => x.includes('storeCloseProcedureReport'))[1]),
                 createData('Dumps / Extracts Collection', '', 'X', 'X', false, 'dumpExtractCollection', _.find(descriptions, x => x.includes('dumpExtractCollection'))[1]),
-                createData('Apply Software Maintenance (ASM)', '', 'X', 'X', false, 'applySoftwareMaintenance', _.find(descriptions, x => x.includes('applySoftwareMaintenance'))[1]),
+                createData('Remote Software Maintenance', '', 'X', 'X', false, 'applySoftwareMaintenance', _.find(descriptions, x => x.includes('applySoftwareMaintenance'))[1]),
                 createData('Machine Learning Models', '', 'X', 'X', false, 'machineLearningModels', _.find(descriptions, x => x.includes('machineLearningModels'))[1])),
                 // createData('Embedded Client Success', '', '', 'X', false, 'embeddedClientSuccess', _.find(descriptions, x => x.includes('embeddedClientSuccess'))[1]),
                 // createData('Cloud Monitoring', '', '', 'X', true),
