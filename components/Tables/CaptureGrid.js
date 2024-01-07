@@ -9,6 +9,7 @@ import { Box } from '@mui/material';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 import _ from 'lodash';
+import { useDebounce } from '../../src/hooks/useDebounce';
 const PREFIX = 'CaptureGrid';
 
 const classes = {
@@ -38,16 +39,32 @@ export default function CaptureGrid() {
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(100);
 
+    const [filter, setFilter] = React.useState(null);
+    const filterQuery = useDebounce(filter, 1500)
+    const onFilterChange = React.useCallback((filterModel) => {
+        const filter = filterModel.items?.[0];
+        if (filter) {
+            const f = { [filter.field]: filter.value };
+            setFilter(f);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery) {
+            functionApiCall(page, pageSize, filterQuery)
+        }
+    }, [filterQuery])
+
     useEffect(() => {
 
         if (context.selectedRetailerIsTenant !== null) {
-            functionApiCall(page, pageSize);
+            functionApiCall(page, pageSize, filter);
         }
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
 
-    const functionApiCall = (page, pageSize) => {
+    const functionApiCall = (page, pageSize, filter = {}) => {
         if (context.selectedRetailerIsTenant === false) {
-            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (response) {
+            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (response) {
                 setTotalItems(response.data.pagination.totalItem);
                 const captures = []
                 response.data.items.forEach(element => {
@@ -61,7 +78,7 @@ export default function CaptureGrid() {
             })
         } else {
             if (context.selectedRetailerParentRemsServerId)
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`).then(function (response) {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`, { params: filter }).then(function (response) {
                     const captures = []
                     setTotalItems(response.data.pagination.totalItem);
 
@@ -89,7 +106,7 @@ export default function CaptureGrid() {
             field: 'CaptureType',
             headerName: 'Capture Type',
             flex: 1,
-            filterable: true
+            filterable: false
         },
         {
             field: 'Agent',
@@ -102,7 +119,7 @@ export default function CaptureGrid() {
             field: 'CaptureSource',
             headerName: 'Capture Source',
             flex: 1,
-            filterable: true
+            filterable: false
         },
         {
             field: 'Timestamp',
@@ -152,10 +169,12 @@ export default function CaptureGrid() {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter) }}
                 pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 checkboxSelection={false}
+                filterMode="server"
+                onFilterModelChange={onFilterChange}
                 disableSelectionOnClick
             />
         </Box>

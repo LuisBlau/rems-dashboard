@@ -8,6 +8,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
+import { useDebounce } from '../../src/hooks/useDebounce';
 const PREFIX = 'ExtractGrid';
 
 const classes = {
@@ -35,17 +36,32 @@ export default function ExtractGrid({ store, height }) {
     const [page, setPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(100);
+    const [filter, setFilter] = React.useState(null);
+    const filterQuery = useDebounce(filter, 1500)
+    const onFilterChange = React.useCallback((filterModel) => {
+        const filter = filterModel.items?.[0];
+        if (filter) {
+            const f = { [filter.field]: filter.value };
+            setFilter(f);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery) {
+            functionApiCall(page, pageSize, filterQuery)
+        }
+    }, [filterQuery])
 
     useEffect(() => {
         if (context) {
-            functionApiCall(page, pageSize)
+            functionApiCall(page, pageSize, filter)
         }
     }, [store, context]);
 
-    const functionApiCall = (page, pageSize) => {
+    const functionApiCall = (page, pageSize, filter = {}) => {
         if (store) {
             if (store.tenantId !== null) {
-                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`).then(function (res) {
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
                     const extracts = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
                     });
@@ -54,7 +70,7 @@ export default function ExtractGrid({ store, height }) {
                     setStoreExtracts(extracts);
                 });
             } else {
-                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
                     const extracts = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
                     });
@@ -66,7 +82,7 @@ export default function ExtractGrid({ store, height }) {
         } else {
             if (context.selectedRetailer) {
                 if (context.selectedRetailerIsTenant === false) {
-                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
                         const extracts = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -75,7 +91,7 @@ export default function ExtractGrid({ store, height }) {
                         setStoreExtracts(extracts);
                     });
                 } else if (context.selectedRetailerParentRemsServerId) {
-                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`).then(function (res) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
                         const extracts = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -93,19 +109,19 @@ export default function ExtractGrid({ store, height }) {
             field: 'Timestamp',
             headerName: 'Timestamp',
             sortable: true,
-            filter: true,
+            filterable: false,
             flex: 1,
         },
         { field: 'Store', headerName: 'Store', sortable: true, filter: true, flex: 1 },
         { field: 'RegNum', headerName: 'RegNum', sortable: true, filter: true, flex: 1 },
-        { field: 'ExtractType', headerName: 'ExtractType', sortable: true, filter: true, flex: 1 },
-        { field: 'State', headerName: 'State', sortable: true, filter: true, flex: 1 },
+        { field: 'ExtractType', headerName: 'ExtractType', sortable: true, filterable: false, flex: 1 },
+        { field: 'State', headerName: 'State', sortable: true, filterable: false, flex: 1 },
         {
             field: 'SBreqLink',
             headerName: 'Azure',
             headerAlign: 'center',
             sortable: true,
-            filter: true,
+            filterable: false,
             flex: 1,
             renderCell: (params) => {
                 return (
@@ -118,7 +134,7 @@ export default function ExtractGrid({ store, height }) {
             headerName: 'Download',
             headerAlign: 'center',
             sortable: true,
-            filter: true,
+            filterable: false,
             flex: 1,
             renderCell: (params) => {
                 return (
@@ -141,9 +157,11 @@ export default function ExtractGrid({ store, height }) {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize) }}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter) }}
                 pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
+                filterMode="server"
+                onFilterModelChange={onFilterChange}
                 disableSelectionOnClick
             />
         </Box>
