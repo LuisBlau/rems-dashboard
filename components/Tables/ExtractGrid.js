@@ -59,6 +59,8 @@ export default function ExtractGrid({ store, height }) {
     }, [store, context]);
 
     const functionApiCall = (page, pageSize, filter = {}) => {
+        setLoading(true)
+
         if (store) {
             if (store.tenantId !== null) {
                 axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
