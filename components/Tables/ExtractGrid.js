@@ -37,7 +37,7 @@ export default function ExtractGrid({ store, height }) {
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(100);
     const [filter, setFilter] = React.useState(null);
-    const filterQuery = useDebounce(filter, 1500)
+    const filterQuery = useDebounce(filter, 3000)
     const onFilterChange = React.useCallback((filterModel) => {
         const filter = filterModel.items?.[0];
         if (filter) {

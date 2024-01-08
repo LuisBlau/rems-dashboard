@@ -716,13 +716,13 @@ export default function EnterpriseOverview() {
                 } else {
                     store.online = false
                 }
-                if (signal > goodStoreStatusPercentage && store?.online) {
+                if ((store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) || store?.online === false) {
+                    store.status = '#FF0000'
+                } else if (signal > goodStoreStatusPercentage && store?.online) {
                     // green
                     store.status = '#00FF00';
                 } else if (signal > poorStoreStatusPercentage && signal <= goodStoreStatusPercentage && store?.online) {
                     store.status = '#FFFF00';
-                } else if ((store?.last_updated_sec && moment(store?.last_updated_sec * 1000).diff(Date.now(), 'hours') < - disconnectTimeLimit) || store?.online === false) {
-                    store.status = '#FF0000'
                 }
                 counter++;
             });

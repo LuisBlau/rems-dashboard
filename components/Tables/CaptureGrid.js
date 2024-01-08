@@ -40,7 +40,7 @@ export default function CaptureGrid() {
     const [pageSize, setPageSize] = useState(100);
 
     const [filter, setFilter] = React.useState(null);
-    const filterQuery = useDebounce(filter, 1500)
+    const filterQuery = useDebounce(filter, 3000)
     const onFilterChange = React.useCallback((filterModel) => {
         const filter = filterModel.items?.[0];
         if (filter) {
@@ -63,6 +63,7 @@ export default function CaptureGrid() {
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
 
     const functionApiCall = (page, pageSize, filter = {}) => {
+        setLoading(true)
         if (context.selectedRetailerIsTenant === false) {
             axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (response) {
                 setTotalItems(response.data.pagination.totalItem);
