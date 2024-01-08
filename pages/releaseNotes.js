@@ -4,28 +4,28 @@ import React from 'react';
 import Copyright from '../components/Copyright';
 
 export default function ReleaseNotes() {
-
     let notes = [
-        { text: 'Version Overview', level: 0 },
-        { text: '- Docker Tab (Toshiba Only)', level: 1 },
-        { text: '- Added 4 new columns: Agent Count, Store Count, Agent Error Count, Store Error Count', level: 2 },
+        { text: 'Enterprise Overview', level: 0 },
+        { text: '- Expand widget health bars to fill widget and left-justify text labels', level: 1 },
+        { text: '- Add legend for store health colors on map', level: 1 },
+        { text: '- Relocate "save current view" button as a result', level: 2 },
+        { text: '- New Widget: Agents Online', level: 1 },
+        { text: '- Disable ‘REMS Connection Disrupted’ feature until Dashboard Environment Split is complete', level: 1 },
+        { text: '- To avoid false positives on disruption checks', level: 2 },
+        { text: 'Software Distribution', level: 0 },
+        { text: '- Add capability to do immediate deployments, instead of having to schedule 15+ minutes out', level: 1 },
+        { text: 'Store Overview', level: 0 },
+        { text: '- Addition of SCO Devices (Product Recognition Camera and Loss Prevention Camera) on Register tiles with Model and Manufacturer info', level: 1 },
+        { text: '- Screenshot "offline" image changed to "Unavailable"', level: 1 },
+        { text: '- Agents include Manufacturer information (if available)', level: 1 },
         { text: 'Bug Fixes', level: 0 },
-        { text: '- Internal', level: 1 },
-        { text: '- Fixed docker container timestamp sorting (Version Overview)', level: 2 },
-        { text: '- Fixed issue when creating tenants from non-tenant REMS server', level: 2 },
-        { text: '- Fixed issue with deleting the last tenant on a REMS server', level: 2 },
-        { text: '- Fixed issue with sidebar', level: 2 },
-        { text: '- External', level: 1 },
-        { text: '- Fixed where "Dump" action was visible on registers that were not able to perform that action', level: 2 },
-        { text: '- Fixed issue with SCO Counters on Store Overview', level: 2 },
-        { text: '- Fixed issue with REMS status identification', level: 2 },
-        { text: '- Fixed issue with retailer configuration on enterprise overview tiles', level: 2 },
-        { text: '- Fixed store default sorting on Enterprise Overview to be by store name', level: 2 },
-        { text: '- Fixed agent order in store overview to be sequential', level: 2 }
+        { text: '- Remote Software Diagnostics', level: 1 },
+        { text: '- Sorting and filtering is being reconfigured. The fix will also include a data clean up.  This will come in the next release.', level: 2 },
+        { text: '- For now we are disabling sorting and filtering on most columns, and default sorting by timetstamp descending.  You can still filter by store.', level: 2 },
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
-            <Typography variant='h2'>Release Notes - 4.2.32</Typography>
+            <Typography variant='h2'>Release Notes - 4.2.33</Typography>
             {notes.map((note, index) => {
                 if (note.level === 0) {
                     return (

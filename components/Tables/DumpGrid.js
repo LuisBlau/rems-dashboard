@@ -92,7 +92,7 @@ export default function DumpGrid({ store, height }) {
             headerName: 'Dump Timestamp',
             flex: 3,
             type: 'datetime',
-            sortable: true,
+            sortable: false,
             filterable: false,
             valueGetter: (params) => params.value ? new Date(params.value) : null,
             renderCell: (params) => params.value ? new Date(params.value).toLocaleString() : null
@@ -100,25 +100,27 @@ export default function DumpGrid({ store, height }) {
         {
             field: "Store",
             flex: 2,
-            sortable: true,
+            sortable: false,
             filterable: true
         },
         {
             field: "System",
             flex: 2,
+            sortable: false,
             filterable: false
 
         },
         {
             field: "Reason",
             flex: 8,
-            sortable: true,
+            sortable: false,
             filterable: false
         },
         {
             field: "SBreqLink",
             headerName: "Azure",
             filterable: false,
+            sortable: false,
             flex: 2,
             headerAlign: 'center',
             renderCell: (params) => {
@@ -133,7 +135,7 @@ export default function DumpGrid({ store, height }) {
             headerAlign: 'center',
             filterable: false,
             flex: 2,
-            sortable: true,
+            sortable: false,
             renderCell: (params) => {
                 return (
                     <DownloadAzureFileButton link={params.value} />

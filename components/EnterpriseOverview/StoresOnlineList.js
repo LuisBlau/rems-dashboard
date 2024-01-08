@@ -30,7 +30,7 @@ export default function StoresOnlineList({ context, disconnectTimeLimit, places,
             {
                 field: 'last_updated_sec',
                 headerName: 'Last Update',
-                width: 300,
+                width: 200,
                 sortable: true,
                 sortingOrder: ['asc', 'desc'],
                 valueGetter: (params) => params.row.last_updated_sec ? params.row.last_updated_sec : null,

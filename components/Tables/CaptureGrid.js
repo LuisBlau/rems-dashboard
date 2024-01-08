@@ -100,12 +100,13 @@ export default function CaptureGrid() {
             field: 'Store',
             headerName: 'Store',
             flex: 1,
-            sortable: true,
+            sortable: false,
             filterable: true
         },
         {
             field: 'CaptureType',
             headerName: 'Capture Type',
+            sortable: false,
             flex: 1,
             filterable: false
         },
@@ -113,12 +114,13 @@ export default function CaptureGrid() {
             field: 'Agent',
             headerName: 'Agent',
             flex: 1,
-            sortable: true,
+            sortable: false,
             filterable: true
         },
         {
             field: 'CaptureSource',
             headerName: 'Capture Source',
+            sortable: false,
             flex: 1,
             filterable: false
         },
@@ -127,7 +129,7 @@ export default function CaptureGrid() {
             headerName: 'Timestamp',
             flex: 1,
             type: 'dateTime',
-            sortable: true,
+            sortable: false,
             valueGetter: (params) => {
                 var dateString = _.replace(params.value, /-/g, '/') // firefox doesn't like '-' in date strings
                 return new Date(dateString)
@@ -137,6 +139,8 @@ export default function CaptureGrid() {
             field: 'SBreqLink',
             headerName: 'Request from Store',
             headerAlign: 'center',
+            sortable: false,
+            filterable: false,
             flex: 1,
             renderCell: (params) => {
                 return (
@@ -148,6 +152,8 @@ export default function CaptureGrid() {
             field: 'Download',
             headerName: 'Pushed to Cloud',
             headerAlign: 'center',
+            sortable: false,
+            filterable: false,
             flex: 1,
             renderCell: (params) => {
                 return (
