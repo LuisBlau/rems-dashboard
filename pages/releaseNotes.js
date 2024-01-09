@@ -20,8 +20,7 @@ export default function ReleaseNotes() {
         { text: '- Agents include Manufacturer information (if available)', level: 1 },
         { text: 'Bug Fixes', level: 0 },
         { text: '- Remote Software Diagnostics', level: 1 },
-        { text: '- Sorting and filtering is being reconfigured. The fix will also include a data clean up.  This will come in the next release.', level: 2 },
-        { text: '- Default sorting is by timetstamp descending and you can filter by store.', level: 2 },
+        { text: '- Sorting and filtering is being reconfigured.  Default sorting is by timestamp descending and you can filter by store.', level: 2 },
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>

@@ -605,14 +605,17 @@ export default function ScheduleDeployment() {
                             return <TextField key={index} onChange={varentry(name)} label={name} />
                         })
                         }
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={deployImmediately}
-                                onChange={(e) => setDeployImmediately(e.target.checked)}
-                                inputProps={{ 'aria-label': 'controlled' }}
-                            />}
-                            label='Deploy Immediately'
-                        />
+                        {_.includes(context.userRoles, 'toshibaAdmin') &&
+                            <FormControlLabel
+                                control={<Checkbox
+                                    checked={deployImmediately}
+                                    onChange={(e) => setDeployImmediately(e.target.checked)}
+                                    inputProps={{ 'aria-label': 'controlled' }}
+                                />}
+                                label='Deploy Immediately'
+                            />
+                        }
+
                         {!deployImmediately &&
 
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
