@@ -465,7 +465,7 @@ export default function StoreOverview() {
                             </div>
                         </Paper>
                     </Box>
-                    <Box sx={{ height: '49%', display: 'flex' }}>
+                    <Box sx={{ height: '49%' }}>
                         {Object.keys(elera).length > 0 ?
                             <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
                                 <AgentDetailsRegion boxWidth={90} paperWidth={25} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />

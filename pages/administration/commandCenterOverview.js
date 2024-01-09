@@ -665,7 +665,7 @@ export default function CommandCenterOverview() {
                         </Snackbar>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignContent: 'center', height: '100%', justifyContent: 'space-around' }}>
                             {showStoreOnlineWidget === true && (
-                                <Paper sx={{ width: '100%', backgroundColor: '#f5f5f5', marginTop: 5 }} elevation={10} >
+                                <Paper sx={{ width: '100%', backgroundColor: '#f5f5f5', marginTop: 5, display: 'flex' }} elevation={10} >
                                     <CustomLinearProgress
                                         title="Stores Online"
                                         subTitle={widget.onlineStoreText}
@@ -676,7 +676,7 @@ export default function CommandCenterOverview() {
                             )}
 
                             {showAttendedLanesWidget === true && (
-                                <Paper sx={{ width: '100%', marginTop: 1 }} elevation={10}>
+                                <Paper sx={{ width: '100%', marginTop: 1, display: 'flex' }} elevation={10}>
                                     <CustomLinearProgress
                                         title="Attended Lanes Up"
                                         subTitle={widget.laneUpText}

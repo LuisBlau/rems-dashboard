@@ -10,7 +10,7 @@ export default function ReleaseNotes() {
         { text: '- Add legend for store health colors on map', level: 1 },
         { text: '- Relocate "save current view" button as a result', level: 2 },
         { text: '- New Widget: Agents Online', level: 1 },
-        { text: '- Disable ‘REMS Connection Disrupted’ feature until Dashboard Environment Split is complete', level: 1 },
+        { text: '- Disable "REMS Connection Disrupted" feature until Dashboard Environment Split is complete', level: 1 },
         { text: '- To avoid false positives on disruption checks', level: 2 },
         { text: 'Software Distribution', level: 0 },
         { text: '- Add capability to do immediate deployments, instead of having to schedule 15+ minutes out', level: 1 },
@@ -21,7 +21,7 @@ export default function ReleaseNotes() {
         { text: 'Bug Fixes', level: 0 },
         { text: '- Remote Software Diagnostics', level: 1 },
         { text: '- Sorting and filtering is being reconfigured. The fix will also include a data clean up.  This will come in the next release.', level: 2 },
-        { text: '- For now we are disabling sorting and filtering on most columns, and default sorting by timetstamp descending.  You can still filter by store.', level: 2 },
+        { text: '- Default sorting is by timetstamp descending and you can filter by store.', level: 2 },
     ]
     return (
         <Box sx={{ width: '100%', height: '100vh', justifyContent: 'center', alignContent: 'center', padding: 4 }}>
