@@ -172,7 +172,7 @@ export default function alerts() {
         );
     }
 
-    if (isLoaded === true && alertsEnabled === true && selectedRetailer === context.selectedRetailer) {
+    if (isLoaded === true && (alertsEnabled === true || alertsEnabled === 'true') && selectedRetailer === context.selectedRetailer) {
         if (alerts.length > 0 && alertTypes.length > 0 && selectedRetailer === context.selectedRetailer) {
             return (
                 <Box sx={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
