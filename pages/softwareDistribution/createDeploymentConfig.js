@@ -282,8 +282,11 @@ export default function CreateDeploymentConfig() {
                 }, successToastDuration + 500);
             })
             .catch(function (error) {
-                console.log(error);
-                setToastFailure('Error connecting to server!!');
+                if (error.response.data.message) {
+                    setToastFailure(error.response.data.message);
+                } else {
+                    setToastFailure('Error connecting to server!!');
+                }
                 setOpenFailure(true);
             });
     };
