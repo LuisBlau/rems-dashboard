@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import UserContext from '../../pages/UserContext';
@@ -15,9 +15,11 @@ export default function DumpGrid({ store, height }) {
     const [page, setPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(100);
-    const [filter, setFilter] = React.useState(null);
+    const [filter, setFilter] = useState(null);
+    const [sort, setSort] = useState({ Timestamp: -1 })
     const filterQuery = useDebounce(filter, 3000)
-    const onFilterChange = React.useCallback((filterModel) => {
+
+    const onFilterChange = useCallback((filterModel) => {
         const filter = filterModel.items?.[0];
         if (filter) {
             const f = { [filter.field]: filter.value };
@@ -25,33 +27,39 @@ export default function DumpGrid({ store, height }) {
         }
     }, []);
 
-    useEffect(() => {
-        if (filterQuery) {
-            functionApiCall(page, pageSize, filterQuery)
+    const onSortChange = useCallback((model) => {
+        if (model.length > 0) {
+            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
+            setSort(localSort)
         }
-    }, [filterQuery])
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery || sort) {
+            functionApiCall(page, pageSize, filterQuery, sort)
+        }
+    }, [filterQuery, sort])
 
     useEffect(() => {
         if (context) {
-            functionApiCall(page, pageSize, filter)
+            functionApiCall(page, pageSize, filter, sort)
         }
     }, [store, context]);
 
-    const functionApiCall = (page, pageSize, filter = {}) => {
+    const functionApiCall = (page, pageSize, filter, sort = {}) => {
         setLoading(true)
         if (store) {
             if (store.tenantId !== null) {
-                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                     const dumps = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
-
                     });
                     setTotalItems(res.data.pagination.totalItem);
                     setLoading(false)
                     setStoreDumps(dumps);
                 });
             } else {
-                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                axios.get(`/api/dumps/getDumpsForStore?storeName=${store.storeName}&retailerId=${store.retailerId}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                     const dumps = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
                     });
@@ -64,8 +72,7 @@ export default function DumpGrid({ store, height }) {
             if (context.selectedRetailer) {
                 // need to check for tenant
                 if (context.selectedRetailerIsTenant === false) {
-
-                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                         const dumps = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -74,7 +81,7 @@ export default function DumpGrid({ store, height }) {
                         setStoreDumps(dumps);
                     });
                 } else if (context.selectedRetailerParentRemsServerId) {
-                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                    axios.get(`/api/dumps/getDumps?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                         const dumps = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -86,13 +93,14 @@ export default function DumpGrid({ store, height }) {
             }
         }
     }
+
     const columns = [
         {
             field: 'Timestamp',
-            headerName: 'Dump Timestamp',
+            headerName: 'Timestamp',
             flex: 3,
             type: 'datetime',
-            sortable: false,
+            sortable: true,
             filterable: false,
             valueGetter: (params) => params.value ? new Date(params.value) : null,
             renderCell: (params) => params.value ? new Date(params.value).toLocaleString() : null
@@ -100,21 +108,21 @@ export default function DumpGrid({ store, height }) {
         {
             field: "Store",
             flex: 2,
-            sortable: false,
+            sortable: true,
             filterable: true
         },
         {
             field: "System",
             flex: 2,
             sortable: false,
-            filterable: false
+            filterable: true
 
         },
         {
             field: "Reason",
             flex: 8,
             sortable: false,
-            filterable: false
+            filterable: true
         },
         {
             field: "SBreqLink",
@@ -146,7 +154,6 @@ export default function DumpGrid({ store, height }) {
 
     return (
         <Box sx={{ height: height, width: '100%' }}>
-
             <DataGrid
                 loading={loading}
                 rows={storeDumps}
@@ -158,15 +165,14 @@ export default function DumpGrid({ store, height }) {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter) }}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter, sort) }}
                 pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 filterMode="server"
+                sortMode="server"
+                onSortModelChange={onSortChange}
                 onFilterModelChange={onFilterChange}
-            // sx={{ height: height }}
             />
         </Box>
-
     );
-
 }
