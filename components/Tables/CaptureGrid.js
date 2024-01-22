@@ -10,6 +10,7 @@ import RequestLinkButton from '../Buttons/RequestLinkButton';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 import _ from 'lodash';
 import { useDebounce } from '../../src/hooks/useDebounce';
+import { useCallback } from 'react';
 const PREFIX = 'CaptureGrid';
 
 const classes = {
@@ -38,10 +39,11 @@ export default function CaptureGrid() {
     const [page, setPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const [pageSize, setPageSize] = useState(100);
-
-    const [filter, setFilter] = React.useState(null);
+    const [filter, setFilter] = useState(null);
+    const [sort, setSort] = useState({ Timestamp: -1 })
     const filterQuery = useDebounce(filter, 3000)
-    const onFilterChange = React.useCallback((filterModel) => {
+
+    const onFilterChange = useCallback((filterModel) => {
         const filter = filterModel.items?.[0];
         if (filter) {
             const f = { [filter.field]: filter.value };
@@ -49,23 +51,30 @@ export default function CaptureGrid() {
         }
     }, []);
 
-    useEffect(() => {
-        if (filterQuery) {
-            functionApiCall(page, pageSize, filterQuery)
+    const onSortChange = useCallback((model) => {
+        if (model.length > 0) {
+            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
+            setSort(localSort)
         }
-    }, [filterQuery])
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery || sort) {
+            functionApiCall(page, pageSize, filterQuery, sort)
+        }
+    }, [filterQuery, sort])
 
     useEffect(() => {
 
         if (context.selectedRetailerIsTenant !== null) {
-            functionApiCall(page, pageSize, filter);
+            functionApiCall(page, pageSize, filter, sort);
         }
     }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
 
-    const functionApiCall = (page, pageSize, filter = {}) => {
+    const functionApiCall = (page, pageSize, filter, sort = {}) => {
         setLoading(true)
         if (context.selectedRetailerIsTenant === false) {
-            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (response) {
+            axios.get(`/api/registers/captures?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort }, timeout: 10000 }).then(function (response) {
                 setTotalItems(response.data.pagination.totalItem);
                 const captures = []
                 response.data.items.forEach(element => {
@@ -79,11 +88,9 @@ export default function CaptureGrid() {
             })
         } else {
             if (context.selectedRetailerParentRemsServerId)
-                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`, { params: filter }).then(function (response) {
+                axios.get(`/api/registers/captures?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}&isAdmin=${_.includes(context.userRoles, 'toshibaAdmin')}`, { params: { filter, sort } }).then(function (response) {
                     const captures = []
                     setTotalItems(response.data.pagination.totalItem);
-
-
                     response.data.items.forEach(element => {
                         captures.push({
                             ...element,
@@ -100,7 +107,7 @@ export default function CaptureGrid() {
             field: 'Store',
             headerName: 'Store',
             flex: 1,
-            sortable: false,
+            sortable: true,
             filterable: true
         },
         {
@@ -108,7 +115,7 @@ export default function CaptureGrid() {
             headerName: 'Capture Type',
             sortable: false,
             flex: 1,
-            filterable: false
+            filterable: true
         },
         {
             field: 'Agent',
@@ -122,14 +129,14 @@ export default function CaptureGrid() {
             headerName: 'Capture Source',
             sortable: false,
             flex: 1,
-            filterable: false
+            filterable: true
         },
         {
             field: 'Timestamp',
             headerName: 'Timestamp',
             flex: 1,
             type: 'dateTime',
-            sortable: false,
+            sortable: true,
             valueGetter: (params) => {
                 var dateString = _.replace(params.value, /-/g, '/') // firefox doesn't like '-' in date strings
                 return new Date(dateString)
@@ -176,12 +183,14 @@ export default function CaptureGrid() {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter) }}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter, sort) }}
                 pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 checkboxSelection={false}
+                sortMode="server"
                 filterMode="server"
                 onFilterModelChange={onFilterChange}
+                onSortModelChange={onSortChange}
                 disableSelectionOnClick
             />
         </Box>

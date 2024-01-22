@@ -80,6 +80,7 @@ function TabPanel(props) {
 export default function versionOverview() {
     const [allAgents, setAllAgents] = useState([])
     const [agents, setAgents] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [rem, setRem] = useState([])
     const [open, setOpen] = useState(false);
     const context = useContext(UserContext)
@@ -213,6 +214,7 @@ export default function versionOverview() {
             if (context.selectedRetailerIsTenant === false) {
                 if (selectedRetailer && selectedRetailer !== '') {
                     let url = `/api/REMS/versionsData?retailer_id=${selectedRetailer}`;
+                    setLoading(true)
                     axios.get(url).then((x) => {
                         setRem(x.data.rem);
                         setAgents(x.data.agents.map((agent) => ({
@@ -223,12 +225,14 @@ export default function versionOverview() {
                             ...agent,
                             id: agent._id
                         })));
+                        setLoading(false)
                     });
                 }
             } else {
                 if (context.selectedRetailerParentRemsServerId) {
                     if (selectedRetailer && selectedRetailer !== '') {
                         let url = `/api/REMS/versionsData?retailer_id=${context.selectedRetailerParentRemsServerId}&tenant_id=${selectedRetailer}`;
+                        setLoading(true)
                         axios.get(url).then((x) => {
                             setRem(
                                 x.data.rem.map((rems) => ({
@@ -248,6 +252,7 @@ export default function versionOverview() {
                                     id: agent._id
                                 }))
                             );
+                            setLoading(false)
                         });
                     }
                 }
@@ -355,6 +360,7 @@ export default function versionOverview() {
                 >
                     <DataGrid
                         slots={{ toolbar: CustomToolbar }}
+                        loading={loading}
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
                         }}
@@ -387,6 +393,7 @@ export default function versionOverview() {
                 >
                     <DataGrid
                         slots={{ toolbar: CustomToolbar }}
+                        loading={loading}
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
                         }}
@@ -407,6 +414,7 @@ export default function versionOverview() {
             <TabPanel value={selectedTab} index={3}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', marginTop: 1, height: 600, width: '100%' }}>
                     <StyledDataGrid
+                        loading={loading}
                         slots={{ toolbar: CustomDockerToolbar }}
                         initialState={{
                             pagination: { paginationModel: { pageSize: 10 } },
@@ -461,6 +469,7 @@ export default function versionOverview() {
                     }}
                 >
                     <StyledDataGrid rows={remsRows} columns={headerColumns} pageSizeOptions={[5, 10, 15]} pageSize={10}
+                        loading={loading}
                         getRowClassName={(row) => {
                             let oldData = false
                             if (moment(row.row.lastUpdateUnix).diff(Date.now(), 'hours') > -1 || row.row.lastUpdateUnix === null) {

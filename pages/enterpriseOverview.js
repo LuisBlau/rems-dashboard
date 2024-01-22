@@ -389,17 +389,17 @@ export default function EnterpriseOverview() {
             await axios.get(`/api/retailers/getAllDetails`).then(function (res) {
                 setAllRetailers(res.data);
             })
-            await axios.get(`/api/REMS/versionsData?retailer_id=${context.selectedRetailer}`).then(function (res) {
-                let allRemsAreGood = true
-                res.data.rem.forEach(remsServer => {
-                    let lastUpdateUnix = remsServer.last_heartbeat_sec
-                    let oneHourAgo = moment().subtract(1, 'hours').unix()
-                    if (lastUpdateUnix < oneHourAgo) {
-                        allRemsAreGood = false
-                    }
-                })
-                setRemsAreGood(allRemsAreGood)
-            })
+            // await axios.get(`/api/REMS/versionsData?retailer_id=${context.selectedRetailer}`).then(function (res) {
+            //     let allRemsAreGood = true
+            //     res.data.rem.forEach(remsServer => {
+            //         let lastUpdateUnix = remsServer.last_heartbeat_sec
+            //         let oneHourAgo = moment().subtract(1, 'hours').unix()
+            //         if (lastUpdateUnix < oneHourAgo) {
+            //             allRemsAreGood = false
+            //         }
+            //     })
+            //     setRemsAreGood(allRemsAreGood)
+            // })
         }
         fetchData()
     }, [context.selectedRetailer]);

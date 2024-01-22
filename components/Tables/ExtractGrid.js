@@ -9,6 +9,7 @@ import { Box } from '@mui/material';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
 import { useDebounce } from '../../src/hooks/useDebounce';
+import { useCallback } from 'react';
 const PREFIX = 'ExtractGrid';
 
 const classes = {
@@ -38,7 +39,9 @@ export default function ExtractGrid({ store, height }) {
     const [pageSize, setPageSize] = useState(100);
     const [filter, setFilter] = React.useState(null);
     const filterQuery = useDebounce(filter, 3000)
-    const onFilterChange = React.useCallback((filterModel) => {
+    const [sort, setSort] = useState({ Timestamp: -1 })
+
+    const onFilterChange = useCallback((filterModel) => {
         const filter = filterModel.items?.[0];
         if (filter) {
             const f = { [filter.field]: filter.value };
@@ -46,24 +49,31 @@ export default function ExtractGrid({ store, height }) {
         }
     }, []);
 
-    useEffect(() => {
-        if (filterQuery) {
-            functionApiCall(page, pageSize, filterQuery)
+    const onSortChange = useCallback((model) => {
+        if (model.length > 0) {
+            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
+            setSort(localSort)
         }
-    }, [filterQuery])
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery || sort) {
+            functionApiCall(page, pageSize, filterQuery, sort)
+        }
+    }, [filterQuery, sort])
 
     useEffect(() => {
         if (context) {
-            functionApiCall(page, pageSize, filter)
+            functionApiCall(page, pageSize, filter, sort)
         }
     }, [store, context]);
 
-    const functionApiCall = (page, pageSize, filter = {}) => {
+    const functionApiCall = (page, pageSize, filter, sort = {}) => {
         setLoading(true)
 
         if (store) {
             if (store.tenantId !== null) {
-                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&tenantId=${store.tenantId}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                     const extracts = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
                     });
@@ -72,7 +82,7 @@ export default function ExtractGrid({ store, height }) {
                     setStoreExtracts(extracts);
                 });
             } else {
-                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                axios.get(`/api/registers/extractsForStore?storeName=${store.store}&retailerId=${store.retailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                     const extracts = res?.data?.items?.map((v, index) => {
                         return { ...v, id: index }
                     });
@@ -84,7 +94,7 @@ export default function ExtractGrid({ store, height }) {
         } else {
             if (context.selectedRetailer) {
                 if (context.selectedRetailerIsTenant === false) {
-                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                         const extracts = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -93,7 +103,7 @@ export default function ExtractGrid({ store, height }) {
                         setStoreExtracts(extracts);
                     });
                 } else if (context.selectedRetailerParentRemsServerId) {
-                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: filter }).then(function (res) {
+                    axios.get(`/api/registers/extracts?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}&page=${page}&limit=${pageSize}`, { params: { filter, sort } }).then(function (res) {
                         const extracts = res?.data?.items?.map((v, index) => {
                             return { ...v, id: index }
                         });
@@ -110,14 +120,14 @@ export default function ExtractGrid({ store, height }) {
         {
             field: 'Timestamp',
             headerName: 'Timestamp',
-            sortable: false,
+            sortable: true,
             filterable: false,
             flex: 1,
         },
-        { field: 'Store', headerName: 'Store', sortable: false, filter: true, flex: 1 },
-        { field: 'RegNum', headerName: 'RegNum', sortable: false, filter: true, flex: 1 },
-        { field: 'ExtractType', headerName: 'ExtractType', sortable: false, filterable: false, flex: 1 },
-        { field: 'State', headerName: 'State', sortable: false, filterable: false, flex: 1 },
+        { field: 'Store', headerName: 'Store', sortable: true, filter: true, flex: 1 },
+        { field: 'RegNum', headerName: 'RegNum', sortable: true, filter: true, flex: 1 },
+        { field: 'ExtractType', headerName: 'ExtractType', sortable: false, filterable: true, flex: 1 },
+        { field: 'State', headerName: 'State', sortable: false, filterable: true, flex: 1 },
         {
             field: 'SBreqLink',
             headerName: 'Azure',
@@ -159,11 +169,13 @@ export default function ExtractGrid({ store, height }) {
                     pagination: { paginationModel: { pageSize: pageSize } },
                 }}
                 rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter) }}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter, sort) }}
                 pageSizeOptions={[25, 50, 100]}
                 paginationMode="server"
                 filterMode="server"
+                sortMode="server"
                 onFilterModelChange={onFilterChange}
+                onSortModelChange={onSortChange}
                 disableSelectionOnClick
             />
         </Box>
