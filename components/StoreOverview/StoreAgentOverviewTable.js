@@ -21,6 +21,7 @@ import {
     Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import EleraIcon from '../../public/icons/elera-icon-red.png';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import React, { useContext, useState, useEffect } from 'react';
@@ -228,9 +229,9 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                 return isOnline ? 'isMaster' : ''
             },
             renderCell: (params) => {
-                return (
-                    <Box alignContent={'center'} display="flex" gap={1}>
-                        {params.row?.is_master_agent && (
+                if (params.row?.is_master_agent) {
+                    return (
+                        <Box alignContent={'center'} display="flex" gap={1}>
                             <Image
                                 src={masterAgentImage}
                                 alt="Master Agent"
@@ -239,10 +240,24 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                                     height: 25,
                                 }}
                             />
-                        )}
-                    </Box>
-                );
-            }
+                        </Box>
+                    );
+                } else if (params.row.status) {
+                    if (params.row.status?.EleraClient) {
+                        if (params.row.status?.EleraClient?.configured === 'true') {
+                            return (
+                                <Box alignContent={'center'} display="flex" gap={1}>
+                                    <Image
+                                        src={EleraIcon}
+                                        alt="Elera Register"
+                                        style={{ width: 25, height: 25 }}
+                                    />
+                                </Box>
+                            )
+                        }
+                    }
+                }
+            },
         },
         {
             field: 'agentName',
@@ -644,7 +659,9 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                         <Typography>
                             Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
                         </Typography>
-                        <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                        {!useScreenshotView &&
+                            <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                        }
                     </Box>
                 </div>
             );
@@ -666,7 +683,9 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                         <Typography>
                             Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
                         </Typography>
-                        <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                        {!useScreenshotView &&
+                            <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                        }
                     </Box>
                 </div>
             );
@@ -682,8 +701,8 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
 
     return !useScreenshotView ?
         <Box sx={{
-            overflow: 'auto',
             width: '100%',
+            height: '100%',
             '& .super-app-theme--header': {
                 backgroundColor: '#EDEDF0'
             },

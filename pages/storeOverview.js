@@ -393,45 +393,30 @@ export default function StoreOverview() {
                                     <Typography variant="body1"
                                         sx={{ ...commonTypographyStyles }}
                                     > SCOs: <Box component='span' fontWeight='fontWeightMedium'>{scoCount}</Box> </Typography>
-
                                 </Box>
                             </Grid>
                             <Grid item xs={6} textAlign="end">
-                                <Typography variant="body1" sx={{
-                                    display: 'flex',
-                                    alignContent: 'center',
-                                    justifyContent: 'end',
-                                    margin: 2,
-                                    ...commonTypographyStyles,
-                                    textAlign: 'right'
-                                }}>
-                                    Alerts :
-                                    <NotificationsIcon onClick={handleAlertsConfirmationOpen} fontSize="medium" />
-                                    <Box component='span' fontWeight='fontWeightMedium'>
-                                        {storeAlerts.filter((alert) => {
-                                            const today = new Date();
-                                            today.setHours(0, 0, 0, 0);
-
-                                            const alertDate = new Date(alert.dateTimeReceived);
-                                            alertDate.setHours(0, 0, 0, 0);
-
-                                            return alertDate.getTime() === today.getTime();
-                                        }).length} {' '}
-                                    </Box>
-                                </Typography>
-                                {screenShotEnable && (
-                                    <Box>
-                                        <Typography sx={{
-                                            ...commonTypographyStyles,
-                                            textAlign: 'right'
-                                        }}>
-                                            Screenshot View
-                                            <Box component='span'>
-                                                <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
-                                            </Box>
-                                        </Typography>
-                                    </Box>
-                                )
+                                {Object.keys(elera).length > 0 &&
+                                    <Typography variant="body1" sx={{
+                                        display: 'flex',
+                                        alignContent: 'center',
+                                        justifyContent: 'end',
+                                        margin: 2,
+                                        ...commonTypographyStyles,
+                                        textAlign: 'right'
+                                    }}>
+                                        Alerts :
+                                        <NotificationsIcon onClick={handleAlertsConfirmationOpen} fontSize="medium" />
+                                        <Box component='span' fontWeight='fontWeightMedium'>
+                                            {storeAlerts.filter((alert) => {
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                const alertDate = new Date(alert.dateTimeReceived);
+                                                alertDate.setHours(0, 0, 0, 0);
+                                                return alertDate.getTime() === today.getTime();
+                                            }).length} {' '}
+                                        </Box>
+                                    </Typography>
                                 }
                                 {Object.keys(elera).length > 0 &&
                                     <Box>
@@ -474,6 +459,34 @@ export default function StoreOverview() {
                                         </PopupState>
                                     </Box>
                                 }
+                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'end' }}>
+                                    {screenShotEnable && (
+                                        <Box>
+                                            <Typography sx={{
+                                                ...commonTypographyStyles,
+                                            }}>
+                                                Screenshot View
+                                                <Box component='span'>
+                                                    <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
+                                                </Box>
+                                            </Typography>
+                                        </Box>
+                                    )
+                                    }
+                                    {_.includes(context.userRoles, 'toshibaAdmin') && (
+                                        <Box sx={{ marginLeft: 4 }}>
+                                            <Typography sx={{
+                                                ...commonTypographyStyles,
+                                            }}>
+                                                Detailed View
+                                                <Box component='span'>
+                                                    <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
+                                                </Box>
+                                            </Typography>
+                                        </Box>
+                                    )
+                                    }
+                                </Box>
                             </Grid>
                         </Grid>
                     </Grid>
