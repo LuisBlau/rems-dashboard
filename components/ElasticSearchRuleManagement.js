@@ -153,7 +153,18 @@ const ElasticSearchRuleComponent = () => {
     axios
       .get(`/api/esalert/rules?baseURI=${baseURI}&token=${token}`)
       .then(function (response) {
-        const metricThresholdAlerts = response.data.filter(o => o.rule_type_id === 'metrics.alert.threshold');
+        const metricThresholdAlerts = response.data
+          .filter(o => o.rule_type_id === 'metrics.alert.threshold')
+          .filter(o => {
+            try{
+              const webhookAction = o.actions.find(action => action.connector_type_id === '.webhook');
+              return webhookAction && JSON.parse(webhookAction.params.body).owner === context?.selectedRetailer;
+            }catch(ex){
+              //If we ever get here then that means we're processing a rule that doesn't have a payload. We don't ever want rules like that showing because they're effectively invalid
+              return false;
+            }
+          });
+
         const listOfRuleIds = metricThresholdAlerts.map(alert => alert.id);
 
         //Grab the associated alerts for each of our metricThresholdAlerts
@@ -506,7 +517,8 @@ const ElasticSearchRuleComponent = () => {
       esBaseURI: baseURI,
       email: newRowData.Email,
       type: 'metrics.alert.threshold',
-      snow: newRowData.CreateSNOW
+      snow: newRowData.CreateSNOW,
+      retailerId: context?.selectedRetailer
     };
 
     // Use a regular expression to split the string
