@@ -18,7 +18,6 @@ import {
     DialogTitle,
     Grid,
     IconButton,
-    Tooltip,
     Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -275,12 +274,39 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
             headerClassName: 'super-app-theme--header',
             flex: 2,
             headerName: 'Type',
-            sortable: false,
+            sortable: true,
             cellClassName: (params) => {
                 const isOnline = params.row.is_master_agent;
                 return isOnline ? 'isMaster' : ''
             },
-            renderCell: (params) => DisplaySystemType(params.row)
+            renderCell: (params) => DisplaySystemType(params.row),
+            valueGetter: (props) => {
+                if (props.row.status?.EleraClient) {
+                    if (props.row.status?.EleraClient?.configured === 'true') {
+                        return 'ELERA Register'
+                    }
+                }
+                if (props.row.status?.Controller) {
+                    if (props.row.status?.Controller?.configured === 'true') {
+                        if (props.row.is_master_agent) {
+                            return 'Controller - Master'
+                        }
+                        return 'Controller'
+                    }
+                } else if (props.row.status?.SIGui) {
+                    if (props.row.status?.SIGui?.configured === 'true') {
+                        return 'SI Gui Register'
+                    }
+                } else {
+                    if (_.includes(props.row.agentName, 'ars')) {
+                        return 'Server'
+                    } else if (props.row.isSco === true) {
+                        return 'SCO'
+                    } else {
+                        return 'Register'
+                    }
+                }
+            }
         },
         {
             field: 'os',
@@ -299,6 +325,7 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
             headerClassName: 'super-app-theme--header',
             headerName: 'Last Updated',
             sortable: true,
+            filterable: false,
             flex: 2,
             cellClassName: (params) => {
                 const isOnline = params.row.is_master_agent;
@@ -316,7 +343,8 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                 const isOnline = params.row.is_master_agent;
                 return isOnline ? 'isMaster' : ''
             },
-            renderCell: (params) => DisplayOnOffStatus(params.row)
+            renderCell: (params) => DisplayOnOffStatus(params.row),
+            valueGetter: (params) => params.row.authState === 'authenticated' ? params.row.online === true ? 'online' : 'offline' : 'unauthenticated'
         }
     ];
 
