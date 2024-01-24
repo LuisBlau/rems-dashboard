@@ -262,8 +262,10 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                         <Typography variant='body1'> {agentName}</Typography>
                     </Box>
                 );
+            },
+            valueGetter: (params) => {
+                return params.row.agentName.replace(params.row.storeName + '-', '');
             }
-
         },
         {
             field: 'row',
