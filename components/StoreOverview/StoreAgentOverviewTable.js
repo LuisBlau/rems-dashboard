@@ -503,17 +503,26 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            width: 625,
-            height: 640,
+            width: '50%',
+            height: '90%',
             bgcolor: '#ffffff',
-            border: '2px solid #000',
+            border: '1px solid #000',
+            borderRadius: '10px',
             outline: '#7c70b3',
             boxShadow: 24,
             p: 4,
         };
+        const commonTypographyStyles = {
+            fontFamily: 'Roboto',
+            fontSize: '18px',
+            fontWeight: 500,
+            lineHeight: '21px',
+            letterSpacing: '0em',
+            textAlign: 'left'
+        };
         if (screenShotEnable) {
             return (
-                <Grid item xs={12}>
+                <Box>
                     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} onClick={handleScreenshotOpen}>
                         <IconButton >
                             <PhotoCamera style={{ color: '#FFFFFF' }} cursor={'pointer'} />
@@ -533,6 +542,7 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         backgroundColor: data?.online ? '#9DC982' : '#F57C62',
+                                        borderRadius: '5px'
                                     }}>
                                         {data?.online ? (
                                             <CheckCircleOutlineIcon style={{ color: '#FFFFFF' }} />
@@ -542,7 +552,7 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                                     </div>
                                 </Grid>
                                 <Grid item xs={10}>
-                                    <Typography align="center">{data.agentName}</Typography>
+                                    <Typography align="start" sx={commonTypographyStyles}>Screenshot - {data.agentName}</Typography>
                                 </Grid>
                                 <Grid item xs={12}>
                                     <ScreenCaptureDisplay agentData={data} width={600} height={600} refreshInterval={5000} selectedRetailer={selectedRetailer} />
@@ -550,7 +560,7 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                             </Grid>
                         </Box>
                     </Modal>
-                </Grid>
+                </Box>
             );
         } else {
             return null
@@ -617,9 +627,12 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                         layout="responsive"
                         alt="Fetching image data?..."
                     />
-                    <Typography>
-                        Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography>
+                            Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
+                        </Typography>
+                        <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                    </Box>
                 </div>
             );
         if (data === undefined || screenshotData === undefined) return <div>loading...</div>;
@@ -636,9 +649,12 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                         alt="Fetching image data?..."
                         style={{ minHeight: 250 }}
                     />
-                    <Typography>
-                        Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography>
+                            Last Updated: {screenshotData.lastUpdated ? screenshotData.lastUpdated : 'Unknown'}
+                        </Typography>
+                        <Button variant='contained' onClick={() => setScreenshotOpen(false)}>Close</Button>
+                    </Box>
                 </div>
             );
         } else {
