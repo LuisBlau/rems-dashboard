@@ -279,30 +279,41 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
             },
             renderCell: (params) => DisplaySystemType(params.row),
             valueGetter: (props) => {
-                if (props.row.status?.EleraClient) {
-                    if (props.row.status?.EleraClient?.configured === 'true') {
-                        return 'ELERA Register'
+                if (props.row.status) {
+                    if (props.row.status?.EleraClient) {
+                        if (props.row.status?.EleraClient?.configured === 'true') {
+                            return 'ELERA Register'
+                        }
+                    }
+                    if (props.row.status?.Controller) {
+                        if (props.row.status?.Controller?.configured === 'true') {
+                            if (props.row.is_master_agent) {
+                                return 'Controller - Master'
+                            }
+                            return 'Controller'
+                        }
+                    } else if (props.row.status?.SIGui) {
+                        if (props.row.status?.SIGui?.configured === 'true') {
+                            return 'SI Gui Register'
+                        }
+                    } else {
+                        if (_.includes(props.row.agentName, 'ars')) {
+                            return 'Server'
+                        } else if (props.row.isSco === true) {
+                            return 'SCO'
+                        } else {
+                            return 'Register'
+                        }
                     }
                 }
-                if (props.row.status?.Controller) {
-                    if (props.row.status?.Controller?.configured === 'true') {
-                        if (props.row.is_master_agent) {
-                            return 'Controller - Master'
-                        }
-                        return 'Controller'
-                    }
-                } else if (props.row.status?.SIGui) {
-                    if (props.row.status?.SIGui?.configured === 'true') {
-                        return 'SI Gui Register'
-                    }
+                if (_.includes(props.row.agentName, 'ars')) {
+                    return 'Server'
+                } else if (props.row.isSco === true) {
+                    return 'SCO'
+                } else if (props.row.os === 'Android') {
+                    return 'Mobile'
                 } else {
-                    if (_.includes(props.row.agentName, 'ars')) {
-                        return 'Server'
-                    } else if (props.row.isSco === true) {
-                        return 'SCO'
-                    } else {
-                        return 'Register'
-                    }
+                    return 'Register'
                 }
             }
         },
