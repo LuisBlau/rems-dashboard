@@ -371,7 +371,7 @@ export default function StoreOverview() {
                         <Grid container>
                             <Grid item xs={6}>
                                 <CustomLinearProgress
-                                    title={"Store " + params.get('storeName')}
+                                    title={params.get('storeName')}
                                     value={storeHealthPerc}
 
                                     sx={{ color: color, width: 200, height: 10, borderRadius: 2, marginBottom: '20px' }}
