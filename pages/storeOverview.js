@@ -480,7 +480,7 @@ export default function StoreOverview() {
                                             }}>
                                                 Detailed View
                                                 <Box component='span'>
-                                                    <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
+                                                    <Switch color="success" />
                                                 </Box>
                                             </Typography>
                                         </Box>
