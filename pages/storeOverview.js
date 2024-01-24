@@ -12,22 +12,24 @@ import {
     Typography,
     Grid,
     Container,
+    IconButton,
+    MenuItem,
+    Menu,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import axios from 'axios';
 import 'react-spinner-animated/dist/index.css';
-import DumpGrid from '../components/Tables/DumpGrid';
-import ExtractGrid from '../components/Tables/ExtractGrid';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import _ from 'lodash';
 import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
 import UserContext from './UserContext';
-import moment from 'moment';
 import Alerts from '../components/EnterpriseOverview/StoreAlerts';
 import { CustomLinearProgress } from '../components/LinearProgress';
+import Image from 'next/image';
+import EleraIcon from '../public/icons/elera-icon-red.png';
+import PopupState, { bindMenu, bindTrigger } from 'material-ui-popup-state';
+import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import { useRouter } from 'next/router';
 
 const PREFIX = 'storeOverview';
 
@@ -54,21 +56,18 @@ export default function StoreOverview() {
     const [alertsConfirmationOpen, setAlertsConfirmationOpen] = useState(false);
     const [scoCount, setScoCount] = useState(0);
     const [downAgentCount, setDownAgentCount] = useState(0);
-    const [selectedTab, setSelectedTab] = useState('dumps');
     const [screenShotEnable, setScreenShotEnable] = useState(false);
     const [userHasAccess, setUserHasAccess] = useState(true)
     const [elera, setElera] = useState({});
-    const [headerPaperColor, setHeaderPaperColor] = useState('#FFFFFF')
     const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
     const context = useContext(UserContext)
     const [masterAgent, setMasterAgent] = useState(null);
     const [retailerConfig, setRetailerConfig] = useState([]);
 
+    const router = useRouter();
+
     const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
 
-    const handleTabChange = (event, newValue) => {
-        setSelectedTab(newValue);
-    };
     let par = '';
     if (typeof window !== 'undefined') {
         par = window.location.search;
@@ -105,12 +104,6 @@ export default function StoreOverview() {
 
                 time = configurationInfo.find(item => item.configName === 'storeDisconnectTimeLimit').configValue;
                 setRetailerConfig(configurationInfo);
-            }).then(() => {
-                axios.get('/api/stores/info?retailerId=' + params.get('retailer_id') + '&storeName=' + params.get('storeName')).then((result) => {
-                    if (moment(result.data[0].last_updated_sec * 1000).diff(Date.now(), 'hours') < - time) {
-                        setHeaderPaperColor('#E7431F')
-                    }
-                })
             })
         }
     }, [context?.selectedRetailer])
@@ -309,7 +302,6 @@ export default function StoreOverview() {
                         }
                     };
                     fetchAlerts();
-                    setSelectedTab('dumps');
                 }
             }
         }
@@ -427,7 +419,7 @@ export default function StoreOverview() {
                                         }).length} {' '}
                                     </Box>
                                 </Typography>
-                                {screenShotEnable ? (
+                                {screenShotEnable && (
                                     <Box>
                                         <Typography sx={{
                                             ...commonTypographyStyles,
@@ -439,14 +431,55 @@ export default function StoreOverview() {
                                             </Box>
                                         </Typography>
                                     </Box>
-                                ) : <Box></Box>
+                                )
+                                }
+                                {Object.keys(elera).length > 0 &&
+                                    <Box>
+                                        <PopupState variant="popover" popupId="demo-popup-menu">
+                                            {(popupState) => (
+                                                <Box>
+                                                    <IconButton   {...bindTrigger(popupState)}>
+                                                        <Image alt="Elera Services" src={EleraIcon} height={40} width={40} />
+                                                    </IconButton>
+                                                    <Menu sx={{ "& .MuiMenu-paper": { backgroundColor: '#383838' } }} {...bindMenu(popupState)}>
+                                                        <MenuItem
+                                                            onClick={() => router.push(`/store/eleraHealth?storeName=${params.get('storeName')}&retailer_id=${context.selectedRetailer}&agentName=${masterAgent}`)}
+                                                            sx={{ display: 'flex', justifyContent: 'start' }}
+                                                        >
+                                                            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                                                <IconButton >
+                                                                    <ShowChartRoundedIcon sx={{ color: '#FFFFFF' }} />
+                                                                </IconButton>
+                                                                <Typography sx={{ color: '#FFFFFF' }}>
+                                                                    Elera Health
+                                                                </Typography>
+                                                            </Box>
+                                                        </MenuItem>
+                                                        <MenuItem
+                                                            onClick={() => router.push(`/store/eleraStats?storeName=${params.get('storeName')}`)}
+                                                            sx={{ display: 'flex', justifyContent: 'start' }}
+                                                        >
+                                                            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                                                <IconButton >
+                                                                    <AssessmentIcon sx={{ color: '#FFFFFF' }} />
+                                                                </IconButton>
+                                                                <Typography sx={{ color: '#FFFFFF' }}>
+                                                                    Elera Stats
+                                                                </Typography>
+                                                            </Box>
+                                                        </MenuItem>
+                                                    </Menu>
+                                                </Box>
+                                            )}
+                                        </PopupState>
+                                    </Box>
                                 }
                             </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
                 <Grid item sx={{ overflow: 'auto', width: '100%', height: '80%' }}>
-                    <AgentDetailsRegion cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} elera={elera} />
+                    <AgentDetailsRegion cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
                 </Grid>
                 <Dialog
                     open={alertsConfirmationOpen}

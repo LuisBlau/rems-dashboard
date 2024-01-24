@@ -4,7 +4,7 @@ import { Box } from '@mui/system';
 import React from 'react';
 import StoreAgentOverviewTable from './StoreAgentOverviewTable';
 
-export default function AgentDetailsRegion({ cameraDevices, storeAgents, screenshotView, storeHasNoAgents, elera }) {
+export default function AgentDetailsRegion({ cameraDevices, storeAgents, screenshotView, storeHasNoAgents }) {
 
     if (storeAgents.length === 0 && storeHasNoAgents !== true) {
         return (
@@ -24,7 +24,6 @@ export default function AgentDetailsRegion({ cameraDevices, storeAgents, screens
                 devices={cameraDevices}
                 rows={storeAgents}
                 useScreenshotView={screenshotView}
-                elera={elera}
             />
         );
     }

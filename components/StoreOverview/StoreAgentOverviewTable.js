@@ -32,15 +32,12 @@ import OfflineImage from '../../public/images/offline.png';
 import masterAgentImage from '../../public/images/masteragent.png';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import DoDisturbAltRoundedIcon from '@mui/icons-material/DoDisturbAltRounded';
-import ShowChartRoundedIcon from '@mui/icons-material/ShowChartRounded';
-import AssessmentIcon from '@mui/icons-material/Assessment';
 import _ from 'lodash';
 import moment from 'moment';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import { DataGrid } from '@mui/x-data-grid';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { useRouter } from 'next/router';
 
 const PREFIX = 'OverviewAgentPaper';
 
@@ -170,9 +167,8 @@ function DisplayOnOffStatus(props) {
 
 
 
-export default function StoreAgentOverviewTable({ devices, rows, useScreenshotView, elera }) {
+export default function StoreAgentOverviewTable({ devices, rows, useScreenshotView }) {
     const context = useContext(UserContext);
-    const router = useRouter();
 
     let disableReload = true;
     if (context.userRoles.includes('Administrator') || context.userRoles.includes('toshibaAdmin')) {
@@ -491,36 +487,6 @@ export default function StoreAgentOverviewTable({ devices, rows, useScreenshotVi
                                     />
                                 </MenuItem>
                             }
-                            {data?.is_master_agent && (elera && Object.keys(elera)?.length > 0) && (
-                                <MenuItem
-                                    onClick={() => router.push(`/store/eleraHealth?storeName=${data?.storeName}&retailer_id=${data?.retailer_id}&agentName=${data?.agentName}`)}
-                                    sx={{ display: 'flex', justifyContent: 'start' }}
-                                >
-                                    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <IconButton >
-                                            <ShowChartRoundedIcon sx={{ color: '#FFFFFF' }} />
-                                        </IconButton>
-                                        <Typography sx={{ color: '#FFFFFF' }}>
-                                            Elera Health
-                                        </Typography>
-                                    </Box>
-                                </MenuItem>
-                            )}
-                            {data?.is_master_agent && (elera && Object.keys(elera)?.length > 0) && (
-                                <MenuItem
-                                    onClick={() => router.push(`/store/eleraStats?storeName=${data?.storeName}`)}
-                                    sx={{ display: 'flex', justifyContent: 'start' }}
-                                >
-                                    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                        <IconButton >
-                                            <AssessmentIcon sx={{ color: '#FFFFFF' }} />
-                                        </IconButton>
-                                        <Typography sx={{ color: '#FFFFFF' }}>
-                                            Elera Stats
-                                        </Typography>
-                                    </Box>
-                                </MenuItem>
-                            )}
                         </Menu>
                     </Box>
                 )}
