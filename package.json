@@ -27,6 +27,7 @@
         "google-maps-react-markers": "^1.2.1",
         "ip-address-validator": "^1.0.6",
         "lodash": "^4.17.21",
+        "material-ui-popup-state": "^5.0.10",
         "moment": "^2.29.3",
         "next": "13.4.12",
         "papaparse": "^5.3.2",

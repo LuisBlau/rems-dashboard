@@ -8,10 +8,10 @@ import {
     Dialog,
     DialogActions,
     DialogTitle,
-    Paper,
     Switch,
     Typography,
-    LinearProgress,
+    Grid,
+    Container,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import axios from 'axios';
@@ -24,11 +24,10 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import _ from 'lodash';
 import AgentDetailsRegion from '../components/StoreOverview/AgentDetailsRegion';
-import Copyright from '../components/Copyright';
 import UserContext from './UserContext';
-import EleraInfoRegion from '../components/StoreOverview/EleraInfoRegion';
 import moment from 'moment';
 import Alerts from '../components/EnterpriseOverview/StoreAlerts';
+import { CustomLinearProgress } from '../components/LinearProgress';
 
 const PREFIX = 'storeOverview';
 
@@ -83,6 +82,15 @@ export default function StoreOverview() {
     function handleScreenshotViewChange() {
         setScreenshotView(!screenshotView);
     }
+    const commonTypographyStyles = {
+        fontFamily: 'Roboto',
+        fontSize: '18px',
+        fontWeight: 500,
+        lineHeight: '21px',
+        letterSpacing: '0em',
+        textAlign: 'left'
+    };
+
 
     useEffect(() => {
         if (context?.selectedRetailer) {
@@ -332,168 +340,114 @@ export default function StoreOverview() {
     };
 
     if (userHasAccess) {
+        const storeHealthPerc = ((storeAgents.length - downAgentCount) / storeAgents.length) * 100;
+        let color = '';
+        let storeHealthText = '';
+
+        if (storeHealthPerc > 90) {
+            color = '#5BA52E';
+            storeHealthText = 'Good';
+        } else if (storeHealthPerc > 60 && storeHealthPerc < 90) {
+            color = '#F8C45d';
+            storeHealthText = 'Fair';
+        } else if (storeHealthPerc < 90) {
+            color = '#FA8128';
+            storeHealthText = 'Poor';
+        } else {
+            color = '#E7431F';
+            storeHealthText = 'Disconnected';
+        }
+
         return (
-            <Root className={classes.content}>
-                <Box sx={{ display: 'flex', height: '100%', flexDirection: 'column', background: '#f6f6f6' }}>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            height: '15%',
-                            flexDirection: 'row',
-                            justifyContent: 'space-around',
-                            pb: 3,
-                            background: '#f6f6f6',
-                        }}
-                    >
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginTop: 5,
-                                height: '90%',
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography fontSize={'175%'} fontWeight={'bold'} >
-                                Store
-                            </Typography>
-                            <Typography fontSize={'125%'}>{params.get('storeName')}</Typography>
-                        </Paper>
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginTop: 5,
-                                height: '90%',
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
-                                Lane View
-                            </Typography>
-                            <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
-                        </Paper>
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginTop: 5,
-                                height: '90%',
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
-                                Lanes
-                            </Typography>
-                            <Typography fontSize={'125%'}>{agentCount}</Typography>
-                        </Paper>
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginTop: 5,
-                                height: '90%',
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
-                                SCO&apos;s
-                            </Typography>
-                            <Typography fontSize={'125%'}>{scoCount}</Typography>
-                        </Paper>
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginTop: 5,
-                                height: '90%',
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignContent: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography variant='h6' sx={{ marginBottom: 1, alignSelf: 'center' }}>{'Store Health'}</Typography>
-                            <LinearProgress title="Store Health" color='info' sx={{ marginLeft: 2, marginRight: 2, borderRadius: 1, height: 10 }} variant="determinate" value={headerPaperColor === '#FFFFFF' ? ((storeAgents.length - downAgentCount) / storeAgents.length) * 100 : 0} />
-                        </Paper>
-                        <Paper
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                margin: 5,
-                                width: '12%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: headerPaperColor
-                            }}
-                            elevation={10}
-                        >
-                            <Typography fontSize={'175%'} fontWeight={'bold'}>
-                                Alerts
-                            </Typography>
-                            <div onClick={handleAlertsConfirmationOpen} style={{ display: 'flex', flexDirection: 'row' }}>
-                                <NotificationsIcon fontSize="large" />
-                                <Typography fontSize={'150%'} fontWeight={'bold'}>
-                                    {storeAlerts.filter((alert) => {
-                                        const today = new Date();
-                                        today.setHours(0, 0, 0, 0);
+            <Container maxWidth="100%" sx={{ overflow: "hidden", height: '100vh' }}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontFamily: 'Roboto',
+                                fontSize: '36px',
+                                fontWeight: 700,
+                                lineHeight: '42px',
+                                letterSpacing: '0em',
+                                textAlign: 'left',
+                                marginBottom: 'px'
+                            }}     >
+                            Store Overview
+                        </Typography>
 
-                                        const alertDate = new Date(alert.dateTimeReceived);
-                                        alertDate.setHours(0, 0, 0, 0);
+                        <Grid container>
+                            <Grid item xs={6}>
+                                <CustomLinearProgress
+                                    title={"Store " + params.get('storeName')}
+                                    value={storeHealthPerc}
 
-                                        return alertDate.getTime() === today.getTime();
-                                    }).length} {' '}
-                                    Today
+                                    sx={{ color: color, width: 200, height: 10, borderRadius: 2, marginBottom: '20px' }}
+                                />
+                                <Box sx={{
+                                    display: 'flex',
+                                    gap: 7,
+                                }}>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{ ...commonTypographyStyles }}
+                                    >Health: <Box component='span' sx={{ color: color, fontWeight: 'fontWeightMedium' }}>{storeHealthText}</Box>
+                                    </Typography>
+                                    <Typography variant="body1"
+                                        sx={{ ...commonTypographyStyles }}
+                                    > Lanes: <Box component='span' fontWeight='fontWeightMedium'>
+                                            {/* {storeAgents?.filter(x=> x.online === true)?.length} of */}
+                                            {agentCount}</Box> </Typography>
+                                    <Typography variant="body1"
+                                        sx={{ ...commonTypographyStyles }}
+                                    > SCOs: <Box component='span' fontWeight='fontWeightMedium'>{scoCount}</Box> </Typography>
+
+                                </Box>
+                            </Grid>
+                            <Grid item xs={6} textAlign="end">
+                                <Typography variant="body1" sx={{
+                                    display: 'flex',
+                                    alignContent: 'center',
+                                    justifyContent: 'end',
+                                    margin: 2,
+                                    ...commonTypographyStyles,
+                                    textAlign: 'right'
+                                }}>
+                                    Alerts :
+                                    <NotificationsIcon onClick={handleAlertsConfirmationOpen} fontSize="medium" />
+                                    <Box component='span' fontWeight='fontWeightMedium'>
+                                        {storeAlerts.filter((alert) => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+
+                                            const alertDate = new Date(alert.dateTimeReceived);
+                                            alertDate.setHours(0, 0, 0, 0);
+
+                                            return alertDate.getTime() === today.getTime();
+                                        }).length} {' '}
+                                    </Box>
                                 </Typography>
-                            </div>
-                        </Paper>
-                    </Box>
-                    <Box sx={{ height: '49%' }}>
-                        {Object.keys(elera).length > 0 ?
-                            <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                                <AgentDetailsRegion boxWidth={90} paperWidth={25} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
-                                <EleraInfoRegion elera={elera} />
-                            </Box>
-                            :
-                            <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%' }}>
-                                <AgentDetailsRegion boxWidth={100} paperWidth={20} cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} />
-                            </Box>
-                        }
-                    </Box>
-                    <Box sx={{ height: '30%', display: 'flex', flexDirection: 'column' }}>
-                        <TabContext value={selectedTab} sx={{ background: '#f6f6f6' }}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#f6f6f6' }}>
-                                <TabList onChange={handleTabChange}>
-                                    <Tab label="dumps" value="dumps" />
-                                    <Tab label="extracts" value="extracts" />
-                                </TabList>
-                            </Box>
-                            <TabPanel sx={{ height: '100%' }} value="dumps" style={{ background: '#f6f6f6' }}>
-                                <DumpGrid store={{ storeName: params.get('storeName'), retailerId: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                            </TabPanel>
-                            <TabPanel sx={{ height: '100%' }} value="extracts" style={{ background: '#f6f6f6' }}>
-                                <ExtractGrid store={{ store: params.get('storeName'), retailer: params.get('retailer_id'), tenantId: params.get('tenant_id') }} height={'100%'} />
-                            </TabPanel>
-                        </TabContext>
-                    </Box>
-                </Box>
+                                {screenShotEnable ? (
+                                    <Box>
+                                        <Typography sx={{
+                                            ...commonTypographyStyles,
+                                            textAlign: 'right'
+                                        }}>
+                                            Screenshot View
+                                            <Box component='span'>
+                                                <Switch checked={screenshotView} onChange={handleScreenshotViewChange} disabled={!screenShotEnable} color="success" />
+                                            </Box>
+                                        </Typography>
+                                    </Box>
+                                ) : <Box></Box>
+                                }
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
+                <Grid item sx={{ overflow: 'auto', width: '100%', height: '80%' }}>
+                    <AgentDetailsRegion cameraDevices={cameraDevices} storeAgents={storeAgents} screenshotView={screenshotView} storeHasNoAgents={storeHasNoAgents} elera={elera} />
+                </Grid>
                 <Dialog
                     open={alertsConfirmationOpen}
                     onClose={handleAlertsConfirmationClose}
@@ -515,7 +469,7 @@ export default function StoreOverview() {
                         </Button>
                     </DialogActions>
                 </Dialog>
-            </Root >
+            </Container >
         );
     } else {
         return (
