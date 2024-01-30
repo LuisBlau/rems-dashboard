@@ -16,6 +16,7 @@ export const Guard = ({ children }) => {
         'CreateDeploymentConfig', // Create Deployment Configuration
         'DeploySchedule', // Schedule a Deployment
         'DistributionLists', // Select Agents (agent list)
+        'AgentDistributionLists',
 
         // Diagnostics Pages
         'DocCollection', // Doc Collection

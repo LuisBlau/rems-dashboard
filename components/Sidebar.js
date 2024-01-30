@@ -368,6 +368,13 @@ export default function Sidebar({ handleDisabledFeatureClicked, handleNonDevelop
                                     icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
                                     enabled: pasSubscriptionTier === 'advanced'
                                 },
+                                {
+                                    id: 'agentdistributionLists',
+                                    name: 'Agent Distribution Lists',
+                                    route: '/softwareDistribution/agentDistributionList',
+                                    icon: <Image src={SelectAgentsIcon} alt="SelectAgentsIcon" />,
+                                    enabled: pasSubscriptionTier === 'advanced'
+                                },
                             ]
                         };
                         if (_.some(context.sidebarConfigs, x => x.name === 'sidebarRemoteDiagnostics' && x.value === true)) {

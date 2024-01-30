@@ -314,7 +314,7 @@ export default function snmp() {
             if (context.selectedRetailerIsTenant === false) {
                 axios.get('/api/REMS/agents?store=' + selectedValue + '&retailer=' + context.selectedRetailer).then(function (res) {
                     const packages = [];
-                    res.data.forEach((v) => {
+                    res.data?.items?.forEach((v) => {
                         packages.push(v.agentName);
                     });
                     setAgents(packages);
@@ -322,7 +322,7 @@ export default function snmp() {
             } else {
                 axios.get('/api/REMS/agents?store=' + selectedValue + '&retailer=' + context.selectedRetailerParentRemsServerId).then(function (res) {
                     const packages = [];
-                    res.data.forEach((v) => {
+                    res.data?.items?.forEach((v) => {
                         packages.push(v.agentName);
                     });
                     setAgents(packages);

@@ -17,6 +17,7 @@ import UserContext from '../pages/UserContext';
 import Cookies from 'universal-cookie';
 import { Box } from '@mui/system';
 import _ from 'lodash';
+import { useRouter } from 'next/router';
 
 function AppNameplate({ open }) {
     if (open === true) {
@@ -84,7 +85,8 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
     const [userInitials, setUserInitials] = useState('')
     const [userDisplayName, setUserDisplayName] = useState('')
     const context = useContext(UserContext);
-    const [alertsEnabled, setAlertsEnabled] = useState(false)
+    const [alertsEnabled, setAlertsEnabled] = useState(false);
+    const { push, pathname } = useRouter();
 
     useEffect(() => {
         if (context?.retailerConfigs) {
@@ -104,6 +106,9 @@ export default function SidebarDrawer({ showSidebarDrawer, handleDisabledFeature
         } else {
             cookies.set('retailerId', e, { path: '/' });
             context.setSelectedRetailer(e);
+        }
+        if(pathname === '/storeOverview'){
+            push('/enterpriseOverview')
         }
     };
     if (showSidebarDrawer) {
