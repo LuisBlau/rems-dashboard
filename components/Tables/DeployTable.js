@@ -2,7 +2,7 @@
 /* eslint-disable no-sequences */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useCallback } from 'react';
 import axios from 'axios';
 import Grid from '@mui/material/Grid';
 import Accordion from '@mui/material/Accordion';
@@ -27,10 +27,26 @@ import { useState } from 'react';
 import { useContext } from 'react';
 import UserContext from '../../pages/UserContext.js';
 import { useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Badge, Box, Chip, CircularProgress, IconButton, Modal } from '@mui/material';
+import { useDebounce } from '../../src/hooks/useDebounce';
+import { DataGrid } from '@mui/x-data-grid';
+import { Check, Delete, HighlightOff, Preview, Remove } from '@mui/icons-material';
 
-function StatusBadge(props) {
-    switch (props.itemStatus) {
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 800,
+    height: 'calc(100vh - 200px)',
+    bgcolor: 'background.paper',
+    border: '1px solid #000',
+    //boxShadow: 24,
+    overflow: 'scroll',
+};
+
+function StatusBadge(status) {
+    switch (status) {
         case 'cancel':
         case 'Cancel':
             return (
@@ -47,7 +63,7 @@ function StatusBadge(props) {
             );
         case 'Failed':
             return (
-                <Tooltip title={props.itemDescription ? props.itemDescription : 'Failed'}>
+                <Tooltip title={'Failed'}>
                     <WarningIcon />
                 </Tooltip>
             );
@@ -79,21 +95,13 @@ function StatusBadge(props) {
             );
         case 'initial':
         case 'Initial':
-            if (props.itemDescription) {
-                return (
-                    <Tooltip title={props.itemDescription}>
-                        <BusAlertIcon />
-                    </Tooltip>
-                );
-            } else {
-                return (
-                    <Tooltip title="Initial">
-                        <StartIcon />
-                    </Tooltip>
-                );
-            }
+            return (
+                <Tooltip title="Initial">
+                    <StartIcon />
+                </Tooltip>
+            );
         default:
-            return <p>{props.itemStatus}</p>;
+            return <p>{status}</p>;
     }
 }
 
@@ -124,6 +132,8 @@ function StatusColor(status) {
     }
 }
 
+
+
 function StepCommands(step) {
     switch (step.type) {
         case 'shell':
@@ -140,59 +150,24 @@ function StepCommands(step) {
 
 export function DeployTable(props) {
     const [open, setOpen] = useState(false);
-    const [submitInformation, setSubmitInformation] = useState(null);
     const context = useContext(UserContext)
     const [data, setData] = useState([])
-    const [isLoading, setIsLoading] = useState(false)
-
-    useEffect(() => {
-        if (!isLoading) {
-            if (context.selectedRetailer !== 'null' && context.selectedRetailerIsTenant === false) {
-                setIsLoading(true)
-                axios.get('/api/REMS/deploys?retailerId=' + context.selectedRetailer +
-                    '&store=' + props.storeFilter +
-                    '&package=' + props.packageFilter +
-                    '&records=' + props.maxRecords +
-                    '&status=' + props.statusFilter)
-                    .then((resp) => {
-                        setData(resp.data)
-                        setIsLoading(false)
-                    })
-            } else if (context.selectedRetailerParentRemsServerId) {
-                setIsLoading(true)
-                axios.get('/api/REMS/deploys?retailerId=' + context.selectedRetailerParentRemsServerId +
-                    '&store=' + props.storeFilter +
-                    '&package=' + props.packageFilter +
-                    '&records=' + props.maxRecords +
-                    '&status=' + props.statusFilter +
-                    '&tenantId=' + context.selectedRetailer)
-                    .then((resp) => {
-                        setData(resp.data)
-                        setIsLoading(false)
-                    })
-            }
-        }
-    }, [context.selectedRetailer, context.selectedRetailerIsTenant, props])
-
-    const handleClickOpen = (event) => {
-        setOpen(true);
-        setSubmitInformation(event.currentTarget.id);
-    };
+    const [viewModal, setViewModal] = useState(false)
+    const [currentData, setCurrentData] = useState([])
 
     const handleClose = () => {
         setOpen(false);
-        setSubmitInformation(null);
+        setCurrentData(null);
     };
 
     const handleCancel = () => {
-        setOpen(false);
         // If we use these much we can install 'http-status-codes'
         const INTERNAL_SERVER_ERROR = 500;
         const NOT_FOUND = 404;
         const NOT_MODIFIED = 304;
         const OK = 200;
 
-        const deployInfo = submitInformation.split('_');
+        const deployInfo = currentData._id.split('_');
         const deployUpdate = {
             storeName: deployInfo[0],
             id: deployInfo[1],
@@ -204,6 +179,7 @@ export function DeployTable(props) {
         }
         axios.post(`/api/REMS/deploy-cancel?${filters}`, deployUpdate)
             .then((response) => {
+                setOpen(false);
                 console.log('cancel response : ', response);
                 // This worked so reload the page to show the new status.
                 window.location.reload(true);
@@ -237,6 +213,144 @@ export function DeployTable(props) {
         return '';
     }
 
+    const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(100);
+    const [filter, setFilter] = useState(null);
+    const [sort, setSort] = useState({ Timestamp: -1 })
+    const filterQuery = useDebounce(filter, 3000)
+
+    const onFilterChange = useCallback((filterModel) => {
+        const filter = filterModel.items?.[0];
+        if (filter) {
+            const f = { [filter.field]: filter.value };
+            setFilter(f);
+        }
+    }, []);
+
+    const onSortChange = useCallback((model) => {
+        if (model.length > 0) {
+            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
+            setSort(localSort)
+        }
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery || sort) {
+            functionApiCall(page, pageSize, filterQuery, sort)
+        }
+    }, [filterQuery, sort])
+
+    useEffect(() => {
+
+        if (context.selectedRetailerIsTenant !== null) {
+            functionApiCall(page, pageSize, filter, sort);
+        }
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
+
+    const functionApiCall = (page, pageSize, filter, sort = {}) => {
+        setLoading(true);
+        let params = {
+            filter,
+            sort,
+            page,
+            limit: pageSize,
+            store: props.storeFilter,
+            package: props.packageFilter,
+            records: props.maxRecords,
+            status: props.statusFilter,
+        }
+        if (context.selectedRetailerIsTenant === false) {
+            params.retailerId = context.selectedRetailer;
+        } else {
+            if (context.selectedRetailerParentRemsServerId) params.retailerId = context.selectedRetailerParentRemsServerId;
+            params.tenantId = context.selectedRetailer;
+        }
+
+        axios.get(`/api/REMS/deploys`, { params }).then(function (response) {
+            setTotalItems(response.data.pagination.totalItem);
+            setData(response.data?.items)
+            setLoading(false)
+        })
+    }
+
+    const columns = [
+        {
+            field: 'id',
+            headerName: '',
+            headerAlign: 'center',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => <Box sx={{ padding: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', backgroundColor: StatusColor(params.row.status) }}>{StatusBadge(params.row.status)}</Box>
+        },
+        {
+            field: 'storeName',
+            headerName: 'Store',
+            flex: 1,
+            sortable: true,
+            filterable: true
+        },
+        {
+            field: 'package',
+            headerName: 'Configuration',
+            sortable: false,
+            flex: 1,
+            filterable: true
+        },
+        {
+            field: 'status',
+            headerName: 'Status',
+            flex: 1,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => <Chip label={params.value} sx={{ backgroundColor: StatusColor(params.value), width: "80%" }} variant="outlined" />
+        },
+        {
+            field: 'apply_time',
+            headerName: 'Apply Time',
+            flex: 1,
+            sortable: true,
+        },
+        {
+            field: '_id',
+            headerName: 'Action',
+            headerAlign: 'center',
+            sortable: false,
+            filterable: false,
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+
+                        <Button
+                            disabled={
+                                params.row.status.toUpperCase() !== 'INITIAL' && params.row.status.toUpperCase() !== 'PENDING'
+                            }
+                            onClick={() => {
+                                setOpen(true);
+                                setCurrentData(params.row);
+                            }}
+                            variant="outlined"
+                            sx={{ background : '#e57373'}}
+                            startIcon={<HighlightOff />}
+                        />
+                        <Button
+                            onClick={() => {
+                                setViewModal(true);
+                                setCurrentData(params.row);
+                            }}
+                            variant="outlined"
+                            sx={{ background : '#81c784'}}
+                            startIcon={<Preview />}
+                        />
+                    </Box>
+                )
+            },
+        },
+    ];
+
+
     return (
         <div>
             <Dialog
@@ -253,92 +367,76 @@ export function DeployTable(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
-            {isLoading === true ?
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                    <CircularProgress size={80} />
-                </Box> :
-                data.length === 0 ?
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
-                        <Typography paddingTop={3} variant='h4'>No Deployments Found</Typography>
-                    </Box> :
-                    data.map((deploy, index) => (
-                        <Grid key={'gc1-' + index} container alignItems={'center'} spacing={1}>
-                            <Grid item xs={10}>
-                                <Accordion key={'a-deploy-' + index} sx={{ margin: 1 }}>
-                                    <AccordionSummary
-                                        key={'as-deploy-' + index}
-                                        style={{ backgroundColor: StatusColor(deploy.status) }}
-                                        expandIcon={<ExpandMoreIcon />}
-                                        aria-controls={'panel' + deploy.id + 'bh-content'}
-                                        id={'panel' + deploy.id + 'bh-header'}
-                                    >
-                                        <Grid container spacing={1}>
-                                            <Grid item xs={1}>
-                                                <StatusBadge itemStatus={deploy.status} itemDescription={deploy.reason} />
-                                            </Grid>
-                                            <Grid item xs={2}>
-                                                <Typography sx={{ flexShrink: 0 }}>Agent: {deploy.agentName}</Typography>
-                                            </Grid>
-                                            <Grid item xs={3}>
-                                                <Typography sx={{ flexShrink: 0 }}>Package: {deploy.package}</Typography>
-                                            </Grid>
-                                            <Grid item xs={2}>
-                                                <Typography sx={{ flexShrink: 0 }}>Status: {deploy.status}</Typography>
-                                            </Grid>
-                                            <Grid item xs={4}>
-                                                <Typography sx={{ flexShrink: 0 }}>Apply Time: {deploy.apply_time}</Typography>
-                                            </Grid>
-                                        </Grid>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        {deploy.steps.map((step, index) => (
-                                            <Accordion
-                                                key={index}
-                                                style={{ margin: '15px', backgroundColor: StatusColor(step.status) }}
-                                            >
-                                                <AccordionSummary
-                                                    expandIcon={<ExpandMoreIcon />}
-                                                    aria-controls={'panel' + deploy.id + ':' + index + 'bh-content'}
-                                                    id={'panel' + deploy.id + ':' + index + 'bh-header'}
-                                                >
-                                                    <Grid container spacing={3}>
-                                                        <Grid item xs={1}>
-                                                            <StatusBadge itemStatus={step.status} />
-                                                        </Grid>
-                                                        <Grid item xs={4}>
-                                                            <Typography sx={{ flexShrink: 0 }}>
-                                                                {step.type === 'apply' ? step.command : step.type} --{' '}
-                                                                {StepCommands(step)}
-                                                            </Typography>
-                                                        </Grid>
-                                                    </Grid>
-                                                </AccordionSummary>
-                                                <AccordionDetails sx={{ bgcolor: '#FFEBE0' }}>
-                                                    {(step.output?.filter(x => x)?.length > 0) ? step.output.map((line, idx) => (
-                                                        <p key={'l-' + index + '-' + idx}>{line}</p>
-                                                    )) : <p>{renderMessage(step)}</p>}
-                                                </AccordionDetails>
-                                            </Accordion>
-                                        ))}
-                                    </AccordionDetails>
-                                </Accordion>
-                            </Grid>
-                            <Grid item xs={2}>
-                                <Button
-                                    // Do not change this. We use it to know which deployment to cancel
-                                    id={deploy.storeName + '_' + deploy.id}
-                                    variant="contained"
-                                    sx={{ height: '55px', width: '155px' }}
-                                    disabled={
-                                        deploy.status.toUpperCase() !== 'INITIAL' && deploy.status.toUpperCase() !== 'PENDING'
-                                    }
-                                    onClick={handleClickOpen}
+            <DataGrid
+                loading={loading}
+                rows={data}
+                columns={columns}
+                initialState={{
+                    sorting: {
+                        sortModel: [{ field: 'Timestamp', sort: 'desc' }]
+                    },
+                    pagination: { paginationModel: { pageSize: pageSize } },
+                }}
+                rowCount={totalItems}
+                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter, sort) }}
+                pageSizeOptions={[25, 50, 100]}
+                paginationMode="server"
+                checkboxSelection={false}
+                rowSelection={false}
+                sortMode="server"
+                filterMode="server"
+                onFilterModelChange={onFilterChange}
+                onSortModelChange={onSortChange}
+                disableSelectionOnClick
+            />
+            {viewModal &&
+                <Modal
+                    open={viewModal}
+                    onClose={() => {
+                        setViewModal(false);
+                        setCurrentData(null)
+                    }}
+                >
+                    <Box sx={style}>
+                        <Box sx={{ display: 'flex', p: 2, justifyContent: 'space-between', borderBottom: 1, backgroundColor: '#bbdefb', alignItems: 'center' }}>
+                            <Typography>{currentData.package}</Typography>
+                            <IconButton onClick={() => {
+                                setViewModal(false);
+                                setCurrentData(null)
+                            }}> <HighlightOff /></IconButton>
+
+                        </Box>
+                        {currentData?.steps.map((step, index) => (
+                            <Accordion
+                                key={index}
+                                style={{ margin: '15px', backgroundColor: StatusColor(step.status) }}
+                            >
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls={'panel' + currentData.id + ':' + index + 'bh-content'}
+                                    id={'panel' + currentData.id + ':' + index + 'bh-header'}
                                 >
-                                    Cancel
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    ))
+                                    <Grid container spacing={3}>
+                                        <Grid item xs={1}>
+                                            {StatusBadge(step.status)}
+                                        </Grid>
+                                        <Grid item xs={4}>
+                                            <Typography sx={{ flexShrink: 0 }}>
+                                                {step.type === 'apply' ? step.command : step.type} --{' '}
+                                                {StepCommands(step)}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                </AccordionSummary>
+                                <AccordionDetails sx={{ bgcolor: '#FFEBE0' }}>
+                                    {(step.output?.filter(x => x)?.length > 0) ? step.output.map((line, idx) => (
+                                        <p key={'l-' + index + '-' + idx}>{line}</p>
+                                    )) : <p>{renderMessage(step)}</p>}
+                                </AccordionDetails>
+                            </Accordion>
+                        ))}
+                    </Box>
+                </Modal>
             }
         </div>
     );

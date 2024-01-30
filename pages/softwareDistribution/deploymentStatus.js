@@ -73,7 +73,6 @@ function PackageFilterItemsDisplay({ selectedRetailer, packageFilterItems, setPa
     } else {
         return null
     }
-
 }
 
 export default function DeploymentStatus() {
@@ -139,7 +138,7 @@ export default function DeploymentStatus() {
                     Deployment Status
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'row', paddingTop: 2, justifyContent: 'space-around' }}>
-                    <TextField value={storeFilter} onChange={changeStoreFilter} label="Store/Agent Filter" />
+                    {/* <TextField value={storeFilter} onChange={changeStoreFilter} label="Store/Agent Filter" />
                     <FormControl sx={{ minWidth: 120 }}>
                         <InputLabel sx={{ width: 200 }} id="status-input-label">Status Filter</InputLabel>
                         <Select
@@ -162,7 +161,7 @@ export default function DeploymentStatus() {
                         selectedRetailer={context.selectedRetailer}
                         packageFilterItems={packageFilterItems}
                         packageFilter={packageFilter}
-                        setPackageFilter={setPackageFilter} />
+                        setPackageFilter={setPackageFilter} /> */}
                 </Box>
                 <DeployTable
                     selectedRetailer={context.selectedRetailer}
