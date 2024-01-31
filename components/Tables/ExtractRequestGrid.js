@@ -7,7 +7,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import { useDebounce } from '../../src/hooks/useDebounce';
 
@@ -376,15 +376,15 @@ export default function ExtractRequestGrid(props) {
             return null;
         }
     };
-
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     return (
         <Box sx={{ height: 400, width: '100%' }}>
             <DataGrid
                 loading={loading}
                 rows={agentsList}
                 columns={[
-                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },
-                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true, width: 200 },
+                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, filterOperators: stringOperators, width: 200 },
+                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true,filterOperators: stringOperators, width: 200 },
                     {
                         field: 'skyButtonRenderer',
                         headerName: 'SKY Logs',

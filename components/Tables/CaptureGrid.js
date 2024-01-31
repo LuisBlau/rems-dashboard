@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import React, { useContext, useEffect, useState } from 'react';
 import UserContext from '../../pages/UserContext';
 import axios from 'axios';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
@@ -102,34 +102,39 @@ export default function CaptureGrid() {
                 })
         }
     }
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     const columns = [
         {
             field: 'Store',
             headerName: 'Store',
             flex: 1,
             sortable: true,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: 'CaptureType',
             headerName: 'Capture Type',
             sortable: false,
             flex: 1,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: 'Agent',
             headerName: 'Agent',
             flex: 1,
             sortable: false,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: 'CaptureSource',
             headerName: 'Capture Source',
             sortable: false,
             flex: 1,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: 'Timestamp',
@@ -137,6 +142,7 @@ export default function CaptureGrid() {
             flex: 1,
             type: 'dateTime',
             sortable: true,
+            filterable : false, 
             valueGetter: (params) => {
                 var dateString = _.replace(params.value, /-/g, '/') // firefox doesn't like '-' in date strings
                 return new Date(dateString)

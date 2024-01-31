@@ -6,7 +6,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 
 const successHideDuration = 1500;
@@ -103,7 +103,7 @@ export default function RemsDataCaptureGrid(props) {
             return null;
         }
     };
-
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     return (
         <Box sx={{ height: 300, width: '100%' }}>
             <Box>
@@ -139,7 +139,7 @@ export default function RemsDataCaptureGrid(props) {
                 loading={loading}
                 rows={servers}
                 columns={[
-                    { field: 'remsId', headerName: 'REMS Id', sortable: true, filterable: true, width: 400, valueGetter: (params) => params.row.remsId !== undefined ? params.row.remsId : 'Not Reported' },
+                    { field: 'remsId', headerName: 'REMS Id', sortable: true, filterable: true, filterOperators: stringOperators, width: 400, valueGetter: (params) => params.row.remsId !== undefined ? params.row.remsId : 'Not Reported' },
                     {
                         field: 'remsDataCaptureButtonRenderer',
                         headerName: 'REMS Data Capture',
