@@ -17,7 +17,7 @@ const classes = {
 
 const Root = styled('main')(({ theme }) => ({
     [`&.${classes.content}`]: {
-        height: '80vh',
+        height: '85vh',
         overflow: 'auto',
         display: 'flex',
         flexDirection: 'column'

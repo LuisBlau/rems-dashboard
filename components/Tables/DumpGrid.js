@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators} from '@mui/x-data-grid';
 import axios from 'axios';
 import UserContext from '../../pages/UserContext';
 import { Box } from '@mui/material';
@@ -93,7 +93,7 @@ export default function DumpGrid({ store, height }) {
             }
         }
     }
-
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     const columns = [
         {
             field: 'Timestamp',
@@ -109,20 +109,23 @@ export default function DumpGrid({ store, height }) {
             field: "Store",
             flex: 2,
             sortable: true,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: "System",
             flex: 2,
             sortable: false,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
 
         },
         {
             field: "Reason",
             flex: 8,
             sortable: false,
-            filterable: true
+            filterable: true, 
+            filterOperators: stringOperators
         },
         {
             field: "SBreqLink",

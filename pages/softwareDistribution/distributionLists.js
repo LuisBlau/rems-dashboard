@@ -20,12 +20,13 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
-import { Alert, AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, FormControlLabel, InputLabel, OutlinedInput, Paper } from '@mui/material';
+import { Alert, AlertTitle, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControl, FormControlLabel, InputLabel, OutlinedInput, Pagination, Paper } from '@mui/material';
 import Papa from 'papaparse';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AgentSelectFilter from '../../components/PageFilterComponents/AgentSelectFilter';
 import _ from 'lodash';
 import UserContext from '../../pages/UserContext'
+import { DataGrid } from '@mui/x-data-grid';
 
 const PREFIX = 'distributionLists';
 
@@ -89,7 +90,11 @@ export default function DistributionLists() {
     const [chooseFileDisabler, setChooseFileDisabler] = useState(true);
     const [selectedAgentsNames, setSelectedAgentsNames] = useState([]);
     const context = useContext(UserContext)
-    const [dcOpen, dcSetOpen] = useState(false)
+    const [dcOpen, dcSetOpen] = useState(false);
+    const [page, setPage] = useState(0);
+    const [totalPage, setTotalPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(50);
 
     useEffect(() => {
         if (Object.keys(selectedExistingList).length > 0) {
@@ -108,74 +113,75 @@ export default function DistributionLists() {
 
     useEffect(() => {
         if (context.selectedRetailer) {
-            if (context.selectedRetailerIsTenant !== null) {
-                if (context.selectedRetailerIsTenant === true) {
-                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then((resp) => setExistingLists(resp.data));
-                    axios.get(`/api/registers/versions?retailerId=${context.selectedRetailerParentRemsServerId}&tenantId=${context.selectedRetailer}`).then(function (res) {
-                        const data = [];
-                        for (const soft of Object.keys(res.data)) {
-                            const entry = { children: [], label: soft, value: soft };
-                            for (const ver of res.data[soft]) {
-                                entry.children.push({
-                                    label: ver,
-                                    value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
-                                });
-                            }
-                            data.push(entry);
-                        }
-                        setVersionData(data);
-                    });
-
-                    // gets all agents for the selected retailer
-                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
-                        const data = [];
-                        res.data.forEach((item) => {
-                            // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
-                            if (
-                                availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
-                                undefined
-                            ) {
-                                data.push({ isChecked: false, agent: item, storeName: item.storeName });
-                            }
-                        });
-                        setAvailableAgents(data);
-                    });
-                } else {
-                    axios.get(`/api/REMS/store-list?retailerId=${context.selectedRetailer}`).then((resp) => setExistingLists(resp.data));
-                    // gets versions of software(s) associated with agents that are assigned to the selected retailer
-                    axios.get(`/api/registers/versions?retailerId=${context.selectedRetailer}`).then(function (res) {
-                        const data = [];
-                        for (const soft of Object.keys(res.data)) {
-                            const entry = { children: [], label: soft, value: soft };
-                            for (const ver of res.data[soft]) {
-                                entry.children.push({
-                                    label: ver,
-                                    value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
-                                });
-                            }
-                            data.push(entry);
-                        }
-                        setVersionData(data);
-                    });
-
-                    // gets all agents for the selected retailer
-                    axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
-                        const data = [];
-                        res.data.forEach((item) => {
-                            // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
-                            if (
-                                availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
-                                undefined
-                            ) {
-                                data.push({ isChecked: false, agent: item, storeName: item.storeName });
-                            }
-                        });
-                        setAvailableAgents(data);
-                    });
-                }
-            }
+            getAgentApiCall();
+            getStoreAgentList();
         }
     }, [context])
+
+    function getStoreAgentList() {
+        let params = {
+            retailerId: context?.selectedRetailer,
+        };
+
+        if (context.selectedRetailerIsTenant === true && context?.selectedRetailerParentRemsServerId) {
+            params = {
+                retailerId: context?.selectedRetailerParentRemsServerId,
+                tenantId: context?.selectedRetailer,
+            };
+        }
+        axios.get(`/api/REMS/store-list`, { params }).then((resp) => setExistingLists(resp.data));
+        axios.get(`/api/registers/versions`, { params }).then(function (res) {
+            const data = [];
+            for (const soft of Object.keys(res.data)) {
+                const entry = { children: [], label: soft, value: soft };
+                for (const ver of res.data[soft]) {
+                    entry.children.push({
+                        label: ver,
+                        value: 'agentSelectSoftware: ' + soft + ' agentSelectVersion: ' + ver,
+                    });
+                }
+                data.push(entry);
+            }
+            setVersionData(data);
+        });
+    }
+
+
+    function getAgentApiCall(pages = 0, limit = 100) {
+        let params = {
+            retailer: context?.selectedRetailer,
+            page: pages,
+            limit: limit
+        };
+
+        if (context.selectedRetailerIsTenant === true && context?.selectedRetailerParentRemsServerId) {
+            // gets all agents for the selected retailer
+            params = {
+                retailer: context?.selectedRetailerParentRemsServerId,
+                tenant: context?.selectedRetailer,
+                page: pages,
+                limit: limit
+            }
+        }
+
+        // gets all agents for the selected retailer
+        axios.get(`/api/REMS/agents?`, { params }).then(function (res) {
+            const data = [];
+            setTotalPage(res.data.pagination.totalPage);
+            setTotalItems(res.data.pagination.totalItem);
+            res.data.items.forEach((item) => {
+                // only add them if they aren't already in the list (applicable in store-only view, so we don't get duplicates)
+                if (
+                    availableAgents.find((x) => x.agentName === item.agentName && x.storeName === item.storeName) ===
+                    undefined
+                ) {
+                    data.push({ isChecked: false, agent: item, storeName: item.storeName });
+                }
+            }); 
+            setAvailableAgents(data);
+        });
+
+    }
 
     const onFileChange = (event) => {
         const inputFile = event.target.files[0];
@@ -204,6 +210,23 @@ export default function DistributionLists() {
             return availableAgents;
         }
     }
+    
+    const columns = [
+        //{ field: 'id', headerName: 'ID', width: 90 },
+        {
+            field: 'agentName',
+            headerName: 'Agent Name',
+            width: 150,
+            align: 'left',
+            headerAlign: 'center',
+        },
+    ];
+
+    const rows = availableAgents?.map((agent, index) => ({
+        id: index,
+        storeName: agent.storeName,
+    }));
+
 
     useEffect(() => {
         const agentNamesArray = [];
@@ -737,6 +760,7 @@ export default function DistributionLists() {
                                 (i) => !_.includes(selectedAgentsNames, i.agent.agentName)
                             )
                         )}
+                    <Pagination count={totalItems} onChange={(e, p) =>  { setPage(p); getAgentApiCall(p -1) }} />
                     </Grid>
                     <Grid item xs={1}>
                         <Grid container direction="column" alignItems="center">

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useContext } from 'react';
 import UserContext from '../../pages/UserContext';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import DownloadAzureFileButton from '../Buttons/DownloadAzureFileButton';
 import RequestLinkButton from '../Buttons/RequestLinkButton';
@@ -115,7 +115,7 @@ export default function ExtractGrid({ store, height }) {
             }
         }
     }
-
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     const columns = [
         {
             field: 'Timestamp',
@@ -124,10 +124,10 @@ export default function ExtractGrid({ store, height }) {
             filterable: false,
             flex: 1,
         },
-        { field: 'Store', headerName: 'Store', sortable: true, filter: true, flex: 1 },
-        { field: 'RegNum', headerName: 'RegNum', sortable: true, filter: true, flex: 1 },
-        { field: 'ExtractType', headerName: 'ExtractType', sortable: false, filterable: true, flex: 1 },
-        { field: 'State', headerName: 'State', sortable: false, filterable: true, flex: 1 },
+        { field: 'Store', headerName: 'Store', sortable: true, filter: true, flex: 1, filterOperators: stringOperators },
+        { field: 'RegNum', headerName: 'RegNum', sortable: true, filter: true, flex: 1,  filterOperators: stringOperators },
+        { field: 'ExtractType', headerName: 'ExtractType', sortable: false, filterable: true,  filterOperators: stringOperators, flex: 1 },
+        { field: 'State', headerName: 'State', sortable: false, filterable: true,  filterOperators: stringOperators, flex: 1 },
         {
             field: 'SBreqLink',
             headerName: 'Azure',

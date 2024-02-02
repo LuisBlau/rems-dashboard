@@ -329,7 +329,7 @@ export default function ScheduleDeployment() {
         // gets useful agent/store info for the selected retailer
         if (context.selectedRetailerIsTenant === false) {
             await axios.get('/api/REMS/agents?retailer=' + selectedRetailer).then(function (res) {
-                res.data.forEach((element) => {
+                res?.data?.items?.forEach((element) => {
                     usefulInformation.push({
                         storeAgentCombo: element.storeName + ':' + element.agentName,
                         versions: element.versions,
@@ -341,7 +341,7 @@ export default function ScheduleDeployment() {
             });
         } else {
             await axios.get('/api/REMS/agents?retailer=' + context.selectedRetailerParentRemsServerId + '&tenantId=' + selectedRetailer).then(function (res) {
-                res.data.forEach((element) => {
+                res?.data?.items?.forEach((element) => {
                     usefulInformation.push({
                         storeAgentCombo: element.storeName + ':' + element.agentName,
                         versions: element.versions,

@@ -1,14 +1,15 @@
 /* eslint-disable react/prop-types */
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import UserContext from '../../pages/UserContext';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, getGridStringOperators } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import { useDebounce } from '../../src/hooks/useDebounce';
 
 const PREFIX = 'DumpGrid';
 
@@ -54,23 +55,71 @@ export default function ExtractRequestGrid(props) {
     const [agentsList, setAgentsList] = useState([])
     const context = useContext(UserContext)
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [pageSize, setPageSize] = useState(50);
+
+    const [filter, setFilter] = useState(null);
+    const [sort, setSort] = useState({ Timestamp: -1 })
+    const filterQuery = useDebounce(filter, 3000)
+
+    const onFilterChange = useCallback((filterModel) => {
+        const filter = filterModel.items?.[0];
+        if (filter) {
+            const f = { [filter.field]: filter.value };
+            setFilter(f);
+        }
+    }, []);
+
+    const onSortChange = useCallback((model) => {
+        if (model.length > 0) {
+            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
+            setSort(localSort)
+        }
+    }, []);
+
+    useEffect(() => {
+        if (filterQuery || sort) {
+            getAgentApiCall(page, pageSize, filterQuery, sort)
+        }
+    }, [filterQuery, sort])
 
     useEffect(() => {
         setLoading(true)
         if (context.selectedRetailer) {
-            if (context.selectedRetailerIsTenant === false) {
-                axios.get(`/api/REMS/agents?retailer=${context.selectedRetailer}`).then(function (res) {
-                    setAgents(res.data)
-                    setLoading(false)
-                })
-            } else if (context.selectedRetailerParentRemsServerId) {
-                axios.get(`/api/REMS/agents?retailer=${context.selectedRetailerParentRemsServerId}&tenant=${context.selectedRetailer}`).then(function (res) {
-                    setAgents(res.data)
-                    setLoading(false)
-                })
-            }
+            getAgentApiCall(page, pageSize, filter, sort)
         }
     }, [context])
+
+
+    function getAgentApiCall(pages = 0, limit = 100, filter, sort) {
+        let params = {
+            retailer: context?.selectedRetailer,
+            page: pages,
+            limit: limit,
+            filter,
+            sort
+        };
+
+        if (context.selectedRetailerIsTenant === true && context?.selectedRetailerParentRemsServerId) {
+            // gets all agents for the selected retailer
+            params = {
+                retailer: context?.selectedRetailerParentRemsServerId,
+                tenant: context?.selectedRetailer,
+                page: pages,
+                limit: limit,
+                filter,
+                sort
+            }
+        }
+
+        axios.get(`/api/REMS/agents`, { params }).then(function (res) {
+            setLoading(false)
+            setTotalItems(res.data.pagination.totalItem);
+            setAgents(res.data.items);
+        });
+
+    }
 
     useEffect(() => {
         const list = [];
@@ -88,18 +137,6 @@ export default function ExtractRequestGrid(props) {
                 hasChec: false,
             };
 
-            // Checking to see if 'CHEC' is mentioned in the versions list.
-            // If it is, I assume that we can request a chec capture
-            // Probably not right so should check with Brent
-            // if (x.versions !== undefined) {
-            //     for (let i = 0; i < x.versions.length; i++) {
-            //         const objKeys = Object.values(x.status[i]);
-            //         if (objKeys[1] === 'Toshiba Checkout Environment for Consumer-Service Lane') {
-            //             obj.hasChec = true;
-            //             break;
-            //         }
-            //     }
-            // }
             if (x.status !== undefined) {
                 if (x.status.hasChec !== undefined) {
                     obj.hasChec = x.status.hasChec.configured
@@ -339,61 +376,83 @@ export default function ExtractRequestGrid(props) {
             return null;
         }
     };
-
+    const stringOperators = getGridStringOperators().filter((op => ['contains'].includes(op.value)));
     return (
         <Box sx={{ height: 400, width: '100%' }}>
             <DataGrid
                 loading={loading}
                 rows={agentsList}
                 columns={[
-                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, width: 200 },
-                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true, width: 200 },
+                    { field: 'storeName', headerName: 'Store Name', sortable: true, filterable: true, filterOperators: stringOperators, width: 200 },
+                    { field: 'agent', headerName: 'Agent', sortable: true, filterable: true,filterOperators: stringOperators, width: 200 },
                     {
                         field: 'skyButtonRenderer',
                         headerName: 'SKY Logs',
                         renderCell: skyButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                     {
                         field: 'rmaButtonRenderer',
                         headerName: 'RMA Logs',
                         renderCell: rmaButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                     {
                         field: 'eleraButtonRenderer',
                         headerName: 'Elera Client Logs',
                         renderCell: eleraButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                     {
                         field: 'eleraServicesButtonRenderer',
                         headerName: 'Elera Services Logs',
                         renderCell: eleraServicesButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                     {
                         field: 'checButtonRenderer',
                         headerName: 'CHEC Extract',
                         renderCell: checButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                     {
                         field: 'checLogsButtonRenderer',
                         headerName: 'CHEC Install Logs',
                         renderCell: checLogsButtonRenderer,
                         width: 150,
+                        sortable: false,
+                        filterable: false
                     },
                 ]}
                 initialState={{
-                    pagination: { paginationModel: { pageSize: 10 } },
+                    pagination: { paginationModel: { pageSize } },
                 }}
-                pageSizeOptions={[5, 10, 15]}
+                paginationModel={{
+                    page: page,
+                    pageSize: pageSize
+                }}
+                pageSizeOptions={[25, 50, 100]}
                 checkboxSelection={false}
                 disableSelectionOnClick
                 onGridReady={sortGrid}
+                onPaginationModelChange={({ page, pageSize }) => { setPageSize(pageSize); setPage(page); getAgentApiCall(page, pageSize, filter, sort) }}
+                paginationMode="server"
+                rowCount={totalItems}
+                sortMode="server"
+                filterMode="server"
+                onFilterModelChange={onFilterChange}
+                onSortModelChange={onSortChange}
             />
-
 
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

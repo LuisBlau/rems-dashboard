@@ -57,13 +57,12 @@ export default function StoreOverview() {
     const [scoCount, setScoCount] = useState(0);
     const [downAgentCount, setDownAgentCount] = useState(0);
     const [screenShotEnable, setScreenShotEnable] = useState(false);
-    const [userHasAccess, setUserHasAccess] = useState(true)
+    const [userHasAccess, setUserHasAccess] = useState(false)
     const [elera, setElera] = useState({});
     const handleAlertsConfirmationOpen = () => setAlertsConfirmationOpen(true);
     const context = useContext(UserContext)
     const [masterAgent, setMasterAgent] = useState(null);
     const [retailerConfig, setRetailerConfig] = useState([]);
-
     const router = useRouter();
 
     const eleraContainers = ["elera-pay-iss-platform", "elera-nginx", "elera-admin-ui", "elera-client", "elera-platform", "elera-data-loader", "tgcp_platform_nginx", "tgcp_platform", "tgcp_mongo", "tgcp_admin-ui", "tgcp_tcui", "tgcp_rabbitmq"]
@@ -114,16 +113,10 @@ export default function StoreOverview() {
                 if (context.userRetailers.length > 0) {
                     const fetchStoreInfo = () => {
                         function getStoreAgents() {
-                            // TODO: We should probably do some authentication in the back-end and not let people through here without proper assignments...
-                            // for now, I'll do this: 
-                            let userHasRetailer = true
                             if (params.get('tenant_id') !== null) {
-                                userHasRetailer = false
-                                context.userRetailers.forEach(retailer => {
-                                    if (params.get('tenant_id') === retailer.retailer_id) {
-                                        userHasRetailer = true
-                                    }
-                                });
+                                const config = context.userRetailers.find(x => x.retailer_id === context.selectedRetailer)?.configuration;
+                                const userHasRetailer = config.pas_subscription_tier === 'advanced' || context.userRoles.includes('toshibaAdmin');
+
                                 setUserHasAccess(userHasRetailer)
                                 if (userHasRetailer) {
                                     axios.get(`/api/REMS/agentsForStore?storeName=${params.get('storeName')}&retailerId=${params.get('retailer_id')}&tenantId=${params.get('tenant_id')}`).then((resp) => {
@@ -192,12 +185,8 @@ export default function StoreOverview() {
                                     });
                                 }
                             } else {
-                                let userHasRetailer = false
-                                context.userRetailers.forEach(retailer => {
-                                    if (params.get('retailer_id') === retailer.retailer_id) {
-                                        userHasRetailer = true
-                                    }
-                                });
+                                const config = context.userRetailers.find(x => x.retailer_id === context.selectedRetailer)?.configuration;
+                                const userHasRetailer = config.pas_subscription_tier === 'advanced' || context.userRoles.includes('toshibaAdmin');
                                 setUserHasAccess(userHasRetailer)
 
                                 if (userHasRetailer) {
@@ -520,7 +509,7 @@ export default function StoreOverview() {
     } else {
         return (
             <Box sx={{ display: 'flex', height: '100vh', width: '100%', justifyContent: 'center', alignItems: 'center' }}>
-                <Typography variant='h2'>You don't have access to this retailer's information.</Typography>
+                <Typography variant='h2'>You don't have access to this information.</Typography>
             </Box>
         )
     }
