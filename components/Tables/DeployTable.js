@@ -2,48 +2,52 @@
 /* eslint-disable no-sequences */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useCallback } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-import Grid from '@mui/material/Grid';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogTitle from '@mui/material/DialogTitle';
-import Tooltip from '@mui/material/Tooltip';
-import WarningIcon from '@mui/icons-material/Warning';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
-import PendingIcon from '@mui/icons-material/Pending';
-import WatchLaterIcon from '@mui/icons-material/WatchLater';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import StartIcon from '@mui/icons-material/Start';
-import BusAlertIcon from '@mui/icons-material/BusAlert';
-import { useState } from 'react';
-import { useContext } from 'react';
+import {
+    CancelScheduleSend,
+    Cancel,
+    Warning,
+    Pending,
+    WatchLater,
+    CheckCircle,
+    KeyboardArrowDown,
+    KeyboardArrowUp,
+    Search,
+    Start,
+    HighlightOff,
+    ExpandMore,
+} from '@mui/icons-material';
+import {
+    Box,
+    IconButton,
+    Chip,
+    Grid,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    InputBase,
+    Typography,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogTitle,
+    Tooltip,
+    Collapse,
+    TablePagination,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableFooter,
+    TableHead,
+    TableRow,
+    TableSortLabel,
+    Paper
+} from '@mui/material';
+import { visuallyHidden } from '@mui/utils';
+import { debounce } from '@mui/material/utils';
 import UserContext from '../../pages/UserContext.js';
-import { useEffect } from 'react';
-import { Badge, Box, Chip, CircularProgress, IconButton, Modal } from '@mui/material';
-import { useDebounce } from '../../src/hooks/useDebounce';
-import { DataGrid } from '@mui/x-data-grid';
-import { Check, Delete, HighlightOff, Preview, Remove } from '@mui/icons-material';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 800,
-    height: 'calc(100vh - 200px)',
-    bgcolor: 'background.paper',
-    border: '1px solid #000',
-    //boxShadow: 24,
-    overflow: 'scroll',
-};
 
 function StatusBadge(status) {
     switch (status) {
@@ -51,38 +55,38 @@ function StatusBadge(status) {
         case 'Cancel':
             return (
                 <Tooltip title="Canceling">
-                    <CancelScheduleSendIcon />
+                    <CancelScheduleSend />
                 </Tooltip>
             );
         case 'cancelled':
         case 'Cancelled':
             return (
                 <Tooltip title="Cancelled">
-                    <CancelIcon />
+                    <Cancel />
                 </Tooltip>
             );
         case 'Failed':
             return (
                 <Tooltip title={'Failed'}>
-                    <WarningIcon />
+                    <Warning />
                 </Tooltip>
             );
         case 'InProgress':
             return (
                 <Tooltip title="In Progress">
-                    <PendingIcon />
+                    <Pending />
                 </Tooltip>
             );
         case 'Pending':
             return (
                 <Tooltip title="Pending">
-                    <WatchLaterIcon />
+                    <WatchLater />
                 </Tooltip>
             );
         case 'Staged':
             return (
                 <Tooltip title="Staged">
-                    <WatchLaterIcon />
+                    <WatchLater />
                 </Tooltip>
             );
         case 'Success':
@@ -90,14 +94,14 @@ function StatusBadge(status) {
         case 'Succeeded':
             return (
                 <Tooltip title="Success">
-                    <CheckCircleIcon />
+                    <CheckCircle />
                 </Tooltip>
             );
         case 'initial':
         case 'Initial':
             return (
                 <Tooltip title="Initial">
-                    <StartIcon />
+                    <Start />
                 </Tooltip>
             );
         default:
@@ -109,21 +113,21 @@ function StatusColor(status) {
     switch (status) {
         case 'cancel':
         case 'Cancel':
-            return '#F2FAAB';
+            // return '#F2FAAB';
         case 'cancelled':
         case 'Cancelled':
-            return '#FACAA4';
+            return '#E6E6E7';
         case 'Failed':
-            return '#FCB3B1';
+            return '#F57C62';
         case 'InProgress':
             return '#B1E0FC';
         case 'Pending':
         case 'Staged':
-            return '#D6EEFD';
+            return '#B7DBFF';
         case 'Success':
         // TODO: remove this after REMS CHANGE.
         case 'Succeeded':
-            return '#CDFEB6';
+            return '#9DC982';
         case 'initial':
         case 'Initial':
             return '#FAF9F6';
@@ -132,7 +136,32 @@ function StatusColor(status) {
     }
 }
 
-
+function StatusSummaryColor(status) {
+    switch (status) {
+        case 'cancel':
+        case 'Cancel':
+            return '#F2FAAB';
+        case 'cancelled':
+        case 'Cancelled':
+            return '#E6E6E7';
+        case 'Failed':
+            return '#ffaf9e';
+        case 'InProgress':
+            return '#B1E0FC';
+        case 'Pending':
+        case 'Staged':
+            return '#d5eaff';
+        case 'Success':
+        // TODO: remove this after REMS CHANGE.
+        case 'Succeeded':
+            return '#DEEDD5';
+        case 'initial':
+        case 'Initial':
+            return '#FAF9F6';
+        default:
+            return '#FAF9F6';
+    }
+}
 
 function StepCommands(step) {
     switch (step.type) {
@@ -148,12 +177,211 @@ function StepCommands(step) {
     return '';
 }
 
+const headCells = [
+    {
+        id: 'id',
+        disablePadding: true,
+        sortable: false,
+        filterable: false,
+        label: '',
+    },
+    {
+        id: 'storeName',
+        disablePadding: false,
+        sortable: true,
+        filterable: true,
+        label: 'Store',
+    },
+    {
+        id: 'package',
+        disablePadding: false,
+        sortable: false,
+        filterable: true,
+        label: 'Configuration',
+    },
+    {
+        id: 'status',
+        disablePadding: false,
+        sortable: false,
+        filterable: false,
+        label: 'Status',
+    },
+    {
+        id: 'apply_time',
+        disablePadding: false,
+        sortable: true,
+        filterable: false,
+        label: 'Apply Time',
+    },
+    {
+        id: 'action',
+        headerAlign: 'center',
+        disablePadding: true,
+        sortable: false,
+        filterable: false,
+        label: '',
+    },
+    {
+        id: 'expand',
+        headerAlign: 'center',
+        disablePadding: true,
+        sortable: false,
+        filterable: false,
+        label: '',
+    },
+];
+const EnhancedTableHead = ({ order, orderBy, onRequestSort }) => {
+    const createSortHandler = (property) => (event) => {
+        onRequestSort(event, property);
+    };
+
+    return (
+        <TableHead sx={{ backgroundColor: '#EDEDF0' }}>
+            <TableRow>
+                {headCells.map((headCell) => (
+                    <TableCell
+                        key={headCell.id}
+                        align={headCell.headerAlign ?? 'left'}
+                        padding={headCell.disablePadding ? 'none' : 'normal'}
+                        sortDirection={orderBy === headCell.id ? order : false}
+                    >
+                        <TableSortLabel
+                            active={orderBy === headCell.id}
+                            direction={orderBy === headCell.id ? order : 'asc'}
+                            onClick={createSortHandler(headCell.id)}
+                        >
+                            {headCell.label}
+                            {orderBy === headCell.id ? (
+                                <Box component="span" sx={visuallyHidden}>
+                                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                                </Box>
+                            ) : null}
+                        </TableSortLabel>
+                    </TableCell>
+                ))}
+            </TableRow>
+        </TableHead>
+    );
+};
+
+const ExpandableTableRow = ({ children, status, /* detailMode,  showModal,*/ expandComponent, ...otherProps }) => {
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    return (
+        <>
+            <TableRow {...otherProps} sx={{backgroundColor: ['cancel', 'Cancel', 'cancelled', 'Cancelled'].includes(status) ? '#F3F3F3' : null}}>
+                {children}
+                <TableCell padding="checkbox">
+                    <IconButton onClick={() => { setIsExpanded(!isExpanded); /* detailMode && showModal() */ }}>
+                        {isExpanded ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                    </IconButton>
+                </TableCell>
+            </TableRow>
+            <TableRow>
+                <TableCell padding="none" sx={{ backgroundColor: StatusColor(status), height: 0 }} />
+                <TableCell colSpan="6" sx={{ padding: 0, backgroundColor: StatusColor(status) }}>
+                    <Collapse in={isExpanded/*  && !detailMode */} timeout="auto" unmountOnExit>
+                        {expandComponent}
+                    </Collapse>
+                </TableCell>
+            </TableRow>
+        </>
+    );
+};
+
 export function DeployTable(props) {
     const [open, setOpen] = useState(false);
-    const context = useContext(UserContext)
-    const [data, setData] = useState([])
-    const [viewModal, setViewModal] = useState(false)
-    const [currentData, setCurrentData] = useState([])
+    const context = useContext(UserContext);
+    const [data, setData] = useState([]);
+    const [currentData, setCurrentData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [order, setOrder] = React.useState('asc');
+    const [orderBy, setOrderBy] = React.useState(null);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+    const [searchText, setSearchText] = React.useState('');
+
+    const functionApiCall = (page, perPage, searchText, orderBy, order, callback) => {
+        let params = {
+            orderBy,
+            order,
+            page,
+            limit: perPage,
+            search: searchText,
+        };
+        if (context.selectedRetailerIsTenant === false) {
+            params.retailerId = context.selectedRetailer;
+        } else {
+            if (context.selectedRetailerParentRemsServerId) params.retailerId = context.selectedRetailerParentRemsServerId;
+            params.tenantId = context.selectedRetailer;
+        }
+        axios.get(`api/REMS/deploys`, { params }).then(function (response) {
+            callback(response.data);
+        })
+    };
+
+    useEffect(() => {
+        setLoading(true);
+        functionApiCall(page, rowsPerPage, searchText, orderBy, order, (res) => {
+            setTotalItems(res?.counts[0]?.totalItem);
+            setData(res?.items);
+            setLoading(false);
+        });
+    }, [page, rowsPerPage, orderBy, order]);
+
+    useEffect(() => {
+        if (context.selectedRetailerIsTenant !== null) {
+            setLoading(true);
+            functionApiCall(page, rowsPerPage, searchText, orderBy, order, (res) => {
+                setTotalItems(res?.counts[0]?.totalItem);
+                setData(res?.items);
+                setLoading(false);
+            });
+        }
+    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant]);
+
+    const fetch = React.useMemo(
+        () =>
+            debounce((searchText, callback) => {
+                setLoading(true);
+                functionApiCall(page, rowsPerPage, searchText, orderBy, order, callback);
+            }, 400),
+        [],
+    );
+
+    React.useEffect(() => {
+        let active = true;
+        fetch(searchText, (res) => {
+            if (active) {
+                setTotalItems(res?.counts[0]?.totalItem);
+                setData(res?.items);
+                setLoading(false);
+                setPage(0);
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, [searchText, fetch]);
+
+    const handleChangeSearchText = (text) => {
+        setSearchText(text);
+    };
+
+    const handleRequestSort = (event, property) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
     const handleClose = () => {
         setOpen(false);
@@ -167,10 +395,9 @@ export function DeployTable(props) {
         const NOT_MODIFIED = 304;
         const OK = 200;
 
-        const deployInfo = currentData._id.split('_');
         const deployUpdate = {
-            storeName: deployInfo[0],
-            id: deployInfo[1],
+            storeName: currentData.storeName,
+            id: currentData.id,
         };
 
         let filters = `retailerId=${context.selectedRetailer}`
@@ -181,7 +408,6 @@ export function DeployTable(props) {
             .then((response) => {
                 setOpen(false);
                 console.log('cancel response : ', response);
-                // This worked so reload the page to show the new status.
                 window.location.reload(true);
             })
             .catch((error) => {
@@ -213,146 +439,21 @@ export function DeployTable(props) {
         return '';
     }
 
-    const [loading, setLoading] = useState(true)
-    const [page, setPage] = useState(0);
-    const [totalItems, setTotalItems] = useState(0);
-    const [pageSize, setPageSize] = useState(100);
-    const [filter, setFilter] = useState(null);
-    const [sort, setSort] = useState({ Timestamp: -1 })
-    const filterQuery = useDebounce(filter, 3000)
-
-    const onFilterChange = useCallback((filterModel) => {
-        const filter = filterModel.items?.[0];
-        if (filter) {
-            const f = { [filter.field]: filter.value };
-            setFilter(f);
-        }
-    }, []);
-
-    const onSortChange = useCallback((model) => {
-        if (model.length > 0) {
-            let localSort = { [model[0].field]: model[0].sort === 'asc' ? 1 : -1 }
-            setSort(localSort)
-        }
-    }, []);
-
-    useEffect(() => {
-        if (filterQuery || sort) {
-            functionApiCall(page, pageSize, filterQuery, sort)
-        }
-    }, [filterQuery, sort])
-
-    useEffect(() => {
-
-        if (context.selectedRetailerIsTenant !== null) {
-            functionApiCall(page, pageSize, filter, sort);
-        }
-    }, [context.selectedRetailer, context.selectedRetailerParentRemsServerId, context.selectedRetailerIsTenant])
-
-    const functionApiCall = (page, pageSize, filter, sort = {}) => {
-        setLoading(true);
-        let params = {
-            filter,
-            sort,
-            page,
-            limit: pageSize,
-            store: props.storeFilter,
-            package: props.packageFilter,
-            records: props.maxRecords,
-            status: props.statusFilter,
-        }
-        if (context.selectedRetailerIsTenant === false) {
-            params.retailerId = context.selectedRetailer;
-        } else {
-            if (context.selectedRetailerParentRemsServerId) params.retailerId = context.selectedRetailerParentRemsServerId;
-            params.tenantId = context.selectedRetailer;
-        }
-
-        axios.get(`/api/REMS/deploys`, { params }).then(function (response) {
-            setTotalItems(response.data.pagination.totalItem);
-            setData(response.data?.items)
-            setLoading(false)
-        })
-    }
-
-    const columns = [
-        {
-            field: 'id',
-            headerName: '',
-            headerAlign: 'center',
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => <Box sx={{ padding: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', backgroundColor: StatusColor(params.row.status) }}>{StatusBadge(params.row.status)}</Box>
-        },
-        {
-            field: 'storeName',
-            headerName: 'Store',
-            flex: 1,
-            sortable: true,
-            filterable: true
-        },
-        {
-            field: 'package',
-            headerName: 'Configuration',
-            sortable: false,
-            flex: 1,
-            filterable: true
-        },
-        {
-            field: 'status',
-            headerName: 'Status',
-            flex: 1,
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => <Chip label={params.value} sx={{ backgroundColor: StatusColor(params.value), width: "80%" }} variant="outlined" />
-        },
-        {
-            field: 'apply_time',
-            headerName: 'Apply Time',
-            flex: 1,
-            sortable: true,
-        },
-        {
-            field: '_id',
-            headerName: 'Action',
-            headerAlign: 'center',
-            sortable: false,
-            filterable: false,
-            width: 150,
-            renderCell: (params) => {
-                return (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-
-                        <Button
-                            disabled={
-                                params.row.status.toUpperCase() !== 'INITIAL' && params.row.status.toUpperCase() !== 'PENDING'
-                            }
-                            onClick={() => {
-                                setOpen(true);
-                                setCurrentData(params.row);
-                            }}
-                            variant="outlined"
-                            sx={{ background : '#e57373'}}
-                            startIcon={<HighlightOff />}
-                        />
-                        <Button
-                            onClick={() => {
-                                setViewModal(true);
-                                setCurrentData(params.row);
-                            }}
-                            variant="outlined"
-                            sx={{ background : '#81c784'}}
-                            startIcon={<Preview />}
-                        />
-                    </Box>
-                )
-            },
-        },
-    ];
-
-
     return (
         <div>
+            <Box pt={5} pl={3} pb={3} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Paper sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', maxWidth: 600, width: '100%', minWidth: 300, mr: 3 }}>
+                    <IconButton sx={{ p: '10px' }} aria-label="menu">
+                        <Search />
+                    </IconButton>
+                    <InputBase
+                        sx={{ ml: 1, flex: 1 }}
+                        placeholder="Search in Distribution"
+                        inputProps={{ 'aria-label': 'search in distribution' }}
+                        onChange={(event) => handleChangeSearchText(event.target.value)}
+                    />
+                </Paper>
+            </Box>
             <Dialog
                 open={open}
                 onClose={handleClose}
@@ -367,77 +468,114 @@ export function DeployTable(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <DataGrid
-                loading={loading}
-                rows={data}
-                columns={columns}
-                initialState={{
-                    sorting: {
-                        sortModel: [{ field: 'Timestamp', sort: 'desc' }]
-                    },
-                    pagination: { paginationModel: { pageSize: pageSize } },
-                }}
-                rowCount={totalItems}
-                onPaginationModelChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); functionApiCall(page, pageSize, filter, sort) }}
-                pageSizeOptions={[25, 50, 100]}
-                paginationMode="server"
-                checkboxSelection={false}
-                rowSelection={false}
-                sortMode="server"
-                filterMode="server"
-                onFilterModelChange={onFilterChange}
-                onSortModelChange={onSortChange}
-                disableSelectionOnClick
-            />
-            {viewModal &&
-                <Modal
-                    open={viewModal}
-                    onClose={() => {
-                        setViewModal(false);
-                        setCurrentData(null)
-                    }}
-                >
-                    <Box sx={style}>
-                        <Box sx={{ display: 'flex', p: 2, justifyContent: 'space-between', borderBottom: 1, backgroundColor: '#bbdefb', alignItems: 'center' }}>
-                            <Typography>{currentData.package}</Typography>
-                            <IconButton onClick={() => {
-                                setViewModal(false);
-                                setCurrentData(null)
-                            }}> <HighlightOff /></IconButton>
+            <Paper>
+                <TableContainer>
+                    <Table
+                        aria-labelledby="tableTitle"
+                        size={'medium'}
+                    >
+                        <EnhancedTableHead
+                            order={order}
+                            orderBy={orderBy}
+                            onRequestSort={handleRequestSort}
+                        />
+                        <TableBody>
+                            {data.map((row, index) => {
+                                const labelId = `enhanced-table-checkbox-${index}`;
 
-                        </Box>
-                        {currentData?.steps.map((step, index) => (
-                            <Accordion
-                                key={index}
-                                style={{ margin: '15px', backgroundColor: StatusColor(step.status) }}
-                            >
-                                <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls={'panel' + currentData.id + ':' + index + 'bh-content'}
-                                    id={'panel' + currentData.id + ':' + index + 'bh-header'}
-                                >
-                                    <Grid container spacing={3}>
-                                        <Grid item xs={1}>
-                                            {StatusBadge(step.status)}
-                                        </Grid>
-                                        <Grid item xs={4}>
-                                            <Typography sx={{ flexShrink: 0 }}>
-                                                {step.type === 'apply' ? step.command : step.type} --{' '}
-                                                {StepCommands(step)}
-                                            </Typography>
-                                        </Grid>
-                                    </Grid>
-                                </AccordionSummary>
-                                <AccordionDetails sx={{ bgcolor: '#FFEBE0' }}>
-                                    {(step.output?.filter(x => x)?.length > 0) ? step.output.map((line, idx) => (
-                                        <p key={'l-' + index + '-' + idx}>{line}</p>
-                                    )) : <p>{renderMessage(step)}</p>}
-                                </AccordionDetails>
-                            </Accordion>
-                        ))}
-                    </Box>
-                </Modal>
-            }
+                                return (
+                                    <ExpandableTableRow
+                                        hover
+                                        tabIndex={-1}
+                                        key={row.data._id}
+                                        status={row.data.status}
+                                        expandComponent={
+                                            <>
+                                                {row?.steps?.map((step, index) => (
+                                                    <Accordion
+                                                        key={index}
+                                                        sx={{ backgroundColor: StatusSummaryColor(step.status) }}
+                                                    >
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMore />}
+                                                            aria-controls={'panel' + row.data.id + ':' + index + 'bh-content'}
+                                                            id={'panel' + row.data.id + ':' + index + 'bh-header'}
+                                                        >
+                                                            <Grid container spacing={3}>
+                                                                <Grid item xs={1}>
+                                                                    {StatusBadge(step.status)}
+                                                                </Grid>
+                                                                <Grid item xs={4}>
+                                                                    <Typography sx={{ flexShrink: 0 }}>
+                                                                        {step.type === 'apply' ? step.command : step.type} --{' '}
+                                                                        {StepCommands(step)}
+                                                                    </Typography>
+                                                                </Grid>
+                                                            </Grid>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ bgcolor: '#FFFFFF', maxHeight: '250px', overflow: 'auto' }}>
+                                                            {(step.output?.filter(x => x)?.length > 0) ? step.output.map((line, idx) => (
+                                                                <p style={{ wordBreak: 'break-word' }} key={'l-' + index + '-' + idx}>{line}</p>
+                                                            )) : <p>{renderMessage(step)}</p>}
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                ))}
+                                            </>
+                                        }
+                                    >
+                                        <TableCell
+                                            component="th"
+                                            id={labelId}
+                                            sx={{ width: '100px' }}
+                                            scope="row"
+                                            padding='none'
+                                        >
+                                            <Box sx={{ padding: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', backgroundColor: StatusColor(row.data.status) }}>{StatusBadge(row.data.status)}</Box>
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ paddingY: 0 }}>{row.data.storeName}</TableCell>
+                                        <TableCell align="left" sx={{ paddingY: 0 }}>{row.data.package}</TableCell>
+                                        <TableCell align="left" sx={{ paddingY: 0 }}>
+                                            {
+                                                <Chip label={row.data.status === 'cancel' || row.data.status === 'Cancel' ? 'Cancelled' : row.data.status} sx={{ backgroundColor: StatusColor(row.data.status), width: "80%" }} variant="outlined" />
+                                            }
+                                        </TableCell>
+                                        <TableCell align="left" sx={{ paddingY: 0 }}>{row.data.apply_time}</TableCell>
+                                        <TableCell align="center" padding='none'>
+                                            <IconButton
+                                                disabled={row.data.status.toUpperCase() !== 'INITIAL' && row.data.status.toUpperCase() !== 'PENDING'}
+                                                onClick={() => {
+                                                    setOpen(true);
+                                                    setCurrentData(row);
+                                                }}
+                                            >
+                                                <HighlightOff />
+                                            </IconButton>
+                                        </TableCell>
+                                    </ExpandableTableRow>
+                                );
+                            })}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TablePagination
+                                    rowsPerPageOptions={[25, 50, 100]}
+                                    count={totalItems}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                    showFirstButton
+                                    showLastButton
+                                    labelRowsPerPage={'Per Page'}
+                                    labelDisplayedRows={({ from, to, count }) => {
+                                        return `${from}-${to} of ${count !== -1 ? `${count} Results` : `more than ${to}`}`;
+                                    }}
+                                />
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </TableContainer>
+            </Paper>
         </div>
     );
 }
